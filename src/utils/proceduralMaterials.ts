@@ -406,23 +406,103 @@ export function createAsphaltTexture(): THREE.CanvasTexture {
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
 
-  // Realistic sunlit slate-gray roadway pavement (not pitch black!)
-  ctx.fillStyle = '#475569';
+  // Realistic slate-charcoal asphalt roadway pavement with subtle lane wear gradient
+  const roadGrad = ctx.createLinearGradient(0, 0, 512, 0);
+  roadGrad.addColorStop(0.0, '#334155');
+  roadGrad.addColorStop(0.22, '#3b495e');
+  roadGrad.addColorStop(0.5, '#334155');
+  roadGrad.addColorStop(0.78, '#3b495e');
+  roadGrad.addColorStop(1.0, '#334155');
+  ctx.fillStyle = roadGrad;
   ctx.fillRect(0, 0, 512, 512);
 
-  // Fine stone aggregate pebble grain
-  for (let i = 0; i < 8500; i++) {
+  // Subtle asphalt roller compaction bands & weathered micro-tar seams
+  for (let y = 0; y < 512; y += 64) {
+    ctx.fillStyle = y % 128 === 0 ? 'rgba(15, 23, 42, 0.10)' : 'rgba(226, 232, 240, 0.04)';
+    ctx.fillRect(0, y, 512, 32);
+  }
+  ctx.strokeStyle = 'rgba(15, 23, 42, 0.28)';
+  ctx.lineWidth = 1.4;
+  for (let s = 0; s < 14; s++) {
+    const sx = 32 + Math.random() * 448;
+    const sy = Math.random() * 512;
+    const len = 35 + Math.random() * 90;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(sx + (Math.random() - 0.5) * 14, sy + len * 0.5, sx + (Math.random() - 0.5) * 8, sy + len);
+    ctx.stroke();
+  }
+
+  // High-density crushed granite & basalt aggregate pebble grain
+  for (let i = 0; i < 14000; i++) {
     const x = Math.random() * 512;
     const y = Math.random() * 512;
-    const v = 58 + Math.floor(Math.random() * 44);
-    ctx.fillStyle = `rgb(${v}, ${v + 5}, ${v + 12})`;
-    ctx.fillRect(x, y, 1.6, 1.6);
+    const v = 42 + Math.floor(Math.random() * 58);
+    ctx.fillStyle =
+      i % 7 === 0
+        ? 'rgba(226, 232, 240, 0.25)' // Quartz mineral glint
+        : `rgb(${v}, ${v + 5}, ${v + 12})`;
+    const sz = i % 5 === 0 ? 2.0 : 1.4;
+    ctx.fillRect(x, y, sz, sz);
   }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(8, 8);
+  tex.anisotropy = 8;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export function createTireTreadTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  // Deep vulcanized carbon-black rubber base
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Circumferential drainage channels (vertical bands across UV)
+  const channels = [96, 192, 320, 416];
+  channels.forEach((cx) => {
+    ctx.fillStyle = '#030712';
+    ctx.fillRect(cx - 8, 0, 16, 512);
+    ctx.fillStyle = '#1f2937';
+    ctx.fillRect(cx - 11, 0, 3, 512);
+    ctx.fillRect(cx + 8, 0, 3, 512);
+  });
+
+  // Heavy-duty lateral chevron tread blocks & siping grooves
+  const rows = 24;
+  const rowH = 512 / rows;
+  for (let r = 0; r < rows; r++) {
+    const y = r * rowH;
+    // Raised rubber tread lug highlight
+    ctx.fillStyle = r % 2 === 0 ? '#1e293b' : '#172033';
+    ctx.fillRect(12, y + 3, 72, rowH - 6);
+    ctx.fillRect(108, y + 2, 72, rowH - 5);
+    ctx.fillRect(204, y + 2, 104, rowH - 5);
+    ctx.fillRect(332, y + 2, 72, rowH - 5);
+    ctx.fillRect(428, y + 3, 72, rowH - 6);
+
+    // Diagonal siping groove cuts
+    ctx.strokeStyle = '#030712';
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(16, y + rowH * 0.2);
+    ctx.lineTo(84, y + rowH * 0.8);
+    ctx.moveTo(496, y + rowH * 0.2);
+    ctx.lineTo(428, y + rowH * 0.8);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 4);
   tex.anisotropy = 8;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;

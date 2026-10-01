@@ -70,6 +70,11 @@ import { ExplorerSheet } from './components/ExplorerSheet';
 import { WorldGuideModal } from './components/WorldGuideModal';
 import { CharacterEditorModal } from './components/CharacterEditorModal';
 import { City2GroqHubModal } from './components/City2GroqHubModal';
+import { AudioManager } from './audio/AudioManager';
+import {
+  AudioManagerPanel,
+  GameAudioQuickControls,
+} from './components/AudioManagerPanel';
 import {
   requestResidentChatWithFallback,
   resolveApiUrl,
@@ -457,6 +462,7 @@ export default function App() {
   const [isGamepadMode, setIsGamepadMode] = useState<boolean>(false);
   const [gamepadScreenRotation, setGamepadScreenRotation] = useState<0 | 90 | -90>(0);
   const [isControlsDrawerOpen, setIsControlsDrawerOpen] = useState<boolean>(false);
+  const [isAudioManagerOpen, setIsAudioManagerOpen] = useState<boolean>(false);
   const [isExplorerSheetOpen, setIsExplorerSheetOpen] = useState<boolean>(false);
   const [isAnalyzingExplorer, setIsAnalyzingExplorer] = useState<boolean>(false);
   const [lastAdvisorReply, setLastAdvisorReply] = useState<string | null>(null);
@@ -4332,6 +4338,15 @@ export default function App() {
   };
 
   const timePhase = getTimePhase(gameHour);
+
+  // Sync Weather & Time-of-Day states to the isolated Game Audio Manager
+  useEffect(() => {
+    AudioManager.setWeather(weather);
+  }, [weather]);
+
+  useEffect(() => {
+    AudioManager.setTimeOfDay(timePhase);
+  }, [timePhase]);
   const activeCityEvent = getActiveCityEvent(gameHour);
   const selectedCharacter = characters.find((c) => c.id === selectedCharacterId) || null;
   const selectedBuilding = selectedBuildingId ? CITY_BUILDINGS[selectedBuildingId] : null;
@@ -5026,27 +5041,42 @@ export default function App() {
           </div>
 
           {!isUiHidden && !isControlsDrawerOpen && (
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCharacterId(null);
-                setIsExplorerSheetOpen(false);
-                setSelectedBuildingId(null);
-                setSelectedCreatedObject(null);
-                setIsCity2HubOpen((prev) => !prev);
-              }}
-              className={`h-8 px-2.5 rounded-r-xl backdrop-blur-xl border border-l-0 shadow-lg flex items-center gap-1.5 text-[11px] font-display font-bold transition active:scale-95 ${
-                isCity2HubOpen
-                  ? 'bg-cyan-400 text-slate-950 border-cyan-300'
-                  : 'bg-slate-950/90 hover:bg-slate-900 text-cyan-300 border-cyan-400/50'
-              }`}
-              title="Open Second City (Neo-Horizon) Groq AI Hub: Alie, Joseph, Iysha, Amie & Hawa · OK-Plan · Love & Co-Working · Friend Chart 📉 · Dream Car Trip"
-            >
-              <span>🏙️🧠 City 2 Hub</span>
-              <span className="text-[10px] opacity-80">{isCity2HubOpen ? '◂' : '▸'}</span>
-            </button>
+            <div className="flex flex-col items-start gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCharacterId(null);
+                  setIsExplorerSheetOpen(false);
+                  setSelectedBuildingId(null);
+                  setSelectedCreatedObject(null);
+                  setIsCity2HubOpen((prev) => !prev);
+                }}
+                className={`h-8 px-2.5 rounded-r-xl backdrop-blur-xl border border-l-0 shadow-lg flex items-center gap-1.5 text-[11px] font-display font-bold transition active:scale-95 ${
+                  isCity2HubOpen
+                    ? 'bg-cyan-400 text-slate-950 border-cyan-300'
+                    : 'bg-slate-950/90 hover:bg-slate-900 text-cyan-300 border-cyan-400/50'
+                }`}
+                title="Open Second City (Neo-Horizon) Groq AI Hub: Alie, Joseph, Iysha, Amie & Hawa · OK-Plan · Love & Co-Working · Friend Chart 📉 · Dream Car Trip"
+              >
+                <span>🏙️🧠 City 2 Hub</span>
+                <span className="text-[10px] opacity-80">{isCity2HubOpen ? '◂' : '▸'}</span>
+              </button>
+
+              <GameAudioQuickControls
+                isAudioPanelOpen={isAudioManagerOpen}
+                onToggleAudioPanel={() => setIsAudioManagerOpen((prev) => !prev)}
+              />
+            </div>
           )}
         </div>
+      )}
+
+      {/* 1A-Audio. Slide-Out Collapsible Game Audio & Car Radio Manager */}
+      {!isGamepadMode && !isUiHidden && !isControlsDrawerOpen && isAudioManagerOpen && (
+        <AudioManagerPanel
+          mode="slideover"
+          onClose={() => setIsAudioManagerOpen(false)}
+        />
       )}
 
       {/* 1B. Slide-Out Controls, Residents & Settings Drawer (All buttons in one place, nothing cut off!) */}
@@ -5318,6 +5348,9 @@ export default function App() {
                     <span>🌅 Start Day {dayNumber + 1} (New Resident Daily Goals)</span>
                   </button>
                 </div>
+
+                {/* Embedded Game Audio & Car Radio Manager inside Settings Menu */}
+                <AudioManagerPanel mode="drawer_embedded" />
               </section>
 
               {/* SECTION 2: QUICK WORLD ACTIONS */}

@@ -23,6 +23,7 @@ import {
   TWO_PLACE_SPOTS,
 } from '../data/cityData';
 import { VirtualJoystick } from './VirtualJoystick';
+import { AudioManager } from '../audio/AudioManager';
 import {
   AICharacter,
   BuildingId,
@@ -48,6 +49,7 @@ import {
   createRoofTileTexture,
   createSandTexture,
   createSkyEnvTexture,
+  createTireTreadTexture,
   createTreeBarkTexture,
   createWaterNormalTexture,
   createWoodPlankTexture,
@@ -451,11 +453,35 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
   const bridgeLabelRef = useRef<HTMLDivElement | null>(null);
   const cyberCarLabelRef = useRef<HTMLDivElement | null>(null);
   const busLabelRef = useRef<HTMLDivElement | null>(null);
+  const busDepotLabelRef = useRef<HTMLDivElement | null>(null);
 
   // Rideable Cyberpunk Supercar ("Cyber-Valkyrie GT") State & 60FPS Refs
   const [isRidingCyberCar, setIsRidingCyberCar] = useState(false);
   const isRidingCyberCarRef = useRef(false);
   isRidingCyberCarRef.current = isRidingCyberCar;
+
+  // Car ONLY moves when player sits inside it AND presses the Move / Drive button!
+  const [isCyberCarMoving, setIsCyberCarMoving] = useState(false);
+  const isCyberCarMovingRef = useRef(false);
+  isCyberCarMovingRef.current = isCyberCarMoving;
+
+  const [cyberCarDoorsOpen, setCyberCarDoorsOpen] = useState(false);
+  const cyberCarDoorsOpenRef = useRef(false);
+  cyberCarDoorsOpenRef.current = cyberCarDoorsOpen;
+
+  const [cyberCarWingDeployed, setCyberCarWingDeployed] = useState(false);
+  const cyberCarWingDeployedRef = useRef(false);
+  cyberCarWingDeployedRef.current = cyberCarWingDeployed;
+
+  const [cyberCarTelemetry, setCyberCarTelemetry] = useState<{
+    speedKmh: number;
+    gear: 'P' | 'D' | 'S+' | 'R';
+    trafficLightWait: boolean;
+  }>({
+    speedKmh: 0,
+    gear: 'P',
+    trafficLightWait: false,
+  });
 
   const [cyberCarCompanionId, setCyberCarCompanionId] = useState<string | null>('hawa');
   const cyberCarCompanionIdRef = useRef<string | null>('hawa');
@@ -463,21 +489,36 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
   const [cyberCarDriveMode, setCyberCarDriveMode] = useState<
     'grand_tour' | 'manual' | 'destination'
-  >('grand_tour');
-  const cyberCarDriveModeRef = useRef<'grand_tour' | 'manual' | 'destination'>('grand_tour');
+  >('manual');
+  const cyberCarDriveModeRef = useRef<'grand_tour' | 'manual' | 'destination'>('manual');
   cyberCarDriveModeRef.current = cyberCarDriveMode;
 
   const [cyberCarDestLabel, setCyberCarDestLabel] = useState<string>(
-    'Whole-Map Grand Tour (Gemini City ↔ Cyber Horizon)'
+    'Parked — Sit Inside & Press Move to Drive'
   );
   const cyberCarTargetPointRef = useRef<[number, number] | null>(null);
   const exitCyberCarActionRef = useRef<(() => void) | null>(null);
   const boardCyberCarActionRef = useRef<((companionId?: string | null) => void) | null>(null);
+  const toggleCyberCarMoveRef = useRef<((forceMove?: boolean) => void) | null>(null);
+  const summonCyberCarRef = useRef<(() => void) | null>(null);
 
   // 5-Passenger Autonomous Luxury Transit Bus ("Horizon Grand 5-Seater Coach") State & 60FPS Refs
   const [isRidingBus, setIsRidingBus] = useState(false);
   const isRidingBusRef = useRef(false);
   isRidingBusRef.current = isRidingBus;
+
+  // Bus Engine ON/OFF & Dedicated Bus Parking Depot State (When stopped/parked, bus waits until turned ON!)
+  const [isBusEngineOn, setIsBusEngineOn] = useState(true);
+  const isBusEngineOnRef = useRef(true);
+  isBusEngineOnRef.current = isBusEngineOn;
+
+  const [isBusParked, setIsBusParked] = useState(false);
+  const isBusParkedRef = useRef(false);
+  isBusParkedRef.current = isBusParked;
+
+  const [busDriveMode, setBusDriveMode] = useState<'auto_route' | 'manual'>('auto_route');
+  const busDriveModeRef = useRef<'auto_route' | 'manual'>('auto_route');
+  busDriveModeRef.current = busDriveMode;
 
   const [showBusStopMarkers, setShowBusStopMarkers] = useState(false);
   const showBusStopMarkersRef = useRef(false);
@@ -491,23 +532,44 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     null
   );
 
+  // Real 3D Traffic Lights State & Phase
+  const [trafficSignalPhase, setTrafficSignalPhase] = useState<
+    'ns_green' | 'ns_yellow' | 'ew_green' | 'ew_yellow'
+  >('ns_green');
+  const trafficSignalPhaseRef = useRef<
+    'ns_green' | 'ns_yellow' | 'ew_green' | 'ew_yellow'
+  >('ns_green');
+  trafficSignalPhaseRef.current = trafficSignalPhase;
+
   const [busUiStatus, setBusUiStatus] = useState<{
     passengerIds: string[];
-    phase: 'driving' | 'braking' | 'doors_open';
+    phase:
+      | 'driving'
+      | 'braking'
+      | 'doors_open'
+      | 'parked'
+      | 'parked_depot'
+      | 'red_light'
+      | 'stopped_red_light';
     stopName: string;
     activeStopId?: string | null;
     nextStopId?: string | null;
     speedKmh: number;
   }>({
-    passengerIds: ['aria', 'leo', 'maya'],
+    passengerIds: [],
     phase: 'driving',
     stopName: 'Gemini City ↔ Cyber Horizon Loop',
     activeStopId: null,
     nextStopId: 'stop_cafe',
-    speedKmh: 46,
+    speedKmh: 44,
   });
-  const busPassengersRef = useRef<string[]>(['aria', 'leo', 'maya']);
+  // Start with 0 pre-teleported passengers: NPCs can ONLY get in the bus when physically close (<= 9.5m) to the bus!
+  const busPassengersRef = useRef<string[]>([]);
   const triggerBusStopNowRef = useRef<(() => void) | null>(null);
+  const stopAndParkBusRef = useRef<(() => void) | null>(null);
+  const parkBusAtDepotRef = useRef<((instant?: boolean) => void) | null>(null);
+  const startBusEngineRef = useRef<(() => void) | null>(null);
+  const honkBusHornRef = useRef<(() => void) | null>(null);
   const boardAllFiveBusRef = useRef<(() => void) | null>(null);
 
   const playerSittingSpotRef = useRef(playerSittingSpot);
@@ -688,6 +750,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     const oakFoliageTex = createFoliageTexture('oak');
     const sakuraFoliageTex = createFoliageTexture('sakura');
     const aoShadowTex = createContactAOShadowTexture();
+    const tireTreadTex = createTireTreadTexture();
 
     // Helper to place ambient occlusion contact shadow beneath structures
     const addContactShadow = (parent: THREE.Object3D, width: number, depth: number, opacity = 0.55) => {
@@ -1094,33 +1157,83 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     lighthouseGroup.add(lhCap);
     worldGroup.add(lighthouseGroup);
 
-    // 5. Realistic Roads, Curbs, Sidewalks, Crosswalks & Scenic Woodland Footpaths
+    const pickableObjects: THREE.Object3D[] = [
+      groundMesh,
+      beachSlope,
+      pierDeck,
+    ];
+
+    // 5. Realistic Roads, Curbs, Sidewalks, Crosswalks, 3D Traffic Lights 🚦⛔ & Bus Parking Depot 🅿️🚏
     const roadMat = new THREE.MeshStandardMaterial({
       map: asphaltTex,
       color: '#ffffff',
-      roughness: 0.82,
+      roughness: 0.78,
+      metalness: 0.06,
     });
     const sidewalkMat = new THREE.MeshStandardMaterial({
       map: sidewalkTex,
       color: '#ffffff',
       roughness: 0.76,
     });
+    const curbStoneMat = new THREE.MeshStandardMaterial({
+      color: '#cbd5e1',
+      roughness: 0.62,
+      metalness: 0.08,
+    });
+    const drainGrateMat = new THREE.MeshStandardMaterial({
+      color: '#1e293b',
+      roughness: 0.4,
+      metalness: 0.85,
+    });
     const stripeMat = new THREE.MeshStandardMaterial({
-      color: '#f1f5f9',
-      roughness: 0.6,
+      color: '#f8fafc',
+      roughness: 0.48,
     });
     const centerLineMat = new THREE.MeshStandardMaterial({
       color: '#fbbf24',
-      roughness: 0.6,
+      roughness: 0.45,
+    });
+    const roadReflectorMat = new THREE.MeshStandardMaterial({
+      color: '#fef08a',
+      emissive: '#f59e0b',
+      emissiveIntensity: 1.15,
+      roughness: 0.2,
     });
 
     const createRoadSegment = (x: number, z: number, w: number, l: number, isNorthSouth: boolean) => {
-      // Raised Stone Sidewalk & Curb
-      const sw = new THREE.Mesh(new THREE.BoxGeometry(w + 1.6, 0.11, l + 1.6), sidewalkMat);
+      // Raised Stone Sidewalk & Curb Base
+      const sw = new THREE.Mesh(new THREE.BoxGeometry(w + 1.75, 0.11, l + 1.75), sidewalkMat);
       sw.position.set(x, 0.035, z);
       sw.receiveShadow = true;
       sw.userData = { type: 'ground' };
       worldGroup.add(sw);
+
+      // Raised Beveled Granite Curbstones along Left & Right Roadway Edges
+      for (const side of [-1, 1]) {
+        const curb = new THREE.Mesh(
+          new THREE.BoxGeometry(isNorthSouth ? 0.16 : w, 0.13, isNorthSouth ? l : 0.16),
+          curbStoneMat
+        );
+        curb.position.set(
+          isNorthSouth ? x + side * (w * 0.5 + 0.08) : x,
+          0.055,
+          isNorthSouth ? z : z + side * (l * 0.5 + 0.08)
+        );
+        curb.receiveShadow = true;
+        worldGroup.add(curb);
+
+        // Crisp White Shoulder Edge Line inside roadway
+        const edgeLine = new THREE.Mesh(
+          new THREE.BoxGeometry(isNorthSouth ? 0.07 : w - 0.4, 0.018, isNorthSouth ? l - 0.4 : 0.07),
+          stripeMat
+        );
+        edgeLine.position.set(
+          isNorthSouth ? x + side * (w * 0.5 - 0.22) : x,
+          0.094,
+          isNorthSouth ? z : z + side * (l * 0.5 - 0.22)
+        );
+        worldGroup.add(edgeLine);
+      }
 
       // Asphalt Roadway Bed
       const rd = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, l), roadMat);
@@ -1129,35 +1242,71 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       rd.userData = { type: 'ground' };
       worldGroup.add(rd);
 
-      // Dashed Center Lane Markings
+      // Realistic Double Yellow Center Line + Dashed Lane Markings + Cat's-Eye Reflector Studs + Storm Drains
       const totalLen = isNorthSouth ? l : w;
-      const steps = Math.floor(totalLen / 3.4);
+      const steps = Math.floor(totalLen / 3.2);
       for (let i = -Math.floor(steps / 2); i <= Math.floor(steps / 2); i++) {
-        const offset = i * 3.4;
-        if (Math.abs(offset) >= 8.2 && Math.abs(offset) <= 12.2) continue;
-        const dash = new THREE.Mesh(
-          new THREE.BoxGeometry(isNorthSouth ? 0.12 : 1.35, 0.02, isNorthSouth ? 1.35 : 0.12),
-          centerLineMat
-        );
-        dash.position.set(
-          isNorthSouth ? x : x + offset,
-          0.095,
-          isNorthSouth ? z + offset : z
-        );
-        worldGroup.add(dash);
+        const offset = i * 3.2;
+        // Skip markings directly inside intersection boxes (±10.5)
+        if (Math.abs(offset) >= 8.0 && Math.abs(offset) <= 13.0) continue;
+
+        // Twin parallel yellow center lines
+        for (const sep of [-0.075, 0.075]) {
+          const yellowLine = new THREE.Mesh(
+            new THREE.BoxGeometry(
+              isNorthSouth ? 0.065 : 2.55,
+              0.02,
+              isNorthSouth ? 2.55 : 0.065
+            ),
+            centerLineMat
+          );
+          yellowLine.position.set(
+            isNorthSouth ? x + sep : x + offset,
+            0.096,
+            isNorthSouth ? z + offset : z + sep
+          );
+          worldGroup.add(yellowLine);
+        }
+
+        // Reflective Cat's-Eye Road Stud every 2nd segment
+        if (i % 2 === 0) {
+          const stud = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.032, 0.11), roadReflectorMat);
+          stud.position.set(
+            isNorthSouth ? x : x + offset,
+            0.098,
+            isNorthSouth ? z + offset : z
+          );
+          worldGroup.add(stud);
+        }
+
+        // Cast-iron Curbside Storm Drain Grates every 4th segment
+        if (i % 4 === 0 && Math.abs(offset) > 3.5) {
+          for (const side of [-1, 1]) {
+            const grate = new THREE.Mesh(
+              new THREE.BoxGeometry(isNorthSouth ? 0.28 : 0.56, 0.022, isNorthSouth ? 0.56 : 0.28),
+              drainGrateMat
+            );
+            grate.position.set(
+              isNorthSouth ? x + side * (w * 0.5 - 0.16) : x + offset,
+              0.095,
+              isNorthSouth ? z + offset : z + side * (l * 0.5 - 0.16)
+            );
+            worldGroup.add(grate);
+          }
+        }
       }
     };
 
     // Expanded West & East Grand Avenues
-    createRoadSegment(-10.5, 0, 3.6, 62, true);
-    createRoadSegment(10.5, 0, 3.6, 62, true);
+    createRoadSegment(-10.5, 0, 3.8, 64, true);
+    createRoadSegment(10.5, 0, 3.8, 64, true);
     // Expanded North & South Boulevards
-    createRoadSegment(0, -10.5, 66, 3.6, false);
-    createRoadSegment(0, 10.5, 66, 3.6, false);
+    createRoadSegment(0, -10.5, 66, 3.8, false);
+    createRoadSegment(0, 10.5, 66, 3.8, false);
     // South Harbor Promenade connecting Central Plaza to the Harbor Boardwalk Pier
-    createRoadSegment(0, 34, 3.2, 44, true);
+    createRoadSegment(0, 34, 3.4, 44, true);
     // East Bay Bridge Approach Highway connecting Gemini City to the Golden Horizon Suspension Bridge!
-    createRoadSegment(36.5, 0, 48, 4.4, false);
+    createRoadSegment(36.5, 0, 48, 4.6, false);
 
     // Scenic Forest & Coastal Exploration Stone Footpaths
     const trailMat = new THREE.MeshStandardMaterial({
@@ -1179,20 +1328,337 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     createScenicTrail(0, -38, 48, 2.2, 0);
     createScenicTrail(0, 42, 46, 2.2, 0);
 
-    // Pedestrian Crosswalks
-    const intersections = [
-      [-10.5, -10.5],
-      [10.5, -10.5],
-      [-10.5, 10.5],
-      [10.5, 10.5],
+    // =========================================================================================
+    // 5A-1. 4-WAY CONTINENTAL CROSSWALKS, WHITE STOP LINES & REAL 3D TRAFFIC LIGHTS (🚦⛔)
+    // =========================================================================================
+    interface TrafficSignalVisual {
+      axis: 'ns' | 'ew';
+      redLensMat: THREE.MeshStandardMaterial;
+      yellowLensMat: THREE.MeshStandardMaterial;
+      greenLensMat: THREE.MeshStandardMaterial;
+      pedSignalMat: THREE.MeshStandardMaterial;
+    }
+    const trafficSignalVisuals: TrafficSignalVisual[] = [];
+
+    const signalIntersections: { x: number; z: number; label: string; isNeo?: boolean }[] = [
+      { x: -10.5, z: -10.5, label: 'NW Solaris & Academy Jct' },
+      { x: 10.5, z: -10.5, label: 'NE Blossom & Academy Jct' },
+      { x: -10.5, z: 10.5, label: 'SW Sunbeam Café Jct' },
+      { x: 10.5, z: 10.5, label: 'SE Starlight Park & Harbor Jct' },
+      { x: 182.0, z: 0.0, label: 'Cyber-Horizon Grand Plaza Jct', isNeo: true },
     ];
-    intersections.forEach(([ix, iz]) => {
-      for (let s = -1.2; s <= 1.2; s += 0.48) {
-        const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.025, 1.4), stripeMat);
-        stripe.position.set(ix + s, 0.096, iz + 2.45);
-        worldGroup.add(stripe);
-      }
+
+    const signalPoleMat = new THREE.MeshStandardMaterial({
+      color: '#1e293b',
+      roughness: 0.32,
+      metalness: 0.85,
     });
+    const signalHousingMat = new THREE.MeshStandardMaterial({
+      color: '#eab308',
+      roughness: 0.35,
+      metalness: 0.45,
+    });
+    const signalVisorMat = new THREE.MeshStandardMaterial({
+      color: '#0f172a',
+      roughness: 0.4,
+      metalness: 0.7,
+    });
+
+    signalIntersections.forEach((inter) => {
+      const ix = inter.x;
+      const iz = inter.z;
+
+      // 1) 4-Way Continental Zebra Crosswalks & White Stop Bars on North, South, East, West approaches
+      for (const side of [-1, 1]) {
+        // North & South Crosswalks + White Stop Bars
+        for (let s = -1.44; s <= 1.44; s += 0.48) {
+          const nsStripe = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.026, 1.35), stripeMat);
+          nsStripe.position.set(ix + s, 0.097, iz + side * 2.55);
+          worldGroup.add(nsStripe);
+
+          const ewStripe = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.026, 0.24), stripeMat);
+          ewStripe.position.set(ix + side * 2.55, 0.097, iz + s);
+          worldGroup.add(ewStripe);
+        }
+
+        // Solid White Stop Line Bars before each crosswalk
+        const nsStopBar = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.027, 0.26), stripeMat);
+        nsStopBar.position.set(ix, 0.098, iz + side * 3.55);
+        worldGroup.add(nsStopBar);
+
+        const ewStopBar = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.027, 3.3), stripeMat);
+        ewStopBar.position.set(ix + side * 3.55, 0.098, iz);
+        worldGroup.add(ewStopBar);
+      }
+
+      // 2) Build 2 Cantilevered 3D Traffic Signal Masts per Intersection (1 controlling NS, 1 controlling EW)
+      const signalCorners: {
+        cx: number;
+        cz: number;
+        rotY: number;
+        axis: 'ns' | 'ew';
+      }[] = [
+        { cx: ix + 2.65, cz: iz - 2.65, rotY: 0, axis: 'ns' },
+        { cx: ix - 2.65, cz: iz + 2.65, rotY: Math.PI / 2, axis: 'ew' },
+      ];
+
+      signalCorners.forEach((sc) => {
+        const sigGroup = new THREE.Group();
+        sigGroup.position.set(sc.cx, 0, sc.cz);
+        sigGroup.rotation.y = sc.rotY;
+
+        // Octagonal cast-iron base & vertical mast pole
+        const basePedestal = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.16, 0.22, 0.55, 8),
+          signalPoleMat
+        );
+        basePedestal.position.y = 0.28;
+        basePedestal.castShadow = true;
+        basePedestal.userData = { type: 'traffic_light' };
+        sigGroup.add(basePedestal);
+        pickableObjects.push(basePedestal);
+
+        const verticalPole = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.08, 0.11, 4.6, 12),
+          signalPoleMat
+        );
+        verticalPole.position.y = 2.45;
+        verticalPole.castShadow = true;
+        verticalPole.userData = { type: 'traffic_light' };
+        sigGroup.add(verticalPole);
+        pickableObjects.push(verticalPole);
+
+        // Overhanging horizontal cantilevered mast arm reaching over the road lane
+        const mastArm = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.055, 0.075, 2.85, 10),
+          signalPoleMat
+        );
+        mastArm.rotation.z = Math.PI / 2;
+        mastArm.position.set(-1.38, 4.55, 0);
+        mastArm.castShadow = true;
+        sigGroup.add(mastArm);
+
+        // Illuminated Street Name Sign Blade mounted on mast arm
+        const streetSign = new THREE.Mesh(
+          new THREE.BoxGeometry(1.15, 0.24, 0.06),
+          new THREE.MeshStandardMaterial({
+            color: '#0284c7',
+            emissive: '#0369a1',
+            emissiveIntensity: 0.45,
+            roughness: 0.3,
+          })
+        );
+        streetSign.position.set(-0.95, 4.55, 0.08);
+        sigGroup.add(streetSign);
+
+        // 3-Aspect Traffic Signal Head Housing (Red ⛔ Top, Yellow ⚠️ Mid, Green 🟢 Bottom)
+        const headBox = new THREE.Mesh(
+          new THREE.BoxGeometry(0.38, 1.06, 0.28),
+          signalHousingMat
+        );
+        headBox.position.set(-2.25, 4.22, 0);
+        headBox.castShadow = true;
+        headBox.userData = { type: 'traffic_light' };
+        sigGroup.add(headBox);
+        pickableObjects.push(headBox);
+
+        // Dark backplate border frame for high visibility
+        const backplate = new THREE.Mesh(
+          new THREE.BoxGeometry(0.48, 1.16, 0.04),
+          signalVisorMat
+        );
+        backplate.position.set(-2.25, 4.22, -0.12);
+        sigGroup.add(backplate);
+
+        const redLensMat = new THREE.MeshStandardMaterial({
+          color: '#ef4444',
+          emissive: '#ef4444',
+          emissiveIntensity: 2.2,
+          roughness: 0.15,
+        });
+        const yellowLensMat = new THREE.MeshStandardMaterial({
+          color: '#f59e0b',
+          emissive: '#f59e0b',
+          emissiveIntensity: 0.08,
+          roughness: 0.15,
+        });
+        const greenLensMat = new THREE.MeshStandardMaterial({
+          color: '#22c55e',
+          emissive: '#22c55e',
+          emissiveIntensity: 0.08,
+          roughness: 0.15,
+        });
+        const pedSignalMat = new THREE.MeshStandardMaterial({
+          color: '#38bdf8',
+          emissive: '#38bdf8',
+          emissiveIntensity: 1.2,
+          roughness: 0.2,
+        });
+
+        const lensOffsets: [number, THREE.MeshStandardMaterial][] = [
+          [4.54, redLensMat],    // Top: RED STOP ⛔
+          [4.22, yellowLensMat], // Mid: AMBER CAUTION ⚠️
+          [3.90, greenLensMat],  // Bot: GREEN GO 🟢
+        ];
+
+        lensOffsets.forEach(([ly, lMat]) => {
+          // Front & Rear Dual-Faced Signal Lenses so visible from both approaches!
+          for (const faceDir of [-1, 1]) {
+            const lens = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.11, 0.11, 0.06, 16),
+              lMat
+            );
+            lens.rotation.x = Math.PI / 2;
+            lens.position.set(-2.25, ly, faceDir * 0.15);
+            sigGroup.add(lens);
+
+            const visor = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.125, 0.125, 0.14, 14, 1, true, 0, Math.PI),
+              signalVisorMat
+            );
+            visor.rotation.z = Math.PI / 2;
+            visor.rotation.y = faceDir > 0 ? 0 : Math.PI;
+            visor.position.set(-2.25, ly + 0.02, faceDir * 0.18);
+            sigGroup.add(visor);
+          }
+        });
+
+        // Pedestrian Crosswalk Signal Box on vertical pole
+        const pedBox = new THREE.Mesh(
+          new THREE.BoxGeometry(0.24, 0.34, 0.18),
+          signalVisorMat
+        );
+        pedBox.position.set(-0.14, 2.15, 0);
+        sigGroup.add(pedBox);
+
+        const pedLens = new THREE.Mesh(
+          new THREE.BoxGeometry(0.16, 0.22, 0.2),
+          pedSignalMat
+        );
+        pedLens.position.set(-0.14, 2.15, 0);
+        sigGroup.add(pedLens);
+
+        worldGroup.add(sigGroup);
+        trafficSignalVisuals.push({
+          axis: sc.axis,
+          redLensMat,
+          yellowLensMat,
+          greenLensMat,
+          pedSignalMat,
+        });
+      });
+    });
+
+    // =========================================================================================
+    // 5A-2. DEDICATED 3D BUS PARKING DEPOT & CHARGING STATION (🅿️🚏) AT (-15.4, 0, -2.0)
+    //       + CYBER-CAR VIP PARKING PAD (🅿️🏎️) AT (13.8, 0, 5.2)
+    // =========================================================================================
+    const BUS_DEPOT_COORDS = { x: -15.4, z: -2.0, rotY: 0 };
+    const busDepotGroup = new THREE.Group();
+    busDepotGroup.position.set(BUS_DEPOT_COORDS.x, 0, BUS_DEPOT_COORDS.z);
+    addContactShadow(busDepotGroup, 6.2, 10.6, 0.55);
+
+    // Asphalt Pull-In Apron connecting West Grand Avenue (x = -10.5) to the Depot Bay
+    const depotApron = new THREE.Mesh(new THREE.BoxGeometry(6.8, 0.095, 10.4), roadMat);
+    depotApron.position.set(0.8, 0.045, 0);
+    depotApron.receiveShadow = true;
+    depotApron.userData = { type: 'bus_depot' };
+    busDepotGroup.add(depotApron);
+    pickableObjects.push(depotApron);
+
+    // Painted Yellow "BUS PARKING ONLY" Bay Boundary Lines & Wheel-Stop Chocks
+    const depotLineMat = new THREE.MeshStandardMaterial({
+      color: '#facc15',
+      emissive: '#ca8a04',
+      emissiveIntensity: 0.35,
+      roughness: 0.4,
+    });
+    for (const sideX of [-1.75, 1.75]) {
+      const sideBayLine = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.025, 8.8), depotLineMat);
+      sideBayLine.position.set(sideX, 0.096, 0);
+      busDepotGroup.add(sideBayLine);
+    }
+    for (const endZ of [-4.4, 4.4]) {
+      const endBayLine = new THREE.Mesh(new THREE.BoxGeometry(3.64, 0.025, 0.14), depotLineMat);
+      endBayLine.position.set(0, 0.096, endZ);
+      busDepotGroup.add(endBayLine);
+
+      // Heavy rubber/concrete wheel-stop chock bar
+      const wheelChock = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.16, 0.26), depotLineMat);
+      wheelChock.position.set(0, 0.14, endZ * 0.88);
+      wheelChock.castShadow = true;
+      busDepotGroup.add(wheelChock);
+    }
+
+    // High-Clearance Solar-Glass Bus Depot Canopy Roof (4.15m tall so the luxury bus parks underneath!)
+    for (const pz of [-3.6, 0, 3.6]) {
+      const depotPillar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.11, 0.14, 4.1, 12),
+        signalPoleMat
+      );
+      depotPillar.position.set(-2.15, 2.05, pz);
+      depotPillar.castShadow = true;
+      busDepotGroup.add(depotPillar);
+    }
+    const depotRoofCanopy = new THREE.Mesh(
+      new THREE.BoxGeometry(4.4, 0.14, 9.4),
+      new THREE.MeshStandardMaterial({
+        color: '#0284c7',
+        emissive: '#0369a1',
+        emissiveIntensity: 0.32,
+        transparent: true,
+        opacity: 0.68,
+        roughness: 0.15,
+        metalness: 0.5,
+      })
+    );
+    depotRoofCanopy.position.set(-0.2, 4.12, 0);
+    depotRoofCanopy.rotation.z = -0.05;
+    depotRoofCanopy.castShadow = true;
+    depotRoofCanopy.userData = { type: 'bus_depot' };
+    busDepotGroup.add(depotRoofCanopy);
+    pickableObjects.push(depotRoofCanopy);
+
+    // Depot Illuminated Signboard & Electric Bus Charging Pantograph Totem
+    const depotStatusGlowMat = new THREE.MeshStandardMaterial({
+      color: '#34d399',
+      emissive: '#10b981',
+      emissiveIntensity: 1.6,
+      roughness: 0.2,
+    });
+    const depotSignBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.62, 4.6),
+      depotStatusGlowMat
+    );
+    depotSignBoard.position.set(1.85, 4.28, 0);
+    depotSignBoard.userData = { type: 'bus_depot' };
+    busDepotGroup.add(depotSignBoard);
+    pickableObjects.push(depotSignBoard);
+
+    worldGroup.add(busDepotGroup);
+
+    // Build 3D Cyber-Valkyrie GT VIP Parking & Induction Charging Pad at (13.8, 0, 5.2) beside East Grand Ave
+    const carParkingPadGroup = new THREE.Group();
+    carParkingPadGroup.position.set(13.8, 0, 5.2);
+    const carPadApron = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.095, 6.4), roadMat);
+    carPadApron.position.set(-0.6, 0.045, 0);
+    carPadApron.receiveShadow = true;
+    carParkingPadGroup.add(carPadApron);
+
+    const carInductionMat = new THREE.MeshStandardMaterial({
+      color: '#22d3ee',
+      emissive: '#0891b2',
+      emissiveIntensity: 1.35,
+      roughness: 0.2,
+    });
+    const carInductionRing = new THREE.Mesh(
+      new THREE.RingGeometry(1.1, 1.45, 32),
+      carInductionMat
+    );
+    carInductionRing.rotation.x = -Math.PI / 2;
+    carInductionRing.position.set(0, 0.098, 0);
+    carParkingPadGroup.add(carInductionRing);
+    worldGroup.add(carParkingPadGroup);
 
     // 5B. Realistic Flowing Scenic Rivers ("Silverbrook River" & "Sakura Creek"), Alpine Waterfall & Arched Stone Bridges
     const riverWaterTex = waterNormalTex.clone();
@@ -1519,15 +1985,12 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         wallMat: THREE.MeshStandardMaterial;
       }
     > = {};
-    const pickableObjects: THREE.Object3D[] = [
-      groundMesh,
-      beachSlope,
-      pierDeck,
+    pickableObjects.push(
       plazaMesh,
       basinOuter,
       pillar,
-      crystalSpire,
-    ];
+      crystalSpire
+    );
 
     // 6B. Build the 4 Dedicated "Two-Place" Seating Sanctuaries (2 in Gemini City + 2 in Second City / Neo-Horizon)
     // Each Two-Place Spot has a shared 2-person Loveseat Bench (`seatA`, `seatB`), 2 Companion Lounge Chairs (`chairA`, `chairB`)
@@ -4282,11 +4745,14 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
     // 5. Autonomous Inter-City Cyberpunk Supercar ("Cyber-Valkyrie GT" / Dream Cruiser 🚗)
     //    Built with local +Z as Forward Nose, -Z as Rear Spoiler/Diffuser, ±X as Left/Right Wheels
-    //    so standard heading Math.atan2(dx, dz) and physical wheel rotation work with 100% realism!
+    //    Parked initially at (10.5, 0.05, 5.2) in Gemini City so Player can easily sit inside!
     const dreamCruiserGroup = new THREE.Group();
-    dreamCruiserGroup.position.set(164, 0.05, -1.65);
-    dreamCruiserGroup.rotation.y = -Math.PI / 2;
+    dreamCruiserGroup.position.set(10.5, 0.05, 5.2);
+    dreamCruiserGroup.rotation.y = 0;
     addContactShadow(dreamCruiserGroup, 2.8, 5.2, 0.72);
+
+    const carChassisGroup = new THREE.Group();
+    dreamCruiserGroup.add(carChassisGroup);
 
     const carCarbonMat = new THREE.MeshStandardMaterial({
       color: '#0f172a',
@@ -4296,7 +4762,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     const carMetallicPaintMat = new THREE.MeshStandardMaterial({
       color: '#1e293b',
       metalness: 0.92,
-      roughness: 0.12,
+      roughness: 0.11,
     });
     const carSilverBladeMat = new THREE.MeshStandardMaterial({
       color: '#cbd5e1',
@@ -4306,110 +4772,255 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     const carCanopyMat = new THREE.MeshStandardMaterial({
       color: '#0ea5e9',
       emissive: '#0284c7',
-      emissiveIntensity: 0.32,
+      emissiveIntensity: 0.25,
       transparent: true,
-      opacity: 0.72,
-      roughness: 0.08,
-      metalness: 0.65,
+      opacity: 0.42,
+      roughness: 0.06,
+      metalness: 0.55,
+      depthWrite: false,
     });
     const carInteriorLeatherMat = new THREE.MeshStandardMaterial({
       color: '#be123c',
-      roughness: 0.45,
-      metalness: 0.1,
+      roughness: 0.42,
+      metalness: 0.12,
+    });
+    const carAlcantaraDarkMat = new THREE.MeshStandardMaterial({
+      color: '#111827',
+      roughness: 0.68,
+      metalness: 0.08,
+    });
+    const carCaliperRedMat = new THREE.MeshStandardMaterial({
+      color: '#e11d48',
+      emissive: '#9f1239',
+      emissiveIntensity: 0.4,
+      roughness: 0.25,
+      metalness: 0.65,
+    });
+    const tireTreadMat = new THREE.MeshStandardMaterial({
+      map: tireTreadTex,
+      color: '#e2e8f0',
+      roughness: 0.82,
+      metalness: 0.08,
     });
 
-    // 1) Low-Slung Carbon-Fiber Aerodynamic Floor Splitter & Side Skirts
+    // 1) Low-Slung Carbon-Fiber Aerodynamic Floor Splitter, Front Canards & Rear Diffuser Strakes
     const splitterBase = new THREE.Mesh(
-      new THREE.BoxGeometry(2.14, 0.12, 4.72),
+      new THREE.BoxGeometry(2.16, 0.12, 4.78),
       carCarbonMat
     );
     splitterBase.position.set(0, 0.24, 0);
     splitterBase.castShadow = true;
-    dreamCruiserGroup.add(splitterBase);
+    splitterBase.userData = { type: 'cyber_car' };
+    carChassisGroup.add(splitterBase);
+    pickableObjects.push(splitterBase);
 
     // Neon Cyan Underglow Strips along Left/Right Side Skirts & Front/Rear Diffuser
-    for (const sideX of [-1.06, 1.06]) {
+    for (const sideX of [-1.07, 1.07]) {
       const sideGlow = new THREE.Mesh(
         new THREE.BoxGeometry(0.05, 0.06, 4.48),
         cyberCyanMat
       );
       sideGlow.position.set(sideX, 0.22, 0);
-      dreamCruiserGroup.add(sideGlow);
+      carChassisGroup.add(sideGlow);
     }
 
     // 2) Sculpted Supercar Main Lower Body & Sloped Aerodynamic Front Hood (+Z Front)
     const lowerBody = new THREE.Mesh(
-      new THREE.BoxGeometry(2.02, 0.44, 4.46),
+      new THREE.BoxGeometry(2.04, 0.44, 4.48),
       carMetallicPaintMat
     );
     lowerBody.position.set(0, 0.5, 0);
     lowerBody.castShadow = true;
     lowerBody.receiveShadow = true;
     lowerBody.userData = { type: 'cyber_car' };
-    dreamCruiserGroup.add(lowerBody);
+    carChassisGroup.add(lowerBody);
     pickableObjects.push(lowerBody);
 
     const slopedFrontHood = new THREE.Mesh(
-      new THREE.BoxGeometry(1.76, 0.24, 1.48),
+      new THREE.BoxGeometry(1.78, 0.24, 1.52),
       carSilverBladeMat
     );
     slopedFrontHood.position.set(0, 0.66, 1.42);
     slopedFrontHood.rotation.x = 0.16;
     slopedFrontHood.castShadow = true;
     slopedFrontHood.userData = { type: 'cyber_car' };
-    dreamCruiserGroup.add(slopedFrontHood);
+    carChassisGroup.add(slopedFrontHood);
     pickableObjects.push(slopedFrontHood);
+
+    // Dual Carbon Front Hood Aero Extractor Vents
+    for (const vx of [-0.42, 0.42]) {
+      const hoodVent = new THREE.Mesh(
+        new THREE.BoxGeometry(0.38, 0.05, 0.52),
+        carCarbonMat
+      );
+      hoodVent.position.set(vx, 0.76, 1.48);
+      hoodVent.rotation.x = 0.16;
+      carChassisGroup.add(hoodVent);
+    }
 
     // 3) 4 Muscular Flared Fender Wheel Arches & Side Aero Intake Scoops
     const fenderCoords: [number, number][] = [
-      [-0.96, 1.38],
-      [0.96, 1.38],
-      [-0.98, -1.36],
-      [0.98, -1.36],
+      [-0.97, 1.38],
+      [0.97, 1.38],
+      [-0.99, -1.36],
+      [0.99, -1.36],
     ];
     fenderCoords.forEach(([fx, fz]) => {
       const fenderArch = new THREE.Mesh(
-        new THREE.BoxGeometry(0.28, 0.42, 1.02),
+        new THREE.BoxGeometry(0.3, 0.44, 1.04),
         carMetallicPaintMat
       );
       fenderArch.position.set(fx, 0.58, fz);
       fenderArch.castShadow = true;
-      dreamCruiserGroup.add(fenderArch);
+      fenderArch.userData = { type: 'cyber_car' };
+      carChassisGroup.add(fenderArch);
+      pickableObjects.push(fenderArch);
     });
 
-    for (const sideX of [-1.02, 1.02]) {
+    for (const sideX of [-1.03, 1.03]) {
       const sideIntake = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, 0.28, 1.25),
+        new THREE.BoxGeometry(0.14, 0.3, 1.28),
         carCarbonMat
       );
       sideIntake.position.set(sideX, 0.54, -0.15);
-      dreamCruiserGroup.add(sideIntake);
+      carChassisGroup.add(sideIntake);
 
       const intakeAccent = new THREE.Mesh(
-        new THREE.BoxGeometry(0.14, 0.05, 1.18),
+        new THREE.BoxGeometry(0.15, 0.05, 1.2),
         cyberCyanMat
       );
       intakeAccent.position.set(sideX, 0.56, -0.15);
-      dreamCruiserGroup.add(intakeAccent);
+      carChassisGroup.add(intakeAccent);
     }
 
-    // 4) Visible Cockpit Interior: Twin Crimson Sports Bucket Seats, Dashboard & Glowing Steering Yoke
-    for (const seatX of [-0.42, 0.42]) {
-      const bucketSeat = new THREE.Mesh(
-        new THREE.BoxGeometry(0.46, 0.52, 0.48),
-        carInteriorLeatherMat
-      );
-      bucketSeat.position.set(seatX, 0.78, -0.18);
-      bucketSeat.rotation.x = -0.18;
-      dreamCruiserGroup.add(bucketSeat);
-    }
-    const steeringYoke = new THREE.Mesh(
-      new THREE.TorusGeometry(0.14, 0.025, 8, 16, Math.PI * 1.4),
+    // 4) Detailed Supercar Cockpit Interior: Quilted Bucket Seats, Harnesses, Center Tunnel, Pedals, Dual OLED Screens & Rotating Steering Yoke
+    const cockpitFloorTub = new THREE.Mesh(
+      new THREE.BoxGeometry(1.56, 0.06, 1.92),
+      carAlcantaraDarkMat
+    );
+    cockpitFloorTub.position.set(0, 0.56, -0.05);
+    carChassisGroup.add(cockpitFloorTub);
+
+    // Center Transmission Console Tunnel with Illuminated P/R/N/D Drive Selector & Armrest
+    const centerTunnel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.24, 1.68),
+      carCarbonMat
+    );
+    centerTunnel.position.set(0, 0.68, 0.02);
+    carChassisGroup.add(centerTunnel);
+
+    const driveSelectorPad = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.03, 0.42),
       cyberCyanMat
     );
-    steeringYoke.position.set(-0.42, 0.88, 0.36);
-    steeringYoke.rotation.x = -0.45;
-    dreamCruiserGroup.add(steeringYoke);
+    driveSelectorPad.position.set(0, 0.81, 0.25);
+    carChassisGroup.add(driveSelectorPad);
+
+    // Twin Quilted Crimson & Carbon Racing Bucket Seats with Side Bolsters, Headrests & 4-Point Harnesses
+    for (const seatX of [-0.42, 0.42]) {
+      const seatGrp = new THREE.Group();
+      seatGrp.position.set(seatX, 0.6, -0.18);
+
+      const seatCushion = new THREE.Mesh(
+        new THREE.BoxGeometry(0.46, 0.1, 0.48),
+        carInteriorLeatherMat
+      );
+      seatCushion.position.set(0, 0.05, 0.04);
+      seatGrp.add(seatCushion);
+
+      const seatBack = new THREE.Mesh(
+        new THREE.BoxGeometry(0.44, 0.52, 0.11),
+        carInteriorLeatherMat
+      );
+      seatBack.position.set(0, 0.28, -0.18);
+      seatBack.rotation.x = -0.18;
+      seatGrp.add(seatBack);
+
+      const headrest = new THREE.Mesh(
+        new THREE.BoxGeometry(0.28, 0.18, 0.1),
+        carCarbonMat
+      );
+      headrest.position.set(0, 0.58, -0.24);
+      seatGrp.add(headrest);
+
+      for (const bx of [-0.21, 0.21]) {
+        const bolster = new THREE.Mesh(
+          new THREE.BoxGeometry(0.06, 0.42, 0.16),
+          carAlcantaraDarkMat
+        );
+        bolster.position.set(bx, 0.26, -0.14);
+        bolster.rotation.x = -0.18;
+        seatGrp.add(bolster);
+      }
+
+      // Racing harness straps
+      for (const hx of [-0.09, 0.09]) {
+        const strap = new THREE.Mesh(
+          new THREE.BoxGeometry(0.04, 0.46, 0.03),
+          cyberGoldMat
+        );
+        strap.position.set(hx, 0.28, -0.12);
+        strap.rotation.x = -0.18;
+        seatGrp.add(strap);
+      }
+
+      carChassisGroup.add(seatGrp);
+    }
+
+    // Wraparound Carbon Dashboard, Dual OLED Instrument Displays & Footwell Pedals
+    const carDashBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(1.54, 0.22, 0.46),
+      carAlcantaraDarkMat
+    );
+    carDashBoard.position.set(0, 0.84, 0.64);
+    carChassisGroup.add(carDashBoard);
+
+    const driverOledCluster = new THREE.Mesh(
+      new THREE.BoxGeometry(0.44, 0.14, 0.03),
+      cyberCyanMat
+    );
+    driverOledCluster.position.set(-0.42, 0.96, 0.52);
+    driverOledCluster.rotation.x = -0.22;
+    carChassisGroup.add(driverOledCluster);
+
+    const centerInfotainmentScreen = new THREE.Mesh(
+      new THREE.BoxGeometry(0.32, 0.18, 0.03),
+      cyberMagentaMat
+    );
+    centerInfotainmentScreen.position.set(0, 0.92, 0.48);
+    centerInfotainmentScreen.rotation.x = -0.25;
+    centerInfotainmentScreen.rotation.y = -0.15;
+    carChassisGroup.add(centerInfotainmentScreen);
+
+    // Aluminum Accelerator & Brake Pedals in Driver Footwell
+    for (const [px, pw] of [
+      [-0.34, 0.06],
+      [-0.48, 0.09],
+    ]) {
+      const pedal = new THREE.Mesh(
+        new THREE.BoxGeometry(pw, 0.14, 0.03),
+        carSilverBladeMat
+      );
+      pedal.position.set(px, 0.64, 0.72);
+      pedal.rotation.x = 0.45;
+      carChassisGroup.add(pedal);
+    }
+
+    // Articulated Steering Column & Rotating Butterfly Steering Yoke
+    const carSteeringYokeGroup = new THREE.Group();
+    carSteeringYokeGroup.position.set(-0.42, 0.88, 0.36);
+    carSteeringYokeGroup.rotation.x = -0.38;
+    const steeringYokeRim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.14, 0.025, 10, 20, Math.PI * 1.45),
+      cyberCyanMat
+    );
+    carSteeringYokeGroup.add(steeringYokeRim);
+    const steeringHub = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.06, 0.04),
+      carCarbonMat
+    );
+    carSteeringYokeGroup.add(steeringHub);
+    carChassisGroup.add(carSteeringYokeGroup);
 
     // 5) Panoramic Teardrop Glass Cockpit Canopy, Articulated Gullwing Doors, Windshield & Side Mirrors
     const cockpitCanopy = new THREE.Mesh(
@@ -4418,10 +5029,10 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     );
     cockpitCanopy.position.set(0, 0.94, -0.08);
     cockpitCanopy.userData = { type: 'cyber_car' };
-    dreamCruiserGroup.add(cockpitCanopy);
+    carChassisGroup.add(cockpitCanopy);
     pickableObjects.push(cockpitCanopy);
 
-    // Articulated Left & Right Gullwing Doors that lift open when boarding/exiting
+    // Articulated Left & Right Gullwing Scissor Doors that lift open when boarding/exiting or toggled
     const leftGullwingPivot = new THREE.Group();
     leftGullwingPivot.position.set(-0.24, 1.18, -0.08);
     const leftGullwingDoor = new THREE.Mesh(
@@ -4431,7 +5042,16 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     leftGullwingDoor.position.set(-0.38, 0, 0);
     leftGullwingDoor.userData = { type: 'cyber_car' };
     leftGullwingPivot.add(leftGullwingDoor);
-    dreamCruiserGroup.add(leftGullwingPivot);
+    pickableObjects.push(leftGullwingDoor);
+    const leftDoorSidePanel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.38, 1.38),
+      carMetallicPaintMat
+    );
+    leftDoorSidePanel.position.set(-0.74, -0.19, 0);
+    leftDoorSidePanel.userData = { type: 'cyber_car' };
+    leftGullwingPivot.add(leftDoorSidePanel);
+    pickableObjects.push(leftDoorSidePanel);
+    carChassisGroup.add(leftGullwingPivot);
 
     const rightGullwingPivot = new THREE.Group();
     rightGullwingPivot.position.set(0.24, 1.18, -0.08);
@@ -4442,7 +5062,16 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     rightGullwingDoor.position.set(0.38, 0, 0);
     rightGullwingDoor.userData = { type: 'cyber_car' };
     rightGullwingPivot.add(rightGullwingDoor);
-    dreamCruiserGroup.add(rightGullwingPivot);
+    pickableObjects.push(rightGullwingDoor);
+    const rightDoorSidePanel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.38, 1.38),
+      carMetallicPaintMat
+    );
+    rightDoorSidePanel.position.set(0.74, -0.19, 0);
+    rightDoorSidePanel.userData = { type: 'cyber_car' };
+    rightGullwingPivot.add(rightDoorSidePanel);
+    pickableObjects.push(rightDoorSidePanel);
+    carChassisGroup.add(rightGullwingPivot);
     let carGullwingOpenAmount = 0;
 
     const windshieldSlope = new THREE.Mesh(
@@ -4451,14 +5080,16 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     );
     windshieldSlope.position.set(0, 0.88, 0.82);
     windshieldSlope.rotation.x = 0.42;
-    dreamCruiserGroup.add(windshieldSlope);
+    windshieldSlope.userData = { type: 'cyber_car' };
+    carChassisGroup.add(windshieldSlope);
+    pickableObjects.push(windshieldSlope);
 
     const roofSpine = new THREE.Mesh(
       new THREE.BoxGeometry(0.28, 0.08, 1.95),
       carSilverBladeMat
     );
     roofSpine.position.set(0, 1.19, -0.12);
-    dreamCruiserGroup.add(roofSpine);
+    carChassisGroup.add(roofSpine);
 
     for (const sideX of [-0.98, 0.98]) {
       const sideMirror = new THREE.Mesh(
@@ -4466,10 +5097,10 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         carSilverBladeMat
       );
       sideMirror.position.set(sideX, 0.84, 0.68);
-      dreamCruiserGroup.add(sideMirror);
+      carChassisGroup.add(sideMirror);
     }
 
-    // 6) Rear Engine Louvers, Dual-Pylon Carbon GT Rear Wing & Twin Plasma Exhausts (-Z Rear)
+    // 6) Rear Engine Louvers, Active Aerodynamic Carbon GT Rear Wing & Twin Plasma Exhausts (-Z Rear)
     for (let l = 0; l < 4; l++) {
       const louver = new THREE.Mesh(
         new THREE.BoxGeometry(1.28, 0.04, 0.18),
@@ -4477,61 +5108,67 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       );
       louver.position.set(0, 0.82 - l * 0.04, -1.28 - l * 0.22);
       louver.rotation.x = -0.25;
-      dreamCruiserGroup.add(louver);
+      carChassisGroup.add(louver);
     }
 
-    // Raised GT Rear Spoiler Wing
+    // Active Aerodynamic GT Rear Spoiler Wing Group (Rises & tilts at speed / airbrakes on deceleration!)
+    const gtWingGroup = new THREE.Group();
+    gtWingGroup.position.set(0, 0.88, -2.06);
     for (const pylonX of [-0.58, 0.58]) {
       const wingPylon = new THREE.Mesh(
         new THREE.BoxGeometry(0.08, 0.34, 0.32),
         carCarbonMat
       );
-      wingPylon.position.set(pylonX, 0.88, -2.02);
+      wingPylon.position.set(pylonX, 0, 0.04);
       wingPylon.rotation.x = -0.22;
-      dreamCruiserGroup.add(wingPylon);
+      gtWingGroup.add(wingPylon);
     }
     const gtWingBlade = new THREE.Mesh(
       new THREE.BoxGeometry(2.08, 0.07, 0.42),
       carCarbonMat
     );
-    gtWingBlade.position.set(0, 1.06, -2.1);
+    gtWingBlade.position.set(0, 0.18, -0.04);
     gtWingBlade.rotation.x = 0.12;
     gtWingBlade.castShadow = true;
-    dreamCruiserGroup.add(gtWingBlade);
+    gtWingGroup.add(gtWingBlade);
 
     for (const sideX of [-1.06, 1.06]) {
       const wingEndplate = new THREE.Mesh(
         new THREE.BoxGeometry(0.05, 0.24, 0.48),
         cyberMagentaMat
       );
-      wingEndplate.position.set(sideX, 1.06, -2.1);
-      dreamCruiserGroup.add(wingEndplate);
+      wingEndplate.position.set(sideX, 0.18, -0.04);
+      gtWingGroup.add(wingEndplate);
     }
+    carChassisGroup.add(gtWingGroup);
 
     // Full-Width Front Matrix LED Headlight Blade (+Z) & Rear Crimson Laser Tail-Light Bar (-Z)
+    const carHeadlightMat = new THREE.MeshStandardMaterial({
+      color: '#e0f2fe',
+      emissive: '#38bdf8',
+      emissiveIntensity: 2.2,
+    });
     const headlightBar = new THREE.Mesh(
       new THREE.BoxGeometry(1.92, 0.11, 0.12),
-      new THREE.MeshStandardMaterial({
-        color: '#e0f2fe',
-        emissive: '#38bdf8',
-        emissiveIntensity: 2.2,
-      })
+      carHeadlightMat
     );
     headlightBar.position.set(0, 0.52, 2.24);
-    dreamCruiserGroup.add(headlightBar);
+    carChassisGroup.add(headlightBar);
 
+    const carTaillightMat = new THREE.MeshStandardMaterial({
+      color: '#fecdd3',
+      emissive: '#f43f5e',
+      emissiveIntensity: 2.0,
+    });
     const taillightBar = new THREE.Mesh(
       new THREE.BoxGeometry(1.96, 0.12, 0.12),
-      new THREE.MeshStandardMaterial({
-        color: '#fecdd3',
-        emissive: '#f43f5e',
-        emissiveIntensity: 2.0,
-      })
+      carTaillightMat
     );
     taillightBar.position.set(0, 0.58, -2.24);
-    dreamCruiserGroup.add(taillightBar);
+    carChassisGroup.add(taillightBar);
 
     // Twin Plasma Afterburner Exhaust Thrusters
+    const carExhaustFlames: THREE.Mesh[] = [];
     for (const ex of [-0.46, 0.46]) {
       const exhaustPipe = new THREE.Mesh(
         new THREE.CylinderGeometry(0.11, 0.13, 0.26, 14),
@@ -4539,7 +5176,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       );
       exhaustPipe.rotation.x = Math.PI / 2;
       exhaustPipe.position.set(ex, 0.34, -2.28);
-      dreamCruiserGroup.add(exhaustPipe);
+      carChassisGroup.add(exhaustPipe);
 
       const exhaustFlame = new THREE.Mesh(
         new THREE.ConeGeometry(0.09, 0.28, 12),
@@ -4547,81 +5184,246 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       );
       exhaustFlame.rotation.x = -Math.PI / 2;
       exhaustFlame.position.set(ex, 0.34, -2.42);
-      dreamCruiserGroup.add(exhaustFlame);
+      carChassisGroup.add(exhaustFlame);
+      carExhaustFlames.push(exhaustFlame);
     }
 
-    // 7) 4 Detailed Rotating Cyber-Alloy Wheels (Tire Tread + Metallic Disc + Brake Caliper + Glowing Rim Ring)
+    // 7) 4 Realistic Treaded Cyber-Alloy Wheels (Steerable Knuckle + Fixed Brembo Caliper + Spinning Treaded Tire & Slotted Rotor)
+    const carSteerGroups: THREE.Group[] = [];
     const carWheelGroups: THREE.Group[] = [];
-    const tireGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 24);
+    const tireGeo = new THREE.CylinderGeometry(0.39, 0.39, 0.3, 28);
     tireGeo.rotateZ(Math.PI / 2);
-    const tireMat = new THREE.MeshStandardMaterial({ color: '#090d16', roughness: 0.72 });
-    const discGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.29, 18);
+    const tireMat = tireTreadMat;
+    const discGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.31, 20);
     discGeo.rotateZ(Math.PI / 2);
-    const spokeGeo = new THREE.BoxGeometry(0.31, 0.46, 0.06);
+    const spokeGeo = new THREE.BoxGeometry(0.32, 0.48, 0.055);
+    const carTreadLugGeo = new THREE.BoxGeometry(0.31, 0.04, 0.09);
 
     const wheelPositions: [number, number][] = [
-      [-1.02, 1.38],  // Front-Left
-      [1.02, 1.38],   // Front-Right
-      [-1.04, -1.36], // Rear-Left
-      [1.04, -1.36],  // Rear-Right
+      [-1.02, 1.38],  // 0: Front-Left (Steerable)
+      [1.02, 1.38],   // 1: Front-Right (Steerable)
+      [-1.04, -1.36], // 2: Rear-Left
+      [1.04, -1.36],  // 3: Rear-Right
     ];
     wheelPositions.forEach(([wx, wz]) => {
+      // Steering Knuckle Group (Rotates around Y for front-wheel steering; holds non-spinning brake caliper!)
+      const steerGrp = new THREE.Group();
+      steerGrp.position.set(wx, 0.39, wz);
+
+      // Fixed Crimson Brembo Brake Caliper on the knuckle
+      const caliper = new THREE.Mesh(
+        new THREE.BoxGeometry(0.14, 0.22, 0.14),
+        carCaliperRedMat
+      );
+      caliper.position.set(wx < 0 ? -0.08 : 0.08, 0.06, -0.18);
+      steerGrp.add(caliper);
+
+      // Spinning Wheel Hub Group (Rotates around X as the car rolls!)
       const wGroup = new THREE.Group();
-      wGroup.position.set(wx, 0.38, wz);
+      steerGrp.add(wGroup);
 
       const tire = new THREE.Mesh(tireGeo, tireMat);
       tire.castShadow = true;
+      tire.userData = { type: 'cyber_car' };
       wGroup.add(tire);
+      pickableObjects.push(tire);
+
+      // 10 Sculpted 3D Rubber Tread Blocks around tire circumference so tire rotation looks ultra-realistic!
+      for (let t = 0; t < 10; t++) {
+        const ang = (t / 10) * Math.PI * 2;
+        const lug = new THREE.Mesh(carTreadLugGeo, carCarbonMat);
+        lug.position.set(0, Math.cos(ang) * 0.385, Math.sin(ang) * 0.385);
+        lug.rotation.x = -ang;
+        wGroup.add(lug);
+      }
 
       const brakeDisc = new THREE.Mesh(discGeo, carSilverBladeMat);
       wGroup.add(brakeDisc);
 
-      // Crossed Alloy Spokes so wheel rotation is visibly unmistakable!
-      for (let s = 0; s < 3; s++) {
+      // 5 Forged Twin-Spoke Alloy Blades + Center Lock Nut
+      for (let s = 0; s < 5; s++) {
         const spoke = new THREE.Mesh(spokeGeo, carSilverBladeMat);
-        spoke.rotation.x = (s / 3) * Math.PI;
+        spoke.rotation.x = (s / 5) * Math.PI;
         wGroup.add(spoke);
       }
 
       const rimGlow = new THREE.Mesh(
-        new THREE.TorusGeometry(0.28, 0.025, 10, 24),
+        new THREE.TorusGeometry(0.29, 0.024, 10, 24),
         cyberCyanMat
       );
       rimGlow.rotation.y = Math.PI / 2;
-      rimGlow.position.x = wx < 0 ? -0.145 : 0.145;
+      rimGlow.position.x = wx < 0 ? -0.155 : 0.155;
       wGroup.add(rimGlow);
 
-      dreamCruiserGroup.add(wGroup);
+      dreamCruiserGroup.add(steerGrp);
+      carSteerGroups.push(steerGrp);
       carWheelGroups.push(wGroup);
     });
 
     // Rooftop Holographic Navigation Crystal
     const cruiserBeacon = new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0), cyberGoldMat);
     cruiserBeacon.position.set(0, 1.48, -0.15);
-    dreamCruiserGroup.add(cruiserBeacon);
+    carChassisGroup.add(cruiserBeacon);
     neoSpinningObjects.push({ mesh: cruiserBeacon, speedY: 2.8, baseY: 1.48, bobAmp: 0.06 });
 
     // Expanded Whole-Map Grand Tour Highway Waypoints so the Cyberpunk Supercar drives everywhere across Gemini City, the Bridge & Cyber Horizon!
     const carHighwayWaypoints: [number, number][] = [
-      [182, -1.65],  // 0: Cyber-Horizon Avenue Westbound
-      [140, -1.65],  // 1: East Bridge Portal Westbound
-      [99, -1.65],   // 2: Golden Horizon Suspension Bridge Mid-Span
-      [58, -1.65],   // 3: West Bridge Portal
-      [10.5, -1.65], // 4: Gemini City East Highway Approach
-      [10.5, -10.5], // 5: North-East Blossom & Conservatory Avenue
-      [-10.5, -10.5],// 6: North-West Solaris & Academy Boulevard
-      [-10.5, 10.5], // 7: South-West Sunbeam Café & Silverbrook River Boulevard
-      [10.5, 10.5],  // 8: South-East Hearthstone & Harbor Boulevard
-      [10.5, 1.65],  // 9: Merge onto Eastbound Bridge Highway
-      [58, 1.65],    // 10: West Bridge Portal Eastbound
-      [99, 1.65],    // 11: Golden Horizon Suspension Bridge Eastbound
-      [140, 1.65],   // 12: East Bridge Portal
-      [182, 1.65],   // 13: Cyber-Horizon Central Plaza
-      [196, -10.5],  // 14: Cyber-Horizon North Starlight Loop
-      [206, 0.0],    // 15: Cyber-Horizon East Ocean Overlook
-      [196, 10.5],   // 16: Cyber-Horizon South Astral Lagoon Loop
+      [10.5, -10.5], // 0: North-East Blossom & Conservatory Avenue
+      [-10.5, -10.5],// 1: North-West Solaris & Academy Boulevard
+      [-10.5, 10.5], // 2: South-West Sunbeam Café & Silverbrook River Boulevard
+      [10.5, 10.5],  // 3: South-East Hearthstone & Harbor Boulevard
+      [10.5, 1.65],  // 4: Merge onto Eastbound Bridge Highway
+      [58, 1.65],    // 5: West Bridge Portal Eastbound
+      [99, 1.65],    // 6: Golden Horizon Suspension Bridge Eastbound
+      [140, 1.65],   // 7: East Bridge Portal
+      [182, 1.65],   // 8: Cyber-Horizon Central Plaza
+      [196, -10.5],  // 9: Cyber-Horizon North Starlight Loop
+      [206, 0.0],    // 10: Cyber-Horizon East Ocean Overlook
+      [196, 10.5],   // 11: Cyber-Horizon South Astral Lagoon Loop
+      [182, -1.65],  // 12: Cyber-Horizon Avenue Westbound
+      [140, -1.65],  // 13: East Bridge Portal Westbound
+      [99, -1.65],   // 14: Golden Horizon Suspension Bridge Mid-Span
+      [58, -1.65],   // 15: West Bridge Portal
+      [10.5, -1.65], // 16: Gemini City East Highway Approach
     ];
-    let carWaypointIndex = 1;
+    let carWaypointIndex = 0;
+    let carCurrentSpeed = 0;
+    let carPrevSpeed = 0;
+    let carPitch = 0;
+    let carRoll = 0;
+    let carSteerAngle = 0;
+
+    // Wire up Cyber-Valkyrie GT Boarding, Exiting, Summoning & Move Toggle Actions!
+    boardCyberCarActionRef.current = (companionOverride?: string | null) => {
+      const compId =
+        companionOverride !== undefined ? companionOverride : cyberCarCompanionIdRef.current;
+      if (companionOverride !== undefined) {
+        setCyberCarCompanionId(compId);
+        cyberCarCompanionIdRef.current = compId;
+      }
+
+      // Exit bus or bench if currently seated there
+      setIsRidingBus(false);
+      isRidingBusRef.current = false;
+      callbacksRef.current.onPlayerStandUp?.();
+      callbacksRef.current.onClearCameraOverride();
+
+      // Sit inside the Cyber Car in PARKED state first — Car ONLY moves when user presses Move!
+      setIsRidingCyberCar(true);
+      isRidingCyberCarRef.current = true;
+      setIsCyberCarMoving(false);
+      isCyberCarMovingRef.current = false;
+      AudioManager.enterVehicle('cyber_car');
+      setIsVehiclePanelCollapsed(false);
+      setIsTransitMenuOpen(false);
+      setCyberCarDestLabel('Seated in Cockpit (PARKED) — Press [▶️ Move Car] to Drive!');
+      setCyberCarTelemetry({ speedKmh: 0, gear: 'P', trafficLightWait: false });
+
+      // Trigger Gullwing Scissor Door opening animation
+      carGullwingOpenAmount = 1.0;
+      carCurrentSpeed = 0;
+      carPrevSpeed = 0;
+      playerState.hasTapTarget = false;
+
+      const boardedIds = compId ? [compId] : [];
+      if (boardedIds.length > 0) {
+        callbacksRef.current.onVehicleTransitEvent?.({
+          vehicle: 'cyber_car',
+          action: 'board',
+          characterIds: boardedIds,
+          x: dreamCruiserGroup.position.x,
+          z: dreamCruiserGroup.position.z,
+          locationLabel: 'Cyber-Valkyrie GT Supercar Cockpit',
+        });
+      }
+    };
+
+    exitCyberCarActionRef.current = () => {
+      if (!isRidingCyberCarRef.current) return;
+      const carX = dreamCruiserGroup.position.x;
+      const carZ = dreamCruiserGroup.position.z;
+      const carYaw = dreamCruiserGroup.rotation.y;
+      const cosY = Math.cos(carYaw);
+      const sinY = Math.sin(carYaw);
+
+      // Stop & Park the Cyber Car immediately when stepping out
+      setIsCyberCarMoving(false);
+      isCyberCarMovingRef.current = false;
+      setIsRidingCyberCar(false);
+      isRidingCyberCarRef.current = false;
+      AudioManager.exitVehicle();
+      setCyberCarDestLabel('Parked — Sit Inside & Press Move to Drive');
+      setCyberCarTelemetry({ speedKmh: 0, gear: 'P', trafficLightWait: false });
+      carCurrentSpeed = 0;
+      carPrevSpeed = 0;
+      carGullwingOpenAmount = 1.0;
+
+      // Place Player cleanly beside the Left Driver Gullwing Door
+      const exitPlayer = clampToWalkableWorld(carX - cosY * 1.95, carZ + sinY * 1.95);
+      playerState.x = exitPlayer.x;
+      playerState.z = exitPlayer.z;
+      playerState.y = 0;
+      playerState.vx = 0;
+      playerState.vz = 0;
+      playerState.hasTapTarget = false;
+
+      // Place Companion beside the Right Passenger Gullwing Door if one was riding
+      const compId = cyberCarCompanionIdRef.current;
+      if (compId) {
+        const exitComp = clampToWalkableWorld(carX + cosY * 1.95, carZ - sinY * 1.95);
+        if (aiRigs[compId]) {
+          aiRigs[compId].group.position.set(
+            exitComp.x,
+            getBridgeSurfaceElevation(exitComp.x, exitComp.z),
+            exitComp.z
+          );
+          aiRigs[compId].group.rotation.x = 0;
+          aiRigs[compId].group.rotation.z = 0;
+        }
+        callbacksRef.current.onVehicleTransitEvent?.({
+          vehicle: 'cyber_car',
+          action: 'exit',
+          characterIds: [compId],
+          x: exitComp.x,
+          z: exitComp.z,
+          locationLabel: 'Cyber-Valkyrie GT Parking Spot',
+        });
+      }
+    };
+
+    toggleCyberCarMoveRef.current = (forceMove?: boolean) => {
+      if (!isRidingCyberCarRef.current) {
+        boardCyberCarActionRef.current?.();
+      }
+      const nextMoving = forceMove !== undefined ? forceMove : !isCyberCarMovingRef.current;
+      setIsCyberCarMoving(nextMoving);
+      isCyberCarMovingRef.current = nextMoving;
+      if (nextMoving) {
+        setCyberCarDoorsOpen(false);
+        cyberCarDoorsOpenRef.current = false;
+        setCyberCarDestLabel(
+          cyberCarDriveModeRef.current === 'manual'
+            ? 'Driving Enabled — Use Joystick / WASD or Pick Auto-Tour!'
+            : 'Driving Active — Cruising Across Map!'
+        );
+      } else {
+        carCurrentSpeed = 0;
+        setCyberCarDestLabel('Car Stopped & Parked (Gear: P) — Press Move to Drive');
+        setCyberCarTelemetry({ speedKmh: 0, gear: 'P', trafficLightWait: false });
+      }
+    };
+
+    summonCyberCarRef.current = () => {
+      const nearPos = clampToWalkableWorld(playerState.x + 2.4, playerState.z + 1.2);
+      const surfElev = getBridgeSurfaceElevation(nearPos.x, nearPos.z);
+      dreamCruiserGroup.position.set(nearPos.x, surfElev + 0.05, nearPos.z);
+      dreamCruiserGroup.rotation.y = playerState.rotationY;
+      carCurrentSpeed = 0;
+      carPrevSpeed = 0;
+      carGullwingOpenAmount = 1.0;
+      setIsCyberCarMoving(false);
+      isCyberCarMovingRef.current = false;
+    };
 
     worldGroup.add(dreamCruiserGroup);
 
@@ -4825,43 +5627,53 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     addContactShadow(busGroup, 3.2, 8.4, 0.72);
     worldGroup.add(busGroup);
 
-    // Suspended Chassis Group (Pitches on Braking/Acceleration & Rolls on Air-Suspension in Corners!)
+    // Suspended Chassis Group (Pitches on Braking/Acceleration, Rolls in Corners & Kneels at Stops/Depot!)
     const busChassisGroup = new THREE.Group();
     busGroup.add(busChassisGroup);
 
     const busPearlWhiteMat = new THREE.MeshStandardMaterial({
       color: '#f8fafc',
-      roughness: 0.18,
-      metalness: 0.35,
+      roughness: 0.16,
+      metalness: 0.38,
     });
     const busRoyalBlueMat = new THREE.MeshStandardMaterial({
       color: '#0284c7',
-      roughness: 0.22,
-      metalness: 0.68,
+      roughness: 0.2,
+      metalness: 0.72,
     });
     const busDarkTrimMat = new THREE.MeshStandardMaterial({
       color: '#0f172a',
       roughness: 0.28,
-      metalness: 0.75,
+      metalness: 0.78,
+    });
+    const busChromeMat = new THREE.MeshStandardMaterial({
+      color: '#e2e8f0',
+      roughness: 0.14,
+      metalness: 0.92,
     });
     const busWindowGlassMat = new THREE.MeshStandardMaterial({
       color: '#bae6fd',
       emissive: '#0ea5e9',
-      emissiveIntensity: 0.18,
+      emissiveIntensity: 0.16,
       transparent: true,
-      opacity: 0.28,
-      roughness: 0.06,
+      opacity: 0.26,
+      roughness: 0.05,
       metalness: 0.35,
       depthWrite: false,
     });
     const busSeatPlushMat = new THREE.MeshStandardMaterial({
-      color: '#f59e0b',
-      roughness: 0.48,
-      metalness: 0.08,
+      color: '#d97706',
+      roughness: 0.42,
+      metalness: 0.1,
+    });
+    const busSeatBolsterMat = new THREE.MeshStandardMaterial({
+      color: '#92400e',
+      roughness: 0.38,
+      metalness: 0.12,
     });
     const busSeatHeadrestMat = new THREE.MeshStandardMaterial({
       color: '#fef3c7',
-      roughness: 0.4,
+      roughness: 0.35,
     });
     const busBrakeLightMat = new THREE.MeshStandardMaterial({
       color: '#fecdd3',
@@ -4873,8 +5685,15 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       emissive: '#f59e0b',
       emissiveIntensity: 1.2,
     });
+    const busSafetyYellowMat = new THREE.MeshStandardMaterial({
+      color: '#facc15',
+      emissive: '#eab308',
+      emissiveIntensity: 0.45,
+      roughness: 0.32,
+      metalness: 0.25,
+    });
 
-    // 1) Lower Coach Floor Deck & Side Skirts (z: -3.7 to +3.7, width: 2.44m)
+    // 1) Lower Coach Floor Deck, Underbody Air Diffuser & Aerodynamic Wheel Arch Skirts (z: -3.7 to +3.7, width: 2.44m)
     const busFloorDeck = new THREE.Mesh(
       new THREE.BoxGeometry(2.42, 0.32, 7.4),
       busDarkTrimMat
@@ -4886,13 +5705,31 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     busChassisGroup.add(busFloorDeck);
     pickableObjects.push(busFloorDeck);
 
-    // Interior Warm Wood-Teak Aisle Runner Floor
+    // Interior Warm Wood-Teak Aisle Runner Floor + Non-Slip Tactile Strips + LED Aisle Guide Lighting
     const busAisleFloor = new THREE.Mesh(
       new THREE.BoxGeometry(2.26, 0.05, 7.1),
-      new THREE.MeshStandardMaterial({ color: '#78350f', roughness: 0.55 })
+      new THREE.MeshStandardMaterial({ color: '#78350f', roughness: 0.48, metalness: 0.08 })
     );
     busAisleFloor.position.set(0, 0.59, 0);
     busChassisGroup.add(busAisleFloor);
+
+    // Illuminated Cyan Aisle LED Floor Guide Strips along both sides of center walkway
+    for (const aisleX of [-0.26, 0.26]) {
+      const aisleLed = new THREE.Mesh(
+        new THREE.BoxGeometry(0.035, 0.012, 5.8),
+        cyberCyanMat
+      );
+      aisleLed.position.set(aisleX, 0.62, -0.2);
+      busChassisGroup.add(aisleLed);
+    }
+
+    // Extendable Yellow Wheelchair / Curbside Boarding Ramp (Slides out from right doorway when bus stops/parks!)
+    const busBoardingRamp = new THREE.Mesh(
+      new THREE.BoxGeometry(0.75, 0.045, 0.96),
+      busSafetyYellowMat
+    );
+    busBoardingRamp.position.set(0.92, 0.43, 1.78);
+    busChassisGroup.add(busBoardingRamp);
 
     // 2) Lower Side Bodywork Panels (Left solid panel + Right panel with doorway opening at z = +1.35..+2.25)
     const leftSideWall = new THREE.Mesh(
@@ -4923,14 +5760,21 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     rightFrontNoseWall.castShadow = true;
     busChassisGroup.add(rightFrontNoseWall);
 
-    // Sapphire-Blue & Gold Livery Stripes along both sides
+    // Sapphire-Blue & Gold Livery Stripes + Brushed Chrome Rub-Rails along both sides
     for (const sideX of [-1.225, 1.225]) {
       const blueStripe = new THREE.Mesh(
-        new THREE.BoxGeometry(0.02, 0.24, sideX < 0 ? 7.32 : 4.9),
+        new THREE.BoxGeometry(0.024, 0.26, sideX < 0 ? 7.32 : 4.9),
         busRoyalBlueMat
       );
       blueStripe.position.set(sideX, 0.88, sideX < 0 ? 0 : -1.2);
       busChassisGroup.add(blueStripe);
+
+      const chromeRail = new THREE.Mesh(
+        new THREE.BoxGeometry(0.03, 0.045, sideX < 0 ? 7.34 : 4.92),
+        busChromeMat
+      );
+      chromeRail.position.set(sideX, 0.68, sideX < 0 ? 0 : -1.2);
+      busChassisGroup.add(chromeRail);
 
       const neonBeltline = new THREE.Mesh(
         new THREE.BoxGeometry(0.03, 0.05, sideX < 0 ? 7.34 : 4.92),
@@ -4940,7 +5784,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       busChassisGroup.add(neonBeltline);
     }
 
-    // Front Nose Lower Dashboard Bumper & Rear Engine Tail Panel
+    // Front Nose Lower Dashboard Bumper, Chrome Grille & Rear Engine Louver Tail Panel
     const busFrontLower = new THREE.Mesh(
       new THREE.BoxGeometry(2.42, 0.76, 0.28),
       busRoyalBlueMat
@@ -4950,6 +5794,16 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     busFrontLower.userData = { type: 'bus_interaction' };
     busChassisGroup.add(busFrontLower);
     pickableObjects.push(busFrontLower);
+
+    // Front Horizontal Chrome Intake Grille Bars
+    for (let g = 0; g < 3; g++) {
+      const grilleBar = new THREE.Mesh(
+        new THREE.BoxGeometry(1.42, 0.032, 0.04),
+        busChromeMat
+      );
+      grilleBar.position.set(0, 0.56 + g * 0.08, 3.76);
+      busChassisGroup.add(grilleBar);
+    }
 
     const busRearWall = new THREE.Mesh(
       new THREE.BoxGeometry(2.42, 2.15, 0.24),
@@ -4961,7 +5815,15 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     busChassisGroup.add(busRearWall);
     pickableObjects.push(busRearWall);
 
-    // 3) 5 Physical 3D Plush Cushioned Passenger Seats Inside the Bus Cabin!
+    // Rear Tinted Observation Window & Engine Cooling Vents
+    const busRearWindow = new THREE.Mesh(
+      new THREE.BoxGeometry(2.05, 0.88, 0.06),
+      busWindowGlassMat
+    );
+    busRearWindow.position.set(0, 1.98, -3.72);
+    busChassisGroup.add(busRearWindow);
+
+    // 3) 5 Physical 3D Luxury Quilted Passenger Seats + Fold-Out Tray Tables, Armrests & Safety Grab Poles Inside Cabin!
     //    Arranged with wide panoramic legroom so up to 5 NPCs sit comfortably inside!
     const BUS_SEAT_OFFSETS: { x: number; y: number; z: number; label: string }[] = [
       { x: -0.66, y: 0.35, z: 1.45, label: 'Seat 1 (Front-Left Window)' },
@@ -4975,6 +5837,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       const seatGrp = new THREE.Group();
       seatGrp.position.set(s.x, 0.6, s.z);
 
+      // Anodized Aluminum Seat Pedestal + Under-Seat Footrest Bar
       const pedestal = new THREE.Mesh(
         new THREE.BoxGeometry(0.42, 0.22, 0.42),
         busDarkTrimMat
@@ -4982,6 +5845,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       pedestal.position.y = 0.11;
       seatGrp.add(pedestal);
 
+      // Ergonomic Contoured Cushion + Side Thigh Bolsters
       const cushion = new THREE.Mesh(
         new THREE.BoxGeometry(0.58, 0.12, 0.56),
         busSeatPlushMat
@@ -4990,8 +5854,26 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       cushion.castShadow = true;
       seatGrp.add(cushion);
 
+      for (const bx of [-0.27, 0.27]) {
+        const bolster = new THREE.Mesh(
+          new THREE.BoxGeometry(0.08, 0.15, 0.54),
+          busSeatBolsterMat
+        );
+        bolster.position.set(bx, 0.3, 0);
+        seatGrp.add(bolster);
+
+        // Padded Folding Armrests
+        const armrest = new THREE.Mesh(
+          new THREE.BoxGeometry(0.06, 0.05, 0.42),
+          busDarkTrimMat
+        );
+        armrest.position.set(bx, 0.52, 0.02);
+        seatGrp.add(armrest);
+      }
+
+      // Reclined Quilted Backrest + Cream Leather Headrest + Rear Fold-Down Tray Table
       const backrest = new THREE.Mesh(
-        new THREE.BoxGeometry(0.56, 0.62, 0.12),
+        new THREE.BoxGeometry(0.56, 0.64, 0.12),
         busSeatPlushMat
       );
       backrest.position.set(0, 0.6, -0.22);
@@ -5000,32 +5882,114 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       seatGrp.add(backrest);
 
       const headrest = new THREE.Mesh(
-        new THREE.BoxGeometry(0.42, 0.18, 0.14),
+        new THREE.BoxGeometry(0.44, 0.2, 0.14),
         busSeatHeadrestMat
       );
-      headrest.position.set(0, 0.94, -0.26);
+      headrest.position.set(0, 0.95, -0.26);
       seatGrp.add(headrest);
+
+      const trayTable = new THREE.Mesh(
+        new THREE.BoxGeometry(0.42, 0.24, 0.03),
+        busChromeMat
+      );
+      trayTable.position.set(0, 0.58, -0.29);
+      trayTable.rotation.x = -0.12;
+      seatGrp.add(trayTable);
 
       busChassisGroup.add(seatGrp);
     });
 
-    // Driver Cockpit Console & Steering Wheel at Front-Left (z = +2.75)
+    // Interior Brushed-Steel Vertical Handrail Grab Poles, Overhead Grab Rails & Red "STOP" Request Buttons
+    const poleCoords: [number, number][] = [
+      [-0.32, 1.85],
+      [0.32, 1.05],
+      [-0.32, -0.85],
+      [0.32, -1.45],
+    ];
+    poleCoords.forEach(([px, pz]) => {
+      const grabPole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.026, 0.026, 2.02, 10),
+        busChromeMat
+      );
+      grabPole.position.set(px, 1.62, pz);
+      busChassisGroup.add(grabPole);
+
+      // Red "STOP" Request Bell Button mounted on each handrail pole
+      const stopBtn = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 0.09, 0.06),
+        busBrakeLightMat
+      );
+      stopBtn.position.set(px, 1.48, pz);
+      busChassisGroup.add(stopBtn);
+    });
+
+    // Overhead Translucent Blue Luggage Racks & Warm Cabin LED Ceiling Strips
+    for (const rackX of [-0.78, 0.78]) {
+      const luggageRack = new THREE.Mesh(
+        new THREE.BoxGeometry(0.52, 0.04, 5.6),
+        shelterGlassMat
+      );
+      luggageRack.position.set(rackX, 2.42, -0.35);
+      busChassisGroup.add(luggageRack);
+
+      const ceilingLightBar = new THREE.Mesh(
+        new THREE.BoxGeometry(0.1, 0.03, 5.8),
+        new THREE.MeshStandardMaterial({
+          color: '#fffbeb',
+          emissive: '#fef08a',
+          emissiveIntensity: 1.1,
+        })
+      );
+      ceilingLightBar.position.set(rackX * 0.55, 2.58, -0.2);
+      busChassisGroup.add(ceilingLightBar);
+    }
+
+    // Driver Cockpit Wrap-Around Console, Captain Seat, Contactless NFC Farebox & Animated Steering Wheel
     const busDashConsole = new THREE.Mesh(
-      new THREE.BoxGeometry(1.05, 0.45, 0.52),
+      new THREE.BoxGeometry(1.18, 0.48, 0.58),
       busDarkTrimMat
     );
-    busDashConsole.position.set(-0.55, 0.85, 3.15);
+    busDashConsole.position.set(-0.52, 0.85, 3.15);
     busChassisGroup.add(busDashConsole);
 
-    const busSteeringWheel = new THREE.Mesh(
-      new THREE.TorusGeometry(0.2, 0.03, 8, 20),
+    // Illuminated Driver Telemetry & Route GPS Screen on Dashboard
+    const busDriverScreen = new THREE.Mesh(
+      new THREE.BoxGeometry(0.46, 0.22, 0.04),
       cyberCyanMat
     );
-    busSteeringWheel.position.set(-0.65, 1.18, 2.88);
+    busDriverScreen.position.set(-0.42, 1.15, 3.05);
+    busDriverScreen.rotation.x = -0.32;
+    busChassisGroup.add(busDriverScreen);
+
+    // Contactless NFC Transit Fare Reader Pedestal beside the Front Boarding Door
+    const fareboxPillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.08, 0.92, 12),
+      busDarkTrimMat
+    );
+    fareboxPillar.position.set(0.55, 1.04, 2.42);
+    busChassisGroup.add(fareboxPillar);
+
+    const fareboxTapPad = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.11, 0.11, 0.04, 16),
+      new THREE.MeshStandardMaterial({
+        color: '#34d399',
+        emissive: '#10b981',
+        emissiveIntensity: 1.5,
+      })
+    );
+    fareboxTapPad.position.set(0.55, 1.52, 2.42);
+    fareboxTapPad.rotation.x = -0.45;
+    busChassisGroup.add(fareboxTapPad);
+
+    const busSteeringWheel = new THREE.Mesh(
+      new THREE.TorusGeometry(0.22, 0.032, 10, 24),
+      cyberCyanMat
+    );
+    busSteeringWheel.position.set(-0.65, 1.2, 2.88);
     busSteeringWheel.rotation.x = -0.65;
     busChassisGroup.add(busSteeringWheel);
 
-    // 4) Panoramic Window Pillars, Sculpted Coach Roof, Interior Warm Ceiling Lights & Route Sign
+    // 4) Panoramic Window Pillars, Sculpted Coach Roof & Route Sign
     const pillarZCoords = [-3.5, -1.75, 0.0, 1.2, 2.35, 3.5];
     pillarZCoords.forEach((pz) => {
       for (const sideX of [-1.16, 1.16]) {
@@ -5061,6 +6025,21 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     frontWindshieldGlass.rotation.x = 0.08;
     busChassisGroup.add(frontWindshieldGlass);
 
+    // Dual Animated Windshield Wipers on Front Glass (Sweep during rainy weather!)
+    const busWiperPivots: THREE.Group[] = [];
+    for (const wx of [-0.52, 0.52]) {
+      const wiperPivot = new THREE.Group();
+      wiperPivot.position.set(wx, 1.32, 3.69);
+      const wiperBlade = new THREE.Mesh(
+        new THREE.BoxGeometry(0.035, 0.68, 0.03),
+        busDarkTrimMat
+      );
+      wiperBlade.position.y = 0.32;
+      wiperPivot.add(wiperBlade);
+      busChassisGroup.add(wiperPivot);
+      busWiperPivots.push(wiperPivot);
+    }
+
     // Animated Sliding Bi-Fold Passenger Entry Doors on Right Side (x = +1.18, z = 1.25..2.32)
     const busDoorFrontLeaf = new THREE.Mesh(
       new THREE.BoxGeometry(0.06, 1.92, 0.52),
@@ -5083,7 +6062,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     busBoardingStepGlow.position.set(1.12, 0.45, 1.78);
     busChassisGroup.add(busBoardingStepGlow);
 
-    // Aerodynamic Coach Roof Cap, Interior Warm Ceiling Lights & Illuminated Route Matrix
+    // Aerodynamic Coach Roof Cap, Solar/HVAC Pods & Illuminated LED Route Destination Matrix
     const busRoof = new THREE.Mesh(
       new THREE.BoxGeometry(2.44, 0.22, 7.48),
       busPearlWhiteMat
@@ -5125,7 +6104,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       busChassisGroup.add(mirrorHead);
     }
 
-    // Front Xenon Headlights, Rear Brake Light Bar & 4 Corner Amber Turn/Stop Blinkers
+    // Front Xenon Headlights, Fog Lamps, Rear Brake Light Bar & 4 Corner Amber Turn/Stop Blinkers
     const busHeadlightBar = new THREE.Mesh(
       new THREE.BoxGeometry(2.18, 0.14, 0.08),
       new THREE.MeshStandardMaterial({
@@ -5158,44 +6137,76 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       busChassisGroup.add(blinker);
     }
 
-    // 5) 6 Heavy-Duty Rotating Coach Wheels (2 Steerable Front Wheels + 4 Dual-Axle Rear Wheels)
+    // 5) 6 Realistic Heavy-Duty Radial Coach Tires (🛞) with Steering Knuckles, 3D Sculpted Tread Blocks, Brake Rotors & Chrome Hubs!
+    const busSteerGroups: THREE.Group[] = [];
     const busWheelGroups: THREE.Group[] = [];
-    const busTireGeo = new THREE.CylinderGeometry(0.46, 0.46, 0.34, 24);
+    const busTireGeo = new THREE.CylinderGeometry(0.46, 0.46, 0.36, 28);
     busTireGeo.rotateZ(Math.PI / 2);
-    const busDiscGeo = new THREE.CylinderGeometry(0.29, 0.29, 0.35, 18);
+    const busDiscGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.37, 20);
     busDiscGeo.rotateZ(Math.PI / 2);
-    const busSpokeGeo = new THREE.BoxGeometry(0.36, 0.54, 0.07);
+    const busHubCapGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.39, 14);
+    busHubCapGeo.rotateZ(Math.PI / 2);
+    const busSpokeGeo = new THREE.BoxGeometry(0.38, 0.56, 0.07);
+    const busTreadLugGeo = new THREE.BoxGeometry(0.37, 0.045, 0.11);
 
     const busWheelCoords: [number, number][] = [
       [-1.22, 2.35],  // 0: Front-Left (Steerable)
       [1.22, 2.35],   // 1: Front-Right (Steerable)
-      [-1.24, -1.45], // 2: Mid-Rear-Left
-      [1.24, -1.45],  // 3: Mid-Rear-Right
-      [-1.24, -2.55], // 4: Back-Rear-Left
-      [1.24, -2.55],  // 5: Back-Rear-Right
+      [-1.24, -1.45], // 2: Mid-Rear-Left (Dual Drive Axle)
+      [1.24, -1.45],  // 3: Mid-Rear-Right (Dual Drive Axle)
+      [-1.24, -2.55], // 4: Back-Rear-Left (Tag Axle)
+      [1.24, -2.55],  // 5: Back-Rear-Right (Tag Axle)
     ];
     busWheelCoords.forEach(([wx, wz]) => {
+      // Steering Knuckle Group (Rotates around Y for front steering; holds non-spinning heavy brake caliper!)
+      const steerGrp = new THREE.Group();
+      steerGrp.position.set(wx, 0.46, wz);
+
+      // Fixed Heavy-Duty Amber/Gold Air-Disc Brake Caliper
+      const busCaliper = new THREE.Mesh(
+        new THREE.BoxGeometry(0.16, 0.24, 0.16),
+        new THREE.MeshStandardMaterial({ color: '#f59e0b', roughness: 0.3, metalness: 0.7 })
+      );
+      busCaliper.position.set(wx < 0 ? -0.09 : 0.09, 0.07, -0.2);
+      steerGrp.add(busCaliper);
+
+      // Spinning Wheel Hub Group (Rotates cleanly around X without gimbal wobble!)
       const wGrp = new THREE.Group();
-      wGrp.position.set(wx, 0.46, wz);
+      steerGrp.add(wGrp);
 
       const tire = new THREE.Mesh(busTireGeo, tireMat);
       tire.castShadow = true;
+      tire.userData = { type: 'bus_interaction' };
       wGrp.add(tire);
+      pickableObjects.push(tire);
 
-      const rim = new THREE.Mesh(busDiscGeo, carSilverBladeMat);
+      // 12 Sculpted 3D Heavy-Duty Rubber Tread Blocks around tire circumference
+      for (let t = 0; t < 12; t++) {
+        const ang = (t / 12) * Math.PI * 2;
+        const lug = new THREE.Mesh(busTreadLugGeo, busDarkTrimMat);
+        lug.position.set(0, Math.cos(ang) * 0.455, Math.sin(ang) * 0.455);
+        lug.rotation.x = -ang;
+        wGrp.add(lug);
+      }
+
+      const rim = new THREE.Mesh(busDiscGeo, busChromeMat);
       wGrp.add(rim);
 
-      for (let s = 0; s < 3; s++) {
-        const spoke = new THREE.Mesh(busSpokeGeo, carSilverBladeMat);
-        spoke.rotation.x = (s / 3) * Math.PI;
+      const hubCap = new THREE.Mesh(busHubCapGeo, busRoyalBlueMat);
+      wGrp.add(hubCap);
+
+      for (let s = 0; s < 5; s++) {
+        const spoke = new THREE.Mesh(busSpokeGeo, busChromeMat);
+        spoke.rotation.x = (s / 5) * Math.PI;
         wGrp.add(spoke);
       }
 
-      busGroup.add(wGrp);
+      busGroup.add(steerGrp);
+      busSteerGroups.push(steerGrp);
       busWheelGroups.push(wGrp);
     });
 
-    // Closed-Loop Inter-City Bus Route Waypoints (Connecting all 4 Bus Stops across Gemini City, Bridge & Cyber Horizon!)
+    // Closed-Loop Inter-City Bus Route Waypoints (Connecting all 6 Bus Stops across Gemini City, Bridge & Cyber Horizon!)
     const busRouteWaypoints: [number, number][] = [
       [182, -1.65],   // 0: Depart Cyber-Horizon Westbound
       [140, -1.65],   // 1: East Bridge Portal
@@ -5217,6 +6228,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     let busPrevSpeed = 5.5;
     let busPitch = 0;
     let busRoll = 0;
+    let busKneelOffset = 0;
     let busStopTimer = 0;
     let busDoorOpenProgress = 0;
     let busStopHandledForCurrentHalt = false;
@@ -5241,29 +6253,151 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     const busRouteLine = new THREE.Line(busRouteLineGeo, busRouteLineMat);
     busStopVisualizerGroup.add(busRouteLine);
 
-    triggerBusStopNowRef.current = () => {
-      busStopTimer = 6.2;
-      busStopHandledForCurrentHalt = false;
+    // Helper to get a character's live 3D distance to the bus (strict proximity check!)
+    const getCharacterDistToBus = (charId: string, fallbackPos: { x: number; z: number }): number => {
+      const liveRig = aiRigs[charId];
+      const cx = liveRig ? liveRig.group.position.x : fallbackPos.x;
+      const cz = liveRig ? liveRig.group.position.z : fallbackPos.z;
+      return Math.hypot(cx - busGroup.position.x, cz - busGroup.position.z);
     };
 
+    triggerBusStopNowRef.current = () => {
+      busStopTimer = 8.0;
+      busCurrentSpeed = 0;
+      busStopHandledForCurrentHalt = false;
+      setBusUiStatus((prev) => ({
+        ...prev,
+        phase: 'doors_open',
+        stopName: 'Stopped on Demand (Doors & Ramp Open)',
+        speedKmh: 0,
+      }));
+    };
+
+    // Stop & Hold Bus in Place until user turns Engine ON!
+    stopAndParkBusRef.current = () => {
+      setIsBusParked(true);
+      isBusParkedRef.current = true;
+      setIsBusEngineOn(false);
+      isBusEngineOnRef.current = false;
+      busCurrentSpeed = 0;
+      busPrevSpeed = 0;
+      busStopTimer = 0;
+      busStopHandledForCurrentHalt = false;
+      setBusUiStatus((prev) => ({
+        ...prev,
+        phase: 'parked_depot',
+        stopName: 'Bus Stopped & Parked (Engine OFF — Press Turn Bus ON to Move)',
+        speedKmh: 0,
+      }));
+    };
+
+    // Park the Bus inside the Dedicated 3D Bus Parking Bay (-15.4, -2.0) and Turn Engine OFF until user starts it!
+    parkBusAtDepotRef.current = () => {
+      busGroup.position.set(BUS_DEPOT_COORDS.x, 0.04, BUS_DEPOT_COORDS.z);
+      busGroup.rotation.y = 0;
+      busCurrentSpeed = 0;
+      busPrevSpeed = 0;
+      busStopTimer = 0;
+      busStopHandledForCurrentHalt = false;
+      setIsBusParked(true);
+      isBusParkedRef.current = true;
+      setIsBusEngineOn(false);
+      isBusEngineOnRef.current = false;
+      setBusUiStatus((prev) => ({
+        ...prev,
+        phase: 'parked_depot',
+        activeStopId: null,
+        stopName: 'Parked at Bus Depot Bay (Engine OFF — Turn ON to Depart)',
+        speedKmh: 0,
+      }));
+    };
+
+    // Turn Bus Engine ON and depart from Parking Bay / Stop!
+    startBusEngineRef.current = () => {
+      setIsBusParked(false);
+      isBusParkedRef.current = false;
+      setIsBusEngineOn(true);
+      isBusEngineOnRef.current = true;
+      busStopTimer = 0;
+      // If departing from the West Grand Ave Bus Parking Bay (-15.4, -2.0), merge smoothly onto West Grand Ave (-10.5)
+      if (
+        Math.hypot(
+          busGroup.position.x - BUS_DEPOT_COORDS.x,
+          busGroup.position.z - BUS_DEPOT_COORDS.z
+        ) < 5.5
+      ) {
+        busWaypointIndex = 6; // Head south toward Sunbeam Café & River Stop
+      }
+      const upcomingStop =
+        BUS_STOPS.find((s) => s.waypointIdx >= busWaypointIndex) || BUS_STOPS[0];
+      setBusUiStatus((prev) => ({
+        ...prev,
+        phase: 'driving',
+        activeStopId: null,
+        nextStopId: upcomingStop.id,
+        stopName: `Engine ON · En Route → ${upcomingStop.shortName}`,
+        speedKmh: 42,
+      }));
+    };
+
+    // STRICT PROXIMITY BOARDING: NPCs can ONLY get in the bus if they are close to the bus (<= 6.8m)!
     boardAllFiveBusRef.current = () => {
-      const topFive = charactersRef.current
-        .filter((c) => !(isRidingCyberCarRef.current && c.id === cyberCarCompanionIdRef.current))
-        .slice(0, 5)
+      const currentStaying = [...busPassengersRef.current];
+      const seatsLeft = 5 - currentStaying.length;
+      if (seatsLeft <= 0) return;
+
+      const nearbyCandidates = charactersRef.current
+        .filter((c) => {
+          if (currentStaying.includes(c.id)) return false;
+          if (isRidingCyberCarRef.current && c.id === cyberCarCompanionIdRef.current) return false;
+          const distToBus = getCharacterDistToBus(c.id, c.currentPosition);
+          return distToBus <= 6.8; // STRICT PROXIMITY CHECK: Must be within 6.8m of the bus!
+        })
+        .sort(
+          (a, b) =>
+            getCharacterDistToBus(a.id, a.currentPosition) -
+            getCharacterDistToBus(b.id, b.currentPosition)
+        )
+        .slice(0, seatsLeft)
         .map((c) => c.id);
-      busPassengersRef.current = topFive;
-      topFive.forEach((id) => {
+
+      if (nearbyCandidates.length === 0) {
+        // Open doors & halt briefly so nearby pedestrians can walk closer to board
+        busStopTimer = Math.max(busStopTimer, 6.0);
+        setBusUiStatus((prev) => ({
+          ...prev,
+          stopName: 'Doors Open — Waiting for NPCs within 6.8m to Board!',
+        }));
+        return;
+      }
+
+      const nextList = [...currentStaying, ...nearbyCandidates].slice(0, 5);
+      busPassengersRef.current = nextList;
+      nearbyCandidates.forEach((id) => {
         busRideStopsCountByChar[id] = 0;
       });
       setBusUiStatus((prev) => ({
         ...prev,
-        passengerIds: topFive,
+        passengerIds: nextList,
+        stopName: `Boarded ${nearbyCandidates.length} Nearby NPC(s) (<6.8m)!`,
       }));
+      callbacksRef.current.onVehicleTransitEvent?.({
+        vehicle: 'bus',
+        action: 'board',
+        characterIds: nearbyCandidates,
+        x: busGroup.position.x,
+        z: busGroup.position.z,
+        locationLabel: 'Horizon Grand Coach Bus',
+      });
     };
 
     dispatchBusToStopRef.current = (stopId: string, instantPause = true) => {
       const targetStop = BUS_STOPS.find((s) => s.id === stopId);
       if (!targetStop) return;
+      setIsBusParked(false);
+      isBusParkedRef.current = false;
+      setIsBusEngineOn(true);
+      isBusEngineOnRef.current = true;
       busWaypointIndex = targetStop.waypointIdx;
       busLastStoppedWaypoint = -1;
       if (instantPause) {
@@ -5965,6 +7099,16 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
           if (data.type === 'cyber_car') {
             boardCyberCarActionRef.current?.();
+            return;
+          }
+
+          if (data.type === 'bus_depot_interaction' || data.type === 'bus_depot') {
+            setIsBusStopVisualizerOpen(true);
+            if (isBusParkedRef.current || !isBusEngineOnRef.current) {
+              startBusEngineRef.current?.();
+            } else {
+              parkBusAtDepotRef.current?.();
+            }
             return;
           }
 
@@ -6881,58 +8025,165 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         boat.rotation.x = Math.cos(elapsed * 1.2 + idx) * 0.035;
       });
 
-      // Animate Inter-City Cyberpunk Supercar ("Cyber-Valkyrie GT" — Rideable by Player & Companion Across the Whole Map!)
+      // =======================================================================================
+      // 5A-LIGHTS. ANIMATE 3D TRAFFIC LIGHTS 🚦⛔ & INTERSECTION RED-LIGHT VEHICLE STOPPING
+      // =======================================================================================
+      const trafficCycle = elapsed % 26.0;
+      const currentTrafficPhase: 'ns_green' | 'ns_yellow' | 'ew_green' | 'ew_yellow' =
+        trafficCycle < 10.0
+          ? 'ns_green'
+          : trafficCycle < 13.0
+          ? 'ns_yellow'
+          : trafficCycle < 23.0
+          ? 'ew_green'
+          : 'ew_yellow';
+
+      if (currentTrafficPhase !== trafficSignalPhaseRef.current) {
+        trafficSignalPhaseRef.current = currentTrafficPhase;
+        setTrafficSignalPhase(currentTrafficPhase);
+      }
+
+      for (let tIdx = 0; tIdx < trafficSignalVisuals.length; tIdx++) {
+        const tl = trafficSignalVisuals[tIdx];
+        const isGreen =
+          (tl.axis === 'ns' && currentTrafficPhase === 'ns_green') ||
+          (tl.axis === 'ew' && currentTrafficPhase === 'ew_green');
+        const isYellow =
+          (tl.axis === 'ns' && currentTrafficPhase === 'ns_yellow') ||
+          (tl.axis === 'ew' && currentTrafficPhase === 'ew_yellow');
+        const isRed = !isGreen && !isYellow;
+
+        tl.redLensMat.emissiveIntensity = isRed ? 2.8 : 0.08;
+        tl.yellowLensMat.emissiveIntensity = isYellow ? 2.6 : 0.08;
+        tl.greenLensMat.emissiveIntensity = isGreen ? 2.8 : 0.08;
+        tl.pedSignalMat.emissiveIntensity = isRed ? 2.2 : 0.15;
+      }
+
+      // Helper: Returns true if a vehicle at (vx, vz) heading along (dirX, dirZ) should halt at a Red/Yellow 3D Traffic Light Stop Bar!
+      const shouldVehicleStopForTrafficLight = (
+        vx: number,
+        vz: number,
+        dirX: number,
+        dirZ: number
+      ): boolean => {
+        const isMovingNS = Math.abs(dirZ) >= Math.abs(dirX);
+        const lightIsRedOrYellow = isMovingNS
+          ? currentTrafficPhase !== 'ns_green'
+          : currentTrafficPhase !== 'ew_green';
+        if (!lightIsRedOrYellow) return false;
+
+        for (let i = 0; i < signalIntersections.length; i++) {
+          const inter = signalIntersections[i];
+          const toIntX = inter.x - vx;
+          const toIntZ = inter.z - vz;
+          const distToCenter = Math.hypot(toIntX, toIntZ);
+          // Check if vehicle is 3.1m..7.8m upstream of the intersection center and heading toward it
+          if (distToCenter > 3.1 && distToCenter < 7.8) {
+            const dotForward = (toIntX * dirX + toIntZ * dirZ) / distToCenter;
+            if (dotForward > 0.78) {
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      // =======================================================================================
+      // 5A-CAR. ANIMATE CYBERPUNK SUPERCAR ("CYBER-VALKYRIE GT" 🏎️)
+      //         CRITICAL RULE: Car ONLY moves when Player sits inside it AND presses Move!
+      // =======================================================================================
+      const targetGullwingOpen =
+        cyberCarDoorsOpenRef.current || (!isCyberCarMovingRef.current && carGullwingOpenAmount > 0.05)
+          ? cyberCarDoorsOpenRef.current
+            ? 1.0
+            : 0.0
+          : 0.0;
       carGullwingOpenAmount = THREE.MathUtils.lerp(
         carGullwingOpenAmount,
-        0,
-        1 - Math.exp(-2.8 * dt)
+        targetGullwingOpen,
+        1 - Math.exp(-3.5 * dt)
       );
       leftGullwingPivot.rotation.z = -carGullwingOpenAmount * 1.15;
       rightGullwingPivot.rotation.z = carGullwingOpenAmount * 1.15;
-      carCanopyMat.opacity = isRidingCyberCarRef.current ? 0.34 : 0.72;
+      carCanopyMat.opacity = isRidingCyberCarRef.current ? 0.32 : 0.68;
+
+      carPrevSpeed = carCurrentSpeed;
+      let carWaitingAtTrafficLight = false;
+
+      // The Cyber Car ONLY moves if the player is seated inside AND has pressed the Move button!
+      const canCyberCarMoveNow =
+        isRidingCyberCarRef.current && isCyberCarMovingRef.current;
 
       const isManualCarSteer =
-        isRidingCyberCarRef.current && Math.hypot(moveX, moveY) > 0.08;
+        canCyberCarMoveNow &&
+        (Math.hypot(moveX, moveY) > 0.08 || cyberCarDriveModeRef.current === 'manual');
 
-      if (isManualCarSteer) {
-        if (cyberCarDriveModeRef.current !== 'manual') {
+      if (!canCyberCarMoveNow) {
+        // Car is PARKED / STOPPED — smoothly brake to 0 and hold position!
+        carCurrentSpeed = THREE.MathUtils.lerp(carCurrentSpeed, 0, 1 - Math.exp(-10 * dt));
+        carSteerAngle = THREE.MathUtils.lerp(carSteerAngle, 0, 1 - Math.exp(-8 * dt));
+      } else if (isManualCarSteer) {
+        const hasStickInput = Math.hypot(moveX, moveY) > 0.08;
+        if (hasStickInput && cyberCarDriveModeRef.current !== 'manual') {
           cyberCarDriveModeRef.current = 'manual';
           setCyberCarDriveMode('manual');
-          setCyberCarDestLabel('Manual Steering (Driving Anywhere)');
+          setCyberCarDestLabel('Manual Steering (Joystick / WASD Active)');
         }
-        const steerInputAngle = Math.atan2(moveX, moveY) + camOrbit.azimuth;
-        const throttleMag = Math.min(1.35, Math.hypot(moveX, moveY) * sprintBonus);
-        const manualCarSpeed = 14.2 * throttleMag;
-        const stepMove = manualCarSpeed * dt;
-        const nextCarX = dreamCruiserGroup.position.x + Math.sin(steerInputAngle) * stepMove;
-        const nextCarZ = dreamCruiserGroup.position.z + Math.cos(steerInputAngle) * stepMove;
-        const clampedCar = clampToWalkableWorld(nextCarX, nextCarZ);
+        if (hasStickInput) {
+          const steerInputAngle = Math.atan2(moveX, moveY) + camOrbit.azimuth;
+          const throttleMag = Math.min(1.4, Math.hypot(moveX, moveY) * sprintBonus);
+          const targetManualSpeed = 15.6 * throttleMag;
+          carCurrentSpeed = THREE.MathUtils.lerp(
+            carCurrentSpeed,
+            targetManualSpeed,
+            1 - Math.exp(-6.5 * dt)
+          );
+          const stepMove = carCurrentSpeed * dt;
+          const nextCarX =
+            dreamCruiserGroup.position.x + Math.sin(steerInputAngle) * stepMove;
+          const nextCarZ =
+            dreamCruiserGroup.position.z + Math.cos(steerInputAngle) * stepMove;
+          const clampedCar = clampToWalkableWorld(nextCarX, nextCarZ);
 
-        dreamCruiserGroup.position.x = clampedCar.x;
-        dreamCruiserGroup.position.z = clampedCar.z;
-        dreamCruiserGroup.position.y =
-          getBridgeSurfaceElevation(clampedCar.x, clampedCar.z) + 0.04;
+          dreamCruiserGroup.position.x = clampedCar.x;
+          dreamCruiserGroup.position.z = clampedCar.z;
+          dreamCruiserGroup.position.y =
+            getBridgeSurfaceElevation(clampedCar.x, clampedCar.z) + 0.05;
 
-        const yawDiff = normalizeAngle(steerInputAngle - dreamCruiserGroup.rotation.y);
-        dreamCruiserGroup.rotation.y += yawDiff * (1 - Math.exp(-8.5 * dt));
-        dreamCruiserGroup.rotation.z = THREE.MathUtils.lerp(
-          dreamCruiserGroup.rotation.z,
-          THREE.MathUtils.clamp(-yawDiff * 0.16, -0.09, 0.09),
-          1 - Math.exp(-9 * dt)
-        );
-        const wheelSpinDelta = stepMove / 0.38;
-        for (let w = 0; w < carWheelGroups.length; w++) {
-          carWheelGroups[w].rotation.x += wheelSpinDelta;
+          const yawDiff = normalizeAngle(steerInputAngle - dreamCruiserGroup.rotation.y);
+          dreamCruiserGroup.rotation.y += yawDiff * (1 - Math.exp(-8.5 * dt));
+          carSteerAngle = THREE.MathUtils.lerp(
+            carSteerAngle,
+            THREE.MathUtils.clamp(yawDiff * 0.75, -0.48, 0.48),
+            1 - Math.exp(-10 * dt)
+          );
+          carRoll = THREE.MathUtils.lerp(
+            carRoll,
+            THREE.MathUtils.clamp(-yawDiff * 0.16, -0.09, 0.09),
+            1 - Math.exp(-9 * dt)
+          );
+        } else {
+          // Manual mode with no stick input -> smooth coasting deceleration
+          carCurrentSpeed = THREE.MathUtils.lerp(carCurrentSpeed, 0, 1 - Math.exp(-7 * dt));
+          carSteerAngle = THREE.MathUtils.lerp(carSteerAngle, 0, 1 - Math.exp(-8 * dt));
+          if (carCurrentSpeed > 0.08) {
+            const stepMove = carCurrentSpeed * dt;
+            const clampedCar = clampToWalkableWorld(
+              dreamCruiserGroup.position.x + Math.sin(dreamCruiserGroup.rotation.y) * stepMove,
+              dreamCruiserGroup.position.z + Math.cos(dreamCruiserGroup.rotation.y) * stepMove
+            );
+            dreamCruiserGroup.position.x = clampedCar.x;
+            dreamCruiserGroup.position.z = clampedCar.z;
+          }
         }
       } else {
-        // Autopilot Whole-Map Grand Tour OR Custom Destination Routing (Automatically crosses Golden Horizon Bridge!)
+        // Player is Seated Inside + Move Button ON + Auto-Cruise Mode (Whole-Map Grand Tour or Destination)
         let targetWp: [number, number] = carHighwayWaypoints[carWaypointIndex];
         const customDest = cyberCarTargetPointRef.current;
 
-        if (isRidingCyberCarRef.current && customDest) {
+        if (customDest) {
           const cx = dreamCruiserGroup.position.x;
           const cz = dreamCruiserGroup.position.z;
-          // Route cleanly across the Golden Horizon Suspension Bridge if driving between City 1 and Cyber Horizon!
           if (cx < 56 && customDest[0] > 62 && Math.abs(cz) > 3.2) {
             targetWp = [56, 1.65];
           } else if (cx >= 54 && cx < 138 && customDest[0] > 140) {
@@ -6944,8 +8195,6 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           } else {
             targetWp = customDest;
           }
-        } else if (!isRidingCyberCarRef.current && phase === 'night' && carWaypointIndex === 13) {
-          targetWp = [182, 1.65];
         }
 
         const carDx = targetWp[0] - dreamCruiserGroup.position.x;
@@ -6953,57 +8202,133 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         const carDist = Math.hypot(carDx, carDz);
 
         if (carDist < 1.8) {
-          if (isRidingCyberCarRef.current && customDest) {
+          if (customDest) {
             const distToFinal = Math.hypot(
               customDest[0] - dreamCruiserGroup.position.x,
               customDest[1] - dreamCruiserGroup.position.z
             );
             if (distToFinal < 2.2) {
-              // Reached custom destination -> switch seamlessly to Whole-Map Grand Tour or hold
+              // Arrived at chosen destination -> automatically park & stop the car!
               cyberCarTargetPointRef.current = null;
-              cyberCarDriveModeRef.current = 'grand_tour';
-              setCyberCarDriveMode('grand_tour');
+              setIsCyberCarMoving(false);
+              isCyberCarMovingRef.current = false;
+              carCurrentSpeed = 0;
+              setCyberCarDestLabel('Arrived & Parked — Press Move to Drive Again!');
             }
-          } else if (!(!isRidingCyberCarRef.current && phase === 'night' && carWaypointIndex === 13)) {
+          } else {
             carWaypointIndex = (carWaypointIndex + 1) % carHighwayWaypoints.length;
           }
         } else {
-          const isBridgeSpan =
-            dreamCruiserGroup.position.x > 52 && dreamCruiserGroup.position.x < 144;
-          const cruiseSpeed = isRidingCyberCarRef.current
-            ? isBridgeSpan
-              ? 14.8
-              : 10.8
-            : isBridgeSpan
-            ? 11.2
-            : 7.4;
-          const stepMove = Math.min(carDist, cruiseSpeed * dt);
           const dirX = carDx / carDist;
           const dirZ = carDz / carDist;
+          carWaitingAtTrafficLight = shouldVehicleStopForTrafficLight(
+            dreamCruiserGroup.position.x,
+            dreamCruiserGroup.position.z,
+            dirX,
+            dirZ
+          );
 
+          const isBridgeSpan =
+            dreamCruiserGroup.position.x > 52 && dreamCruiserGroup.position.x < 144;
+          const desiredCruiseSpeed = carWaitingAtTrafficLight
+            ? 0
+            : isBridgeSpan
+            ? 15.2
+            : 11.4;
+
+          carCurrentSpeed = THREE.MathUtils.lerp(
+            carCurrentSpeed,
+            desiredCruiseSpeed,
+            1 - Math.exp((carWaitingAtTrafficLight ? -8.5 : -5.0) * dt)
+          );
+
+          const stepMove = Math.min(carDist, carCurrentSpeed * dt);
           dreamCruiserGroup.position.x += dirX * stepMove;
           dreamCruiserGroup.position.z += dirZ * stepMove;
           dreamCruiserGroup.position.y =
             getBridgeSurfaceElevation(
               dreamCruiserGroup.position.x,
               dreamCruiserGroup.position.z
-            ) + 0.04;
+            ) + 0.05;
 
           const desiredCarYaw = Math.atan2(dirX, dirZ);
           const yawDiff = normalizeAngle(desiredCarYaw - dreamCruiserGroup.rotation.y);
-          dreamCruiserGroup.rotation.y += yawDiff * (1 - Math.exp(-7.5 * dt));
-
-          dreamCruiserGroup.rotation.z = THREE.MathUtils.lerp(
-            dreamCruiserGroup.rotation.z,
+          if (carCurrentSpeed > 0.25) {
+            dreamCruiserGroup.rotation.y += yawDiff * (1 - Math.exp(-7.5 * dt));
+          }
+          carSteerAngle = THREE.MathUtils.lerp(
+            carSteerAngle,
+            THREE.MathUtils.clamp(yawDiff * 0.72, -0.45, 0.45),
+            1 - Math.exp(-9 * dt)
+          );
+          carRoll = THREE.MathUtils.lerp(
+            carRoll,
             THREE.MathUtils.clamp(-yawDiff * 0.14, -0.08, 0.08),
             1 - Math.exp(-8 * dt)
           );
-
-          const wheelSpinDelta = stepMove / 0.38;
-          for (let w = 0; w < carWheelGroups.length; w++) {
-            carWheelGroups[w].rotation.x += wheelSpinDelta;
-          }
         }
+      }
+
+      // Apply Realistic Cyber Car Suspension Pitch, Roll, Wheel Spin, Front Steering Knuckles, Steering Yoke & Active Aero Spoiler!
+      const carAccel = (carCurrentSpeed - carPrevSpeed) / Math.max(0.001, dt);
+      const targetCarPitch = THREE.MathUtils.clamp(-carAccel * 0.009, -0.04, 0.045);
+      carPitch = THREE.MathUtils.lerp(carPitch, targetCarPitch, 1 - Math.exp(-9 * dt));
+      if (carCurrentSpeed < 0.2) {
+        carRoll = THREE.MathUtils.lerp(carRoll, 0, 1 - Math.exp(-8 * dt));
+      }
+      carChassisGroup.rotation.x = carPitch;
+      carChassisGroup.rotation.z = carRoll;
+
+      // Steer front knuckles & cockpit butterfly yoke
+      carSteerGroups[0].rotation.y = carSteerAngle;
+      carSteerGroups[1].rotation.y = carSteerAngle;
+      carSteeringYokeGroup.rotation.z = -carSteerAngle * 1.65;
+
+      // Spin all 4 treaded wheels proportionally to actual speed
+      const carWheelSpinDelta = (carCurrentSpeed * dt) / 0.39;
+      for (let w = 0; w < carWheelGroups.length; w++) {
+        carWheelGroups[w].rotation.x += carWheelSpinDelta;
+      }
+
+      // Active Rear Spoiler Wing deploys at speed (> 6 m/s) or when manually toggled
+      const shouldDeployWing = cyberCarWingDeployedRef.current || carCurrentSpeed > 6.5;
+      gtWingGroup.position.y = THREE.MathUtils.lerp(
+        gtWingGroup.position.y,
+        shouldDeployWing ? 0.99 : 0.88,
+        1 - Math.exp(-6 * dt)
+      );
+      gtWingBlade.rotation.x = THREE.MathUtils.lerp(
+        gtWingBlade.rotation.x,
+        carAccel < -1.2 ? 0.38 : shouldDeployWing ? 0.18 : 0.12,
+        1 - Math.exp(-8 * dt)
+      );
+
+      // Taillight braking glow & Twin Plasma Exhaust Flames
+      const isCarBraking = carAccel < -0.5 || !canCyberCarMoveNow || carWaitingAtTrafficLight;
+      carTaillightMat.emissiveIntensity = isCarBraking ? 3.2 : 1.5;
+      const flameScale = THREE.MathUtils.clamp(carCurrentSpeed / 11.0, 0.01, 1.35);
+      carExhaustFlames.forEach((flame, fIdx) => {
+        flame.visible = canCyberCarMoveNow && carCurrentSpeed > 0.4;
+        flame.scale.set(
+          1,
+          flameScale * (0.85 + Math.sin(elapsed * 28 + fIdx) * 0.25),
+          1
+        );
+      });
+
+      // Throttled Telemetry UI sync for Cyber Car Cockpit
+      if (isRidingCyberCarRef.current && frameCounter % 10 === 0) {
+        const kmh = Math.round(carCurrentSpeed * 6.8);
+        const gear: 'P' | 'D' | 'S+' | 'R' = !isCyberCarMovingRef.current
+          ? 'P'
+          : kmh > 65
+          ? 'S+'
+          : 'D';
+        setCyberCarTelemetry({
+          speedKmh: kmh,
+          gear,
+          trafficLightWait: carWaitingAtTrafficLight,
+        });
       }
 
       // If Player is Riding Inside the Cyberpunk Supercar, lock Player into Left Driver Bucket Seat!
@@ -7022,14 +8347,15 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         playerState.x = seatWorldX;
         playerState.z = seatWorldZ;
         playerState.y = 0.24;
-        playerState.vx = Math.sin(carYaw) * 10;
-        playerState.vz = Math.cos(carYaw) * 10;
+        playerState.vx = Math.sin(carYaw) * carCurrentSpeed;
+        playerState.vz = Math.cos(carYaw) * carCurrentSpeed;
         playerState.rotationY = carYaw;
         playerIsSittingNow = true;
 
         playerRig.group.position.set(seatWorldX, carY + 0.24, seatWorldZ);
         playerRig.group.rotation.y = carYaw;
-        playerRig.group.rotation.z = dreamCruiserGroup.rotation.z;
+        playerRig.group.rotation.x = carPitch;
+        playerRig.group.rotation.z = carRoll;
         animateHumanoidRig({
           rig: playerRig,
           isMoving: false,
@@ -7048,8 +8374,8 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       }
 
       // =======================================================================================
-      // 5B-ANIM. ANIMATE 5-PASSENGER AUTONOMOUS TRANSIT BUS (REALISTIC AIR-SUSPENSION PHYSICS,
-      //          BI-FOLD DOORS, 6 BUS STOP MARKERS & 5-NPC BOARDING / ALIGHTING AT STATIONS!)
+      // 5B-ANIM. ANIMATE 5-PASSENGER LUXURY TRANSIT BUS (STOP & PARK AT DEPOT, ENGINE ON/OFF,
+      //          TRAFFIC LIGHT STOPPING, KNEELING SUSPENSION & STRICT <6.8M NPC BOARDING!)
       // =======================================================================================
       const currentBusWp = busRouteWaypoints[busWaypointIndex];
       const busDx = currentBusWp[0] - busGroup.position.x;
@@ -7066,7 +8392,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             busGroup.position.x - mv.stop.x,
             busGroup.position.z - mv.stop.z
           );
-          const isBusAtThisStop = distBusToStop < 5.5 && busStopTimer > 0;
+          const isBusAtThisStop = distBusToStop < 5.5 && (busStopTimer > 0 || isBusParkedRef.current);
           const isBusApproachingThisStop =
             matchingBusStop?.id === mv.stop.id && distBusToStop < 16;
 
@@ -7091,6 +8417,8 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
       // Trigger bus stop halt when arriving at any of the 6 official Bus Stops
       if (
+        !isBusParkedRef.current &&
+        isBusEngineOnRef.current &&
         matchingBusStop &&
         busDist < 1.35 &&
         busLastStoppedWaypoint !== busWaypointIndex &&
@@ -7102,8 +8430,141 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       }
 
       busPrevSpeed = busCurrentSpeed;
+      let busWaitingAtTrafficLight = false;
 
-      if (busStopTimer > 0) {
+      // Helper to execute strict-proximity NPC Boarding & Alighting when bus is stopped/parked with doors open
+      const runBusStopBoardingAndAlighting = () => {
+        const stopInfo =
+          matchingBusStop ||
+          BUS_STOPS.reduce((best, s) =>
+            Math.hypot(s.x - busGroup.position.x, s.z - busGroup.position.z) <
+            Math.hypot(best.x - busGroup.position.x, best.z - busGroup.position.z)
+              ? s
+              : best
+          );
+
+        const currentPassengers = [...busPassengersRef.current];
+        const exitingIds: string[] = [];
+        const stayingIds: string[] = [];
+
+        currentPassengers.forEach((cid) => {
+          busRideStopsCountByChar[cid] = (busRideStopsCountByChar[cid] || 0) + 1;
+          if (
+            busRideStopsCountByChar[cid] >= 2 ||
+            (currentPassengers.length >= 4 && exitingIds.length < 2)
+          ) {
+            exitingIds.push(cid);
+            delete busRideStopsCountByChar[cid];
+          } else {
+            stayingIds.push(cid);
+          }
+        });
+
+        // Place exiting NPCs right outside the bus door on the sidewalk!
+        if (exitingIds.length > 0) {
+          const busYaw = busGroup.rotation.y;
+          const rightNormalX = Math.cos(busYaw);
+          const rightNormalZ = -Math.sin(busYaw);
+
+          exitingIds.forEach((cid, eIdx) => {
+            const exitWorld = clampToWalkableWorld(
+              busGroup.position.x + rightNormalX * (2.4 + eIdx * 0.75),
+              busGroup.position.z + rightNormalZ * (2.4 + eIdx * 0.75) + (eIdx - 0.5) * 0.9
+            );
+            if (aiRigs[cid]) {
+              aiRigs[cid].group.position.set(
+                exitWorld.x,
+                getBridgeSurfaceElevation(exitWorld.x, exitWorld.z),
+                exitWorld.z
+              );
+              aiRigs[cid].group.rotation.x = 0;
+              aiRigs[cid].group.rotation.z = 0;
+            }
+          });
+
+          callbacksRef.current.onVehicleTransitEvent?.({
+            vehicle: 'bus',
+            action: 'exit',
+            characterIds: exitingIds,
+            x: busGroup.position.x + rightNormalX * 2.5,
+            z: busGroup.position.z + rightNormalZ * 2.5,
+            locationLabel: stopInfo.name,
+          });
+        }
+
+        // STRICT PROXIMITY CHECK: NPCs can ONLY board the bus if they are physically close to the bus (<= 6.8m)!
+        const seatsAvailable = 5 - stayingIds.length;
+        const newlyBoarded: string[] = [];
+        if (seatsAvailable > 0) {
+          const candidates = charactersRef.current
+            .filter((c) => {
+              if (stayingIds.includes(c.id) || exitingIds.includes(c.id)) return false;
+              if (c.id === selectedCharIdRef.current) return false;
+              if (isRidingCyberCarRef.current && c.id === cyberCarCompanionIdRef.current)
+                return false;
+              const distToBus = getCharacterDistToBus(c.id, c.currentPosition);
+              return distToBus <= 6.8; // Must be within 6.8m of the bus to board!
+            })
+            .sort(
+              (a, b) =>
+                getCharacterDistToBus(a.id, a.currentPosition) -
+                getCharacterDistToBus(b.id, b.currentPosition)
+            );
+
+          for (let k = 0; k < Math.min(seatsAvailable, candidates.length); k++) {
+            const boardChar = candidates[k];
+            newlyBoarded.push(boardChar.id);
+            busRideStopsCountByChar[boardChar.id] = 0;
+          }
+        }
+
+        const updatedPassengerList = [...stayingIds, ...newlyBoarded].slice(0, 5);
+        busPassengersRef.current = updatedPassengerList;
+
+        if (newlyBoarded.length > 0) {
+          callbacksRef.current.onVehicleTransitEvent?.({
+            vehicle: 'bus',
+            action: 'board',
+            characterIds: newlyBoarded,
+            x: busGroup.position.x,
+            z: busGroup.position.z,
+            locationLabel: stopInfo.name,
+          });
+        }
+
+        const stopIdxInList = BUS_STOPS.findIndex((s) => s.id === stopInfo.id);
+        const nextStopObj =
+          BUS_STOPS[(stopIdxInList + 1 + BUS_STOPS.length) % BUS_STOPS.length];
+
+        setBusUiStatus({
+          passengerIds: updatedPassengerList,
+          phase: isBusParkedRef.current ? 'parked_depot' : 'doors_open',
+          stopName: isBusParkedRef.current
+            ? 'Parked (Engine OFF — Turn ON to Move)'
+            : `Stopped at ${stopInfo.name}`,
+          activeStopId: isBusParkedRef.current ? null : stopInfo.id,
+          nextStopId: nextStopObj?.id || null,
+          speedKmh: 0,
+        });
+      };
+
+      // Case 1: Bus is Parked at Depot or Stopped with Engine OFF -> Hold stationary until user turns Engine ON!
+      if (isBusParkedRef.current || !isBusEngineOnRef.current) {
+        busCurrentSpeed = THREE.MathUtils.lerp(busCurrentSpeed, 0, 1 - Math.exp(-9 * dt));
+        busDoorOpenProgress = THREE.MathUtils.lerp(
+          busDoorOpenProgress,
+          1,
+          1 - Math.exp(-7 * dt)
+        );
+        busSteerGroups[0].rotation.y = THREE.MathUtils.lerp(busSteerGroups[0].rotation.y, 0, 0.1);
+        busSteerGroups[1].rotation.y = THREE.MathUtils.lerp(busSteerGroups[1].rotation.y, 0, 0.1);
+        busSteeringWheel.rotation.z = THREE.MathUtils.lerp(busSteeringWheel.rotation.z, 0, 0.1);
+        if (!busStopHandledForCurrentHalt && busDoorOpenProgress > 0.6) {
+          busStopHandledForCurrentHalt = true;
+          runBusStopBoardingAndAlighting();
+        }
+      } else if (busStopTimer > 0) {
+        // Case 2: Bus is temporarily halted at a Bus Stop or on-demand stop
         busStopTimer = Math.max(0, busStopTimer - dt);
         busCurrentSpeed = THREE.MathUtils.lerp(busCurrentSpeed, 0, 1 - Math.exp(-8 * dt));
         busDoorOpenProgress = THREE.MathUtils.lerp(
@@ -7112,126 +8573,31 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           1 - Math.exp(-7 * dt)
         );
 
-        // Execute 5-NPC Boarding & Alighting when doors open at the stop!
+        // Gently guide any nearby idle NPC within 14m toward the bus doorway so they can walk close enough (<6.8m) to board!
+        if (busPassengersRef.current.length < 5) {
+          const busYaw = busGroup.rotation.y;
+          const doorWorldX = busGroup.position.x + Math.cos(busYaw) * 2.1 + Math.sin(busYaw) * 1.75;
+          const doorWorldZ = busGroup.position.z - Math.sin(busYaw) * 2.1 + Math.cos(busYaw) * 1.75;
+          charactersRef.current.forEach((c) => {
+            if (busPassengersRef.current.includes(c.id)) return;
+            if (c.id === selectedCharIdRef.current) return;
+            const rig = aiRigs[c.id];
+            if (!rig) return;
+            const distToDoor = Math.hypot(
+              rig.group.position.x - doorWorldX,
+              rig.group.position.z - doorWorldZ
+            );
+            if (distToDoor > 2.2 && distToDoor < 13.5 && !c.isSitting) {
+              const stepWalk = Math.min(distToDoor - 1.8, 2.2 * dt);
+              rig.group.position.x += ((doorWorldX - rig.group.position.x) / distToDoor) * stepWalk;
+              rig.group.position.z += ((doorWorldZ - rig.group.position.z) / distToDoor) * stepWalk;
+            }
+          });
+        }
+
         if (!busStopHandledForCurrentHalt && busDoorOpenProgress > 0.55) {
           busStopHandledForCurrentHalt = true;
-          const stopInfo =
-            matchingBusStop ||
-            BUS_STOPS.reduce((best, s) =>
-              Math.hypot(s.x - busGroup.position.x, s.z - busGroup.position.z) <
-              Math.hypot(best.x - busGroup.position.x, best.z - busGroup.position.z)
-                ? s
-                : best
-            );
-
-          const currentPassengers = [...busPassengersRef.current];
-          const exitingIds: string[] = [];
-          const stayingIds: string[] = [];
-
-          currentPassengers.forEach((cid) => {
-            busRideStopsCountByChar[cid] = (busRideStopsCountByChar[cid] || 0) + 1;
-            // Passengers get off if they've ridden at least 1-2 stops or want to explore this stop
-            if (
-              busRideStopsCountByChar[cid] >= 2 ||
-              (currentPassengers.length >= 4 && exitingIds.length < 2)
-            ) {
-              exitingIds.push(cid);
-              delete busRideStopsCountByChar[cid];
-            } else {
-              stayingIds.push(cid);
-            }
-          });
-
-          // Place exiting NPCs right outside the bus door on the sidewalk!
-          if (exitingIds.length > 0) {
-            const busYaw = busGroup.rotation.y;
-            const rightNormalX = Math.cos(busYaw);
-            const rightNormalZ = -Math.sin(busYaw);
-
-            exitingIds.forEach((cid, eIdx) => {
-              const exitWorld = clampToWalkableWorld(
-                busGroup.position.x + rightNormalX * (2.4 + eIdx * 0.75),
-                busGroup.position.z + rightNormalZ * (2.4 + eIdx * 0.75) + (eIdx - 0.5) * 0.9
-              );
-              if (aiRigs[cid]) {
-                aiRigs[cid].group.position.set(
-                  exitWorld.x,
-                  getBridgeSurfaceElevation(exitWorld.x, exitWorld.z),
-                  exitWorld.z
-                );
-                aiRigs[cid].group.rotation.x = 0;
-                aiRigs[cid].group.rotation.z = 0;
-              }
-            });
-
-            callbacksRef.current.onVehicleTransitEvent?.({
-              vehicle: 'bus',
-              action: 'exit',
-              characterIds: exitingIds,
-              x: busGroup.position.x + rightNormalX * 2.5,
-              z: busGroup.position.z + rightNormalZ * 2.5,
-              locationLabel: stopInfo.name,
-            });
-          }
-
-          // Board new NPCs waiting or nearby (Up to 5 total passengers in the 5 seats!)
-          const seatsAvailable = 5 - stayingIds.length;
-          const newlyBoarded: string[] = [];
-          if (seatsAvailable > 0) {
-            const candidates = charactersRef.current
-              .filter(
-                (c) =>
-                  !stayingIds.includes(c.id) &&
-                  !exitingIds.includes(c.id) &&
-                  c.id !== selectedCharIdRef.current &&
-                  !(isRidingCyberCarRef.current && c.id === cyberCarCompanionIdRef.current)
-              )
-              .sort((a, b) => {
-                const da = Math.hypot(
-                  a.currentPosition.x - busGroup.position.x,
-                  a.currentPosition.z - busGroup.position.z
-                );
-                const db = Math.hypot(
-                  b.currentPosition.x - busGroup.position.x,
-                  b.currentPosition.z - busGroup.position.z
-                );
-                return da - db;
-              });
-
-            for (let k = 0; k < Math.min(seatsAvailable, candidates.length); k++) {
-              const boardChar = candidates[k];
-              newlyBoarded.push(boardChar.id);
-              busRideStopsCountByChar[boardChar.id] = 0;
-            }
-          }
-
-          const updatedPassengerList = [...stayingIds, ...newlyBoarded].slice(0, 5);
-          busPassengersRef.current = updatedPassengerList;
-
-          if (newlyBoarded.length > 0) {
-            callbacksRef.current.onVehicleTransitEvent?.({
-              vehicle: 'bus',
-              action: 'board',
-              characterIds: newlyBoarded,
-              x: busGroup.position.x,
-              z: busGroup.position.z,
-              locationLabel: stopInfo.name,
-            });
-          }
-
-          // Find the next upcoming bus stop on the loop
-          const stopIdxInList = BUS_STOPS.findIndex((s) => s.id === stopInfo.id);
-          const nextStopObj =
-            BUS_STOPS[(stopIdxInList + 1 + BUS_STOPS.length) % BUS_STOPS.length];
-
-          setBusUiStatus({
-            passengerIds: updatedPassengerList,
-            phase: 'doors_open',
-            stopName: `Stopped at ${stopInfo.name}`,
-            activeStopId: stopInfo.id,
-            nextStopId: nextStopObj?.id || null,
-            speedKmh: 0,
-          });
+          runBusStopBoardingAndAlighting();
         }
 
         if (busStopTimer <= 0.05) {
@@ -7247,7 +8613,57 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             speedKmh: 48,
           }));
         }
+      } else if (
+        isRidingBusRef.current &&
+        (busDriveModeRef.current === 'manual' || Math.hypot(moveX, moveY) > 0.08)
+      ) {
+        // Case 3: Player is Riding Inside the Bus and Driving Manually with Joystick / WASD!
+        if (Math.hypot(moveX, moveY) > 0.08 && busDriveModeRef.current !== 'manual') {
+          busDriveModeRef.current = 'manual';
+          setBusDriveMode('manual');
+        }
+        busDoorOpenProgress = THREE.MathUtils.lerp(busDoorOpenProgress, 0, 1 - Math.exp(-8 * dt));
+        if (Math.hypot(moveX, moveY) > 0.08) {
+          const steerInputAngle = Math.atan2(moveX, moveY) + camOrbit.azimuth;
+          const throttleMag = Math.min(1.25, Math.hypot(moveX, moveY) * sprintBonus);
+          busCurrentSpeed = THREE.MathUtils.lerp(
+            busCurrentSpeed,
+            9.2 * throttleMag,
+            1 - Math.exp(-4.8 * dt)
+          );
+          const stepMove = busCurrentSpeed * dt;
+          const nextBus = clampToWalkableWorld(
+            busGroup.position.x + Math.sin(steerInputAngle) * stepMove,
+            busGroup.position.z + Math.cos(steerInputAngle) * stepMove
+          );
+          busGroup.position.x = nextBus.x;
+          busGroup.position.z = nextBus.z;
+          busGroup.position.y = getBridgeSurfaceElevation(nextBus.x, nextBus.z) + 0.04;
+
+          const busYawDiff = normalizeAngle(steerInputAngle - busGroup.rotation.y);
+          busGroup.rotation.y += busYawDiff * (1 - Math.exp(-5.0 * dt));
+          const frontSteerAngle = THREE.MathUtils.clamp(busYawDiff * 0.68, -0.44, 0.44);
+          busSteerGroups[0].rotation.y = frontSteerAngle;
+          busSteerGroups[1].rotation.y = frontSteerAngle;
+          busSteeringWheel.rotation.z = -frontSteerAngle * 1.8;
+
+          const busWheelSpin = stepMove / 0.46;
+          for (let w = 0; w < busWheelGroups.length; w++) {
+            busWheelGroups[w].rotation.x += busWheelSpin;
+          }
+          busRoll = THREE.MathUtils.lerp(
+            busRoll,
+            THREE.MathUtils.clamp(-busYawDiff * 0.14, -0.08, 0.08),
+            1 - Math.exp(-6.5 * dt)
+          );
+        } else {
+          busCurrentSpeed = THREE.MathUtils.lerp(busCurrentSpeed, 0, 1 - Math.exp(-6 * dt));
+          busSteerGroups[0].rotation.y = THREE.MathUtils.lerp(busSteerGroups[0].rotation.y, 0, 0.12);
+          busSteerGroups[1].rotation.y = THREE.MathUtils.lerp(busSteerGroups[1].rotation.y, 0, 0.12);
+          busSteeringWheel.rotation.z = THREE.MathUtils.lerp(busSteeringWheel.rotation.z, 0, 0.12);
+        }
       } else {
+        // Case 4: Autonomous Inter-City Bus Route Loop (Obeys Red 3D Traffic Lights 🚦⛔!)
         busDoorOpenProgress = THREE.MathUtils.lerp(
           busDoorOpenProgress,
           0,
@@ -7258,9 +8674,20 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           busLastStoppedWaypoint = -1;
           busWaypointIndex = (busWaypointIndex + 1) % busRouteWaypoints.length;
         } else {
+          const dirX = busDx / busDist;
+          const dirZ = busDz / busDist;
+          busWaitingAtTrafficLight = shouldVehicleStopForTrafficLight(
+            busGroup.position.x,
+            busGroup.position.z,
+            dirX,
+            dirZ
+          );
+
           const isBridgeSegment = busGroup.position.x > 52 && busGroup.position.x < 144;
           const isApproachingStop = Boolean(matchingBusStop && busDist < 9.5);
-          const targetBusSpeed = isApproachingStop
+          const targetBusSpeed = busWaitingAtTrafficLight
+            ? 0
+            : isApproachingStop
             ? THREE.MathUtils.clamp((busDist / 9.5) * 6.5, 1.4, 6.5)
             : isBridgeSegment
             ? 8.8
@@ -7269,11 +8696,9 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           busCurrentSpeed = THREE.MathUtils.lerp(
             busCurrentSpeed,
             targetBusSpeed,
-            1 - Math.exp(-4.2 * dt)
+            1 - Math.exp((busWaitingAtTrafficLight ? -7.5 : -4.2) * dt)
           );
           const stepMove = Math.min(busDist, busCurrentSpeed * dt);
-          const dirX = busDx / busDist;
-          const dirZ = busDz / busDist;
 
           busGroup.position.x += dirX * stepMove;
           busGroup.position.z += dirZ * stepMove;
@@ -7282,14 +8707,17 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
           const desiredBusYaw = Math.atan2(dirX, dirZ);
           const busYawDiff = normalizeAngle(desiredBusYaw - busGroup.rotation.y);
-          busGroup.rotation.y += busYawDiff * (1 - Math.exp(-5.2 * dt));
+          if (busCurrentSpeed > 0.2) {
+            busGroup.rotation.y += busYawDiff * (1 - Math.exp(-5.2 * dt));
+          }
 
-          // Steer front coach wheels visibly into the turn
+          // Steer front coach steering knuckles & interior driver steering wheel cleanly without wheel wobble!
           const frontSteerAngle = THREE.MathUtils.clamp(busYawDiff * 0.65, -0.42, 0.42);
-          busWheelGroups[0].rotation.y = frontSteerAngle;
-          busWheelGroups[1].rotation.y = frontSteerAngle;
+          busSteerGroups[0].rotation.y = frontSteerAngle;
+          busSteerGroups[1].rotation.y = frontSteerAngle;
+          busSteeringWheel.rotation.z = -frontSteerAngle * 1.8;
 
-          // Spin all 6 heavy-duty bus wheels proportionally to distance traveled
+          // Spin all 6 heavy-duty treaded bus wheels proportionally to distance traveled
           const busWheelSpin = stepMove / 0.46;
           for (let w = 0; w < busWheelGroups.length; w++) {
             busWheelGroups[w].rotation.x += busWheelSpin;
@@ -7305,10 +8733,21 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         }
       }
 
+      // Realistic Pneumatic Kneeling Air-Suspension (Kneels toward right curb when stopped/parked!)
+      const shouldKneelBus =
+        busDoorOpenProgress > 0.25 || isBusParkedRef.current || !isBusEngineOnRef.current;
+      busKneelOffset = THREE.MathUtils.lerp(
+        busKneelOffset,
+        shouldKneelBus ? 1.0 : 0.0,
+        1 - Math.exp(-5.5 * dt)
+      );
+
       // Realistic Air-Suspension Longitudinal Pitch (Nose-Dive when Braking, Squat when Accelerating, Pneumatic Settle)
       const busLongitudinalAccel = (busCurrentSpeed - busPrevSpeed) / Math.max(0.001, dt);
       const pneumaticSettle =
-        busStopTimer > 4.2 ? Math.sin((6.2 - busStopTimer) * 7.5) * 0.018 * Math.exp(-(6.2 - busStopTimer) * 1.5) : 0;
+        busStopTimer > 4.2
+          ? Math.sin((6.2 - busStopTimer) * 7.5) * 0.018 * Math.exp(-(6.2 - busStopTimer) * 1.5)
+          : 0;
       const roadMicroWave =
         Math.sin(elapsed * 8.5) * 0.004 * THREE.MathUtils.clamp(busCurrentSpeed / 6.0, 0, 1);
       const targetBusPitch =
@@ -7317,26 +8756,47 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         roadMicroWave;
       busPitch = THREE.MathUtils.lerp(busPitch, targetBusPitch, 1 - Math.exp(-7.5 * dt));
 
-      if (busStopTimer > 0) {
-        busRoll = THREE.MathUtils.lerp(busRoll, 0, 1 - Math.exp(-6 * dt));
+      if (busStopTimer > 0 || isBusParkedRef.current || !isBusEngineOnRef.current) {
+        busRoll = THREE.MathUtils.lerp(
+          busRoll,
+          -busKneelOffset * 0.045, // Gentle pneumatic curb-kneel tilt toward the right doorway!
+          1 - Math.exp(-6 * dt)
+        );
       }
 
       busChassisGroup.rotation.x = busPitch;
       busChassisGroup.rotation.z = busRoll;
       busChassisGroup.position.y =
+        -busKneelOffset * 0.075 +
         Math.abs(pneumaticSettle) * 0.8 +
         Math.sin(elapsed * 6.2) * 0.008 * THREE.MathUtils.clamp(busCurrentSpeed / 6.0, 0, 1);
 
-      // Animate Bi-Fold Sliding Glass Entry Doors & Brake/Blinker Lights
+      // Animate Bi-Fold Sliding Glass Entry Doors & Extendable Yellow Curbside Boarding Ramp!
       busDoorFrontLeaf.position.z = 2.04 + busDoorOpenProgress * 0.42;
       busDoorFrontLeaf.position.x = 1.18 + busDoorOpenProgress * 0.08;
       busDoorRearLeaf.position.z = 1.52 - busDoorOpenProgress * 0.42;
       busDoorRearLeaf.position.x = 1.18 + busDoorOpenProgress * 0.08;
+      busBoardingRamp.position.x = 0.92 + busDoorOpenProgress * 0.54;
+      busBoardingRamp.rotation.z = -busDoorOpenProgress * 0.12;
 
-      const isBusBrakingOrStopped = busLongitudinalAccel < -0.4 || busStopTimer > 0;
+      // Animate Windshield Wipers during Rainy Weather
+      const wiperAngle =
+        currentWeather === 'rainy' ? Math.sin(elapsed * 6.5) * 0.58 : 0;
+      busWiperPivots.forEach((wp) => {
+        wp.rotation.z = THREE.MathUtils.lerp(wp.rotation.z, wiperAngle, 0.2);
+      });
+
+      const isBusBrakingOrStopped =
+        busLongitudinalAccel < -0.4 ||
+        busStopTimer > 0 ||
+        isBusParkedRef.current ||
+        !isBusEngineOnRef.current ||
+        busWaitingAtTrafficLight;
       busBrakeLightMat.emissiveIntensity = isBusBrakingOrStopped ? 2.8 : 1.1;
       busBlinkerMat.emissiveIntensity =
-        busStopTimer > 0 || (matchingBusStop && busDist < 8.5)
+        busStopTimer > 0 ||
+        isBusParkedRef.current ||
+        (matchingBusStop && busDist < 8.5)
           ? Math.sin(elapsed * 10) > 0
             ? 2.6
             : 0.2
@@ -7823,6 +9283,16 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
       if (elapsed - lastReportTime > 0.2) {
         lastReportTime = elapsed;
+        AudioManager.updateSpatialState({
+          playerX: playerState.x,
+          playerZ: playerState.z,
+          isRidingCar: isRidingCyberCarRef.current,
+          isRidingBus: isRidingBusRef.current,
+          carX: dreamCruiserGroup.position.x,
+          carZ: dreamCruiserGroup.position.z,
+          busX: busGroup.position.x,
+          busZ: busGroup.position.z,
+        });
         callbacksRef.current.onPlayerPositionChange(
           { x: Number(playerState.x.toFixed(2)), z: Number(playerState.z.toFixed(2)) },
           closestCharId
@@ -8012,7 +9482,47 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             </button>
           </div>
 
-          {/* 3. Small Edge Tab when Riding Cyberpunk Supercar (Never blocks center screen!) */}
+          {/* 3. Small Edge Tab: Quick Cyber Car & Bus Stop/Park Access when walking */}
+          {!isRidingCyberCar && !isRidingBus && (
+            <div className="flex items-center rounded-l-xl overflow-hidden border border-r-0 border-amber-400/50 bg-slate-950/90 backdrop-blur-xl shadow-xl">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  boardCyberCarActionRef.current?.(cyberCarCompanionId || 'hawa');
+                }}
+                className="px-2 py-1 text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/20 flex items-center gap-1 transition active:scale-95"
+                title="Sit inside the Cyber-Valkyrie GT Supercar"
+              >
+                <span>🏎️ Sit in Car</span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isBusParked || !isBusEngineOn) {
+                    startBusEngineRef.current?.();
+                  } else {
+                    parkBusAtDepotRef.current?.();
+                  }
+                }}
+                className={`px-2 py-1 text-[10px] font-bold border-l border-white/15 flex items-center gap-1 transition active:scale-95 ${
+                  isBusParked || !isBusEngineOn
+                    ? 'bg-emerald-400 text-slate-950'
+                    : 'text-amber-300 hover:bg-amber-500/20'
+                }`}
+                title={
+                  isBusParked || !isBusEngineOn
+                    ? 'Turn Bus Engine ON & Depart Parking Bay'
+                    : 'Stop & Park Bus in the 3D Bus Parking Bay until turned ON'
+                }
+              >
+                <span>{isBusParked || !isBusEngineOn ? '🔑 Start Bus' : '🚏 Park Bus'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* 4. Small Edge Tab when Riding Cyberpunk Supercar (Never blocks center screen!) */}
           {isRidingCyberCar && (
             <div className="flex items-center rounded-l-xl overflow-hidden border border-r-0 border-cyan-400/60 bg-slate-950/92 backdrop-blur-xl shadow-xl">
               <button
@@ -8024,7 +9534,29 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                 className="px-2.5 py-1 text-[11px] font-bold text-cyan-300 hover:bg-white/10 flex items-center gap-1 transition"
                 title="Open or collapse Cyber-Valkyrie GT Cockpit Controls"
               >
-                <span>{isVehiclePanelCollapsed ? '◂' : '▸'} 🏎️ Car Cockpit</span>
+                <span>
+                  {isVehiclePanelCollapsed ? '◂' : '▸'} 🏎️ Car ({cyberCarTelemetry.gear} ·{' '}
+                  {cyberCarTelemetry.speedKmh} km/h)
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleCyberCarMoveRef.current?.();
+                }}
+                className={`px-2 py-1 text-[10px] font-extrabold transition ${
+                  isCyberCarMoving
+                    ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
+                    : 'bg-emerald-400 hover:bg-emerald-300 text-slate-950'
+                }`}
+                title={
+                  isCyberCarMoving
+                    ? 'Stop & Park the Cyber Car'
+                    : 'Press to Move the Cyber Car'
+                }
+              >
+                {isCyberCarMoving ? '🛑 Stop' : '▶️ Move'}
               </button>
               <button
                 type="button"
@@ -8040,7 +9572,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             </div>
           )}
 
-          {/* 4. Small Edge Tab when Riding 5-Passenger Bus (Never blocks center screen!) */}
+          {/* 5. Small Edge Tab when Riding 5-Passenger Bus (Never blocks center screen!) */}
           {isRidingBus && !isRidingCyberCar && (
             <div className="flex items-center rounded-l-xl overflow-hidden border border-r-0 border-amber-400/60 bg-slate-950/92 backdrop-blur-xl shadow-xl">
               <button
@@ -8055,6 +9587,24 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                 <span>
                   {isVehiclePanelCollapsed ? '◂' : '▸'} 🚌 Bus ({busUiStatus.passengerIds.length}/5)
                 </span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isBusParked || !isBusEngineOn) {
+                    startBusEngineRef.current?.();
+                  } else {
+                    stopAndParkBusRef.current?.();
+                  }
+                }}
+                className={`px-2 py-1 text-[10px] font-extrabold transition ${
+                  isBusParked || !isBusEngineOn
+                    ? 'bg-emerald-400 text-slate-950'
+                    : 'bg-amber-400 text-slate-950'
+                }`}
+              >
+                {isBusParked || !isBusEngineOn ? '🔑 Turn ON' : '🛑 Stop/Park'}
               </button>
               <button
                 type="button"
@@ -8178,8 +9728,18 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             </div>
 
             <div className="pt-2 border-t border-white/10 space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Vehicles &amp; Bus Stops
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>Vehicles, Parking &amp; Traffic Lights</span>
+                <span className="text-emerald-300 font-mono">
+                  🚦{' '}
+                  {trafficSignalPhase === 'ns_green'
+                    ? 'NS 🟢 / EW 🔴'
+                    : trafficSignalPhase === 'ns_yellow'
+                    ? 'NS 🟡 / EW 🔴'
+                    : trafficSignalPhase === 'ew_green'
+                    ? 'NS 🔴 / EW 🟢'
+                    : 'NS 🔴 / EW 🟡'}
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
@@ -8200,7 +9760,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                       : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950'
                   }`}
                 >
-                  <span>{isRidingCyberCar ? '🏎️ Exit Car 🚪' : '🏎️ Ride Car'}</span>
+                  <span>{isRidingCyberCar ? '🏎️ Exit Car 🚪' : '🏎️ Sit in Cyber Car'}</span>
                 </button>
 
                 <button
@@ -8225,7 +9785,39 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                       : 'bg-amber-500/20 border border-amber-400/45 text-amber-200'
                   }`}
                 >
-                  <span>🚌 Bus ({busUiStatus.passengerIds.length}/5)</span>
+                  <span>🚌 Sit in Bus ({busUiStatus.passengerIds.length}/5)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    parkBusAtDepotRef.current?.();
+                  }}
+                  className="p-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-[11px] font-bold flex items-center justify-center gap-1 transition active:scale-95"
+                >
+                  <span>🅿️ Park Bus at Depot</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isBusParked || !isBusEngineOn) {
+                      startBusEngineRef.current?.();
+                    } else {
+                      stopAndParkBusRef.current?.();
+                    }
+                  }}
+                  className={`p-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1 transition active:scale-95 ${
+                    isBusParked || !isBusEngineOn
+                      ? 'bg-emerald-400 text-slate-950'
+                      : 'bg-rose-500/25 border border-rose-400/40 text-rose-200'
+                  }`}
+                >
+                  <span>
+                    {isBusParked || !isBusEngineOn ? '🔑 Turn Bus ON' : '🛑 Stop Bus Engine'}
+                  </span>
                 </button>
               </div>
 
@@ -8238,27 +9830,27 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                 }}
                 className="w-full p-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/45 text-emerald-200 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95"
               >
-                <span>🚏 Open 6 Bus Stops &amp; Route Visualizer</span>
+                <span>🚏 Open 6 Bus Stops &amp; Bus Parking Bay Control</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 3D Bus Stop Markers & Transit Network Control Side Panel (Slides from Right Edge) */}
+      {/* 3D Bus Stop Markers, Bus Parking Bay & Transit Network Control Side Panel (Slides from Right Edge) */}
       {isBusStopVisualizerOpen && !hideActionHud && (
         <div className="fixed top-14 right-0 w-[88vw] max-w-[380px] max-h-[80dvh] z-30 rounded-l-2xl bg-slate-950/95 backdrop-blur-xl border border-r-0 border-emerald-400/50 shadow-2xl text-slate-100 flex flex-col overflow-hidden pointer-events-auto">
           <div className="px-4 py-3 border-b border-white/10 bg-gradient-to-r from-emerald-500/20 via-slate-900 to-amber-500/20 flex items-start justify-between gap-2">
             <div>
               <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300">
-                <span>🚏 3D Transit Network</span>
+                <span>🚏 3D Bus &amp; Parking Depot</span>
                 <span>·</span>
                 <span className="text-amber-300">
-                  {BUS_STOP_STATIONS.length} Bus Stops Across Map
+                  Engine: {isBusEngineOn && !isBusParked ? '🟢 ON' : '🔴 PARKED / OFF'}
                 </span>
               </div>
               <h3 className="font-display text-sm font-bold text-white mt-0.5">
-                Bus Stop Markers &amp; Resident Pickup / Drop-Off
+                Bus Stop / Park Depot &amp; Proximity Boarding
               </h3>
             </div>
             <button
@@ -8272,11 +9864,67 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             </button>
           </div>
 
-          {/* Visualizer Toggle & Quick Bus Controls */}
+          {/* Bus Stop / Park Depot & Engine Master Controls */}
           <div className="p-3 border-b border-white/10 bg-slate-900/75 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-semibold text-slate-200">
-                Visualize 3D Bus Stop Markers & Route Line
+            <div className="text-[11px] text-slate-300">
+              🚌 Status:{' '}
+              <strong className="text-amber-300">{busUiStatus.stopName}</strong> (
+              {busUiStatus.passengerIds.length}/5 seats · NPCs must be &lt;6.8m to board)
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isBusParked || !isBusEngineOn) {
+                    startBusEngineRef.current?.();
+                  } else {
+                    stopAndParkBusRef.current?.();
+                  }
+                }}
+                className={`py-1.5 px-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 shadow-md transition active:scale-95 ${
+                  isBusParked || !isBusEngineOn
+                    ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950'
+                    : 'bg-rose-500 hover:bg-rose-400 text-white'
+                }`}
+              >
+                <span>
+                  {isBusParked || !isBusEngineOn
+                    ? '🔑 Turn Bus ON & Move'
+                    : '🛑 Stop & Park Bus Here'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => parkBusAtDepotRef.current?.()}
+                className="py-1.5 px-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1 shadow-md transition active:scale-95"
+                title="Park the Bus inside the 3D Bus Parking Bay on West Grand Ave until you turn it ON"
+              >
+                <span>🅿️ Park at Bus Depot</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => triggerBusStopNowRef.current?.()}
+                className="py-1 px-2 rounded-lg bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400/40 text-cyan-200 text-[11px] font-bold transition"
+              >
+                🚏 Stop 8s (Open Doors)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => boardAllFiveBusRef.current?.()}
+                className="py-1 px-2 rounded-lg bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 text-[11px] font-bold transition"
+                title="Only NPCs within 6.8m of the bus can board!"
+              >
+                👥 Board Close NPCs (&lt;6.8m)
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/10">
+              <div className="text-[11px] font-semibold text-slate-300">
+                3D Bus Stop Beacons &amp; Route Line
               </div>
               <button
                 type="button"
@@ -8287,38 +9935,14 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                     return next;
                   });
                 }}
-                className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition ${
                   showBusStopMarkers
-                    ? 'bg-emerald-400 text-slate-950 shadow-sm'
+                    ? 'bg-emerald-400 text-slate-950'
                     : 'bg-slate-800 text-slate-300 border border-white/15'
                 }`}
               >
-                {showBusStopMarkers ? '👁️ Markers Visible (ON)' : '🙈 Markers Hidden (OFF)'}
+                {showBusStopMarkers ? '👁️ ON' : '🙈 OFF'}
               </button>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1 text-[11px] text-slate-300">
-              <span>
-                🚌 Status:{' '}
-                <strong className="text-amber-300">{busUiStatus.stopName}</strong> (
-                {busUiStatus.passengerIds.length}/5 seats)
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => triggerBusStopNowRef.current?.()}
-                  className="px-2 py-0.5 rounded-lg bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400/40 text-cyan-200 text-[10px] font-bold transition"
-                >
-                  Pause Bus Now
-                </button>
-                <button
-                  type="button"
-                  onClick={() => boardAllFiveBusRef.current?.()}
-                  className="px-2 py-0.5 rounded-lg bg-amber-500/25 hover:bg-amber-500/35 border border-amber-400/40 text-amber-200 text-[10px] font-bold transition"
-                >
-                  Board 5 NPCs
-                </button>
-              </div>
             </div>
           </div>
 
@@ -8397,19 +10021,17 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
       {/* Cyberpunk Supercar Interactive Cockpit Side Panel (Slides from Right Edge when not collapsed!) */}
       {isRidingCyberCar && !isVehiclePanelCollapsed && !hideActionHud && (
-        <div className="fixed top-28 right-0 z-30 w-[88vw] max-w-[360px] p-3 rounded-l-2xl bg-slate-950/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 shadow-2xl text-white pointer-events-auto space-y-2">
+        <div className="fixed top-28 right-0 z-30 w-[88vw] max-w-[360px] p-3 rounded-l-2xl bg-slate-950/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 shadow-2xl text-white pointer-events-auto space-y-2.5">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-xs font-display font-bold text-cyan-300 truncate">
-                🏎️ CYBER-VALKYRIE GT COCKPIT
+              <div className="flex items-center gap-1.5 text-xs font-display font-bold text-cyan-300 truncate">
+                <span>🏎️ CYBER-VALKYRIE GT COCKPIT</span>
+                <span className="px-1.5 py-0.5 rounded bg-cyan-400/20 border border-cyan-400/50 text-[10px] font-mono text-cyan-200">
+                  GEAR {cyberCarTelemetry.gear} · {cyberCarTelemetry.speedKmh} KM/H
+                </span>
               </div>
-              <div className="text-[11px] text-slate-200 truncate">
-                {explorerProfile.name} (Driver){' '}
-                {cyberCarCompanionId
-                  ? `+ ❤️ ${
-                      characters.find((c) => c.id === cyberCarCompanionId)?.name || 'Hawa'
-                    }`
-                  : '(Solo)'}
+              <div className="text-[11px] text-slate-300 truncate mt-0.5">
+                {cyberCarDestLabel}
               </div>
             </div>
             <button
@@ -8422,7 +10044,63 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
+          {/* Primary Move / Stop Ignition Button — Car ONLY moves when seated inside and this button is pressed! */}
+          <button
+            type="button"
+            onClick={() => toggleCyberCarMoveRef.current?.()}
+            className={`w-full py-2.5 px-3 rounded-xl font-display font-extrabold text-xs shadow-lg flex items-center justify-center gap-2 transition active:scale-95 ${
+              isCyberCarMoving
+                ? 'bg-gradient-to-r from-amber-400 to-rose-500 text-slate-950'
+                : 'bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 text-slate-950 animate-pulse'
+            }`}
+          >
+            <span>
+              {isCyberCarMoving
+                ? '🛑 STOP & PARK CYBER CAR (GEAR: P)'
+                : '▶️ PRESS TO MOVE CYBER CAR (START DRIVING)'}
+            </span>
+          </button>
+
+          {/* Gullwing Doors, Active Aero Spoiler & Companion Controls */}
+          <div className="grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setCyberCarDoorsOpen((prev) => !prev);
+              }}
+              className={`px-2 py-1.5 rounded-xl text-[10px] font-bold border transition active:scale-95 ${
+                cyberCarDoorsOpen
+                  ? 'bg-cyan-400 text-slate-950 border-cyan-300'
+                  : 'bg-white/10 text-cyan-200 border-white/15'
+              }`}
+            >
+              🚪 Doors: {cyberCarDoorsOpen ? 'OPEN' : 'SHUT'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCyberCarWingDeployed((prev) => !prev);
+              }}
+              className={`px-2 py-1.5 rounded-xl text-[10px] font-bold border transition active:scale-95 ${
+                cyberCarWingDeployed
+                  ? 'bg-fuchsia-400 text-slate-950 border-fuchsia-300'
+                  : 'bg-white/10 text-fuchsia-200 border-white/15'
+              }`}
+            >
+              🪽 Wing: {cyberCarWingDeployed ? 'UP' : 'AUTO'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => exitCyberCarActionRef.current?.()}
+              className="px-2 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-display font-bold text-[10px] shadow-md transition active:scale-95"
+            >
+              🚪 Step Out
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => {
@@ -8435,17 +10113,10 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
               className="flex-1 px-2.5 py-1.5 rounded-xl bg-rose-500/25 hover:bg-rose-500/35 border border-rose-400/40 text-rose-200 text-[11px] font-bold transition active:scale-95"
               title="Choose who sits beside you in the passenger bucket seat"
             >
-              ❤️ Passenger:{' '}
+              ❤️ Co-Pilot Seat:{' '}
               {cyberCarCompanionId
                 ? characters.find((c) => c.id === cyberCarCompanionId)?.name || 'Hawa'
-                : 'None'}
-            </button>
-            <button
-              type="button"
-              onClick={() => exitCyberCarActionRef.current?.()}
-              className="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-display font-bold text-xs shadow-md transition active:scale-95"
-            >
-              🚪 Step Out
+                : 'Solo (No Passenger)'}
             </button>
           </div>
 
@@ -8454,23 +10125,44 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
               type="button"
               onClick={() => {
                 cyberCarTargetPointRef.current = null;
-                setCyberCarDriveMode('grand_tour');
-                setCyberCarDestLabel('Whole-Map Grand Tour (All Cities)');
+                cyberCarDriveModeRef.current = 'manual';
+                setCyberCarDriveMode('manual');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('Manual Steering — Use Joystick / WASD!');
               }}
-              className={`px-2 py-1.5 rounded-lg text-[11px] font-bold transition col-span-2 ${
+              className={`px-2 py-1.5 rounded-lg text-[11px] font-bold transition ${
+                cyberCarDriveMode === 'manual'
+                  ? 'bg-emerald-400 text-slate-950'
+                  : 'bg-white/10 hover:bg-white/20 text-emerald-200'
+              }`}
+            >
+              🕹️ Manual Drive
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cyberCarTargetPointRef.current = null;
+                cyberCarDriveModeRef.current = 'grand_tour';
+                setCyberCarDriveMode('grand_tour');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('Whole-Map Auto Tour (All Cities)');
+              }}
+              className={`px-2 py-1.5 rounded-lg text-[11px] font-bold transition ${
                 cyberCarDriveMode === 'grand_tour'
                   ? 'bg-cyan-400 text-slate-950'
                   : 'bg-white/10 hover:bg-white/20 text-cyan-200'
               }`}
             >
-              🌍 Whole-Map Auto Tour
+              🌍 Auto-Cruise Tour
             </button>
             <button
               type="button"
               onClick={() => {
                 cyberCarTargetPointRef.current = [184, 1.65];
+                cyberCarDriveModeRef.current = 'destination';
                 setCyberCarDriveMode('destination');
-                setCyberCarDestLabel('Cyber Horizon (City 2)');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('Driving → Cyber Horizon (City 2)');
               }}
               className="px-2 py-1.5 rounded-lg bg-fuchsia-500/25 hover:bg-fuchsia-500/40 border border-fuchsia-400/40 text-fuchsia-200 text-[11px] font-bold transition"
             >
@@ -8480,8 +10172,10 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
               type="button"
               onClick={() => {
                 cyberCarTargetPointRef.current = [99, 1.65];
+                cyberCarDriveModeRef.current = 'destination';
                 setCyberCarDriveMode('destination');
-                setCyberCarDestLabel('Golden Horizon Bridge');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('Driving → Golden Horizon Bridge');
               }}
               className="px-2 py-1.5 rounded-lg bg-orange-500/25 hover:bg-orange-500/40 border border-orange-400/40 text-orange-200 text-[11px] font-bold transition"
             >
@@ -8490,9 +10184,11 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             <button
               type="button"
               onClick={() => {
-                cyberCarTargetPointRef.current = [10.5, 5.4];
+                cyberCarTargetPointRef.current = [10.5, 5.2];
+                cyberCarDriveModeRef.current = 'destination';
                 setCyberCarDriveMode('destination');
-                setCyberCarDestLabel('Gemini Central Park');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('Driving → Gemini Central Park');
               }}
               className="px-2 py-1.5 rounded-lg bg-emerald-500/25 hover:bg-emerald-500/40 border border-emerald-400/40 text-emerald-200 text-[11px] font-bold transition"
             >
@@ -8502,8 +10198,10 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
               type="button"
               onClick={() => {
                 cyberCarTargetPointRef.current = [-10.5, 10.5];
+                cyberCarDriveModeRef.current = 'destination';
                 setCyberCarDriveMode('destination');
-                setCyberCarDestLabel('Sunbeam Espresso Café');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('Driving → Sunbeam Espresso Café');
               }}
               className="px-2 py-1.5 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 border border-amber-400/40 text-amber-200 text-[11px] font-bold transition"
             >
@@ -8538,17 +10236,68 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           <div className="grid grid-cols-2 gap-1.5">
             <button
               type="button"
+              onClick={() => {
+                if (isBusParked || !isBusEngineOn) {
+                  startBusEngineRef.current?.();
+                } else {
+                  stopAndParkBusRef.current?.();
+                }
+              }}
+              className={`px-2 py-1.5 rounded-xl text-[11px] font-extrabold transition active:scale-95 ${
+                isBusParked || !isBusEngineOn
+                  ? 'bg-emerald-400 text-slate-950'
+                  : 'bg-rose-500 text-white'
+              }`}
+            >
+              {isBusParked || !isBusEngineOn
+                ? '🔑 Turn Bus ON & Move'
+                : '🛑 Stop & Park Bus'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => parkBusAtDepotRef.current?.()}
+              className="px-2 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] font-extrabold transition active:scale-95"
+            >
+              🅿️ Park at Depot Bay
+            </button>
+
+            <button
+              type="button"
               onClick={() => triggerBusStopNowRef.current?.()}
               className="px-2 py-1.5 rounded-xl bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400/40 text-cyan-200 text-[11px] font-bold transition active:scale-95"
             >
-              🚏 Stop / Open Doors
+              🚏 Kneel &amp; Open Doors
             </button>
+
             <button
               type="button"
               onClick={() => boardAllFiveBusRef.current?.()}
               className="px-2 py-1.5 rounded-xl bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 text-[11px] font-bold transition active:scale-95"
+              title="Only NPCs within 6.8m of the bus can board!"
             >
-              👥 Fill All 5 Seats
+              👥 Board Nearby (&lt;6.8m)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const nextMode = busDriveMode === 'manual' ? 'auto_route' : 'manual';
+                busDriveModeRef.current = nextMode;
+                setBusDriveMode(nextMode);
+                if (isBusParked || !isBusEngineOn) {
+                  startBusEngineRef.current?.();
+                }
+              }}
+              className={`col-span-2 px-2 py-1.5 rounded-xl text-[11px] font-bold border transition active:scale-95 ${
+                busDriveMode === 'manual'
+                  ? 'bg-cyan-400 text-slate-950 border-cyan-300'
+                  : 'bg-white/10 text-cyan-200 border-white/15'
+              }`}
+            >
+              {busDriveMode === 'manual'
+                ? '🕹️ Manual Bus Driving Active (Tap for Auto-Route)'
+                : '🔄 Auto-Route Loop Active (Tap to Drive Bus Manually)'}
             </button>
           </div>
 
@@ -8563,7 +10312,9 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
               );
             })}
             {busUiStatus.passengerIds.length === 0 && (
-              <span className="italic text-slate-400">Waiting for next station boarding</span>
+              <span className="italic text-slate-400">
+                Waiting for nearby NPCs (&lt;6.8m) to board
+              </span>
             )}
           </div>
         </div>
@@ -8834,7 +10585,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           style={{ opacity: 0 }}
           className="absolute top-0 left-0 pointer-events-none flex flex-col items-center"
         >
-          <div className="pointer-events-auto flex items-center gap-1 p-1 rounded-xl bg-slate-950/88 backdrop-blur-md border border-cyan-400/55 shadow-xl">
+          <div className="pointer-events-auto flex items-center gap-1 p-1 rounded-xl bg-slate-950/90 backdrop-blur-md border border-cyan-400/60 shadow-xl">
             <button
               type="button"
               onClick={(e) => {
@@ -8845,14 +10596,33 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                   boardCyberCarActionRef.current?.(cyberCarCompanionId || 'hawa');
                 }
               }}
-              className="px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-cyan-400 to-fuchsia-400 hover:from-cyan-300 hover:to-fuchsia-300 text-slate-950 text-[10px] font-bold flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
+              className="px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-cyan-400 to-fuchsia-400 hover:from-cyan-300 hover:to-fuchsia-300 text-slate-950 text-[10px] font-extrabold flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
             >
               <span>
                 {isRidingCyberCar
-                  ? '🏎️ Riding Cyber-Valkyrie GT · Exit 🚪'
-                  : '🏎️ Sit in Cyberpunk Car (with Hawa ❤️)'}
+                  ? '🏎️ Seated Inside · Exit 🚪'
+                  : '🏎️ Sit in Cyber Car (with Hawa ❤️)'}
               </span>
             </button>
+            {isRidingCyberCar && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleCyberCarMoveRef.current?.();
+                }}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition active:scale-95 whitespace-nowrap ${
+                  isCyberCarMoving
+                    ? 'bg-rose-500 hover:bg-rose-400 text-white'
+                    : 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 animate-pulse'
+                }`}
+                title="Car only moves when you sit inside and press this button or WASD!"
+              >
+                <span>
+                  {isCyberCarMoving ? '🛑 Stop Car' : '⚡ Press to Move'}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -8862,7 +10632,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           style={{ opacity: 0 }}
           className="absolute top-0 left-0 pointer-events-none flex flex-col items-center"
         >
-          <div className="pointer-events-auto flex items-center gap-1 p-1 rounded-xl bg-slate-950/88 backdrop-blur-md border border-amber-400/55 shadow-xl">
+          <div className="pointer-events-auto flex items-center gap-1 p-1 rounded-xl bg-slate-950/90 backdrop-blur-md border border-amber-400/60 shadow-xl">
             <button
               type="button"
               onClick={(e) => {
@@ -8875,25 +10645,47 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                   isRidingCyberCarRef.current = false;
                   setIsRidingBus(true);
                   isRidingBusRef.current = true;
+                  setIsVehiclePanelCollapsed(false);
                 }
               }}
-              className="px-2 py-0.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-bold flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
+              className="px-2 py-0.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-extrabold flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
             >
               <span>
-                🚌 5-Seat Bus ({busUiStatus.passengerIds.length}/5 Inside) ·{' '}
-                {isRidingBus ? 'Exit' : 'Hop On'}
+                🚌 Bus ({busUiStatus.passengerIds.length}/5) ·{' '}
+                {isRidingBus ? 'Exit' : 'Sit Inside'}
               </span>
             </button>
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                triggerBusStopNowRef.current?.();
+                if (isBusParked || !isBusEngineOn) {
+                  startBusEngineRef.current?.();
+                } else {
+                  stopAndParkBusRef.current?.();
+                }
+              }}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition active:scale-95 whitespace-nowrap ${
+                isBusParked || !isBusEngineOn
+                  ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950'
+                  : 'bg-rose-500/90 hover:bg-rose-400 text-white'
+              }`}
+              title="Stop & Park the bus until you turn it ON, or start the engine to move!"
+            >
+              <span>
+                {isBusParked || !isBusEngineOn ? '🔑 Turn ON' : '🛑 Stop & Park'}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                parkBusAtDepotRef.current?.();
               }}
               className="px-2 py-0.5 rounded-lg bg-cyan-500/25 hover:bg-cyan-500/40 text-cyan-200 text-[10px] font-semibold transition active:scale-95 whitespace-nowrap"
-              title="Stop the bus right now and open doors so NPCs can board or step outside!"
+              title="Park the bus at the 3D Bus Parking Depot Bay until you turn it on!"
             >
-              <span>🚏 Stop / Doors</span>
+              <span>🅿️ Depot</span>
             </button>
           </div>
         </div>
