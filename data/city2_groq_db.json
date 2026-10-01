@@ -1,0 +1,4229 @@
+{
+  "updatedAt": "2026-10-01T02:24:10.808Z",
+  "version": 1,
+  "lastSavedAt": "2026-10-01T02:24:09.966Z",
+  "residents": [
+    {
+      "id": "alie",
+      "cityId": "city2",
+      "name": "Alie",
+      "gender": "Male",
+      "role": "Groq LPU Architect & Autonomous EV Engineer",
+      "age": 28,
+      "modelIdentity": "llama-3.3-70b-versatile",
+      "modelBadge": "Groq Llama 3.3 70B",
+      "modelTrait": "Ultra-Fast LPU Reasoning & Systems Engineering",
+      "independentTitle": "Chief Mobility Architect · City 2",
+      "homeId": "alie_villa",
+      "avatarColor": "#06B6D4",
+      "outfitColor": "#0284C7",
+      "accentColor": "#22D3EE",
+      "hairColor": "#0F172A",
+      "skinColor": "#4A2E1B",
+      "scale": 1.05,
+      "temperament": "outgoing",
+      "personality": [
+        "Intelligent",
+        "Confident",
+        "Hard-working",
+        "Caring",
+        "Adventurous"
+      ],
+      "interests": [
+        "Autonomous electric cruisers",
+        "Groq LPU neural grids",
+        "Solar architecture",
+        "Co-working with Iysha"
+      ],
+      "likes": [
+        "High-speed bridge drives to Gemini City",
+        "Building clean-tech with Iysha",
+        "Clear OK-Plans",
+        "Strong espresso"
+      ],
+      "dislikes": [
+        "Unplanned energy waste",
+        "Missing the evening return across the bridge",
+        "Isolated silos"
+      ],
+      "familyConnections": [
+        "Romantic Co-Working Partner: Iysha",
+        "Best Friend & Strategy Partner: Joseph"
+      ],
+      "learnedPreferences": [
+        "Remembers every past conversation in the City 2 Database and loves executing Johnny’s OK-Plans"
+      ],
+      "bio": "A brilliant, warm-hearted Groq LPU systems architect and autonomous vehicle engineer living in Neo-Horizon City (City 2). Alie designed the autonomous Cyber-Cruiser car that drives across the Golden Horizon Bridge to Gemini City during the day and always returns home before nightfall. Deeply in love with Iysha, he loves working side-by-side with her on solar-botanical inventions.",
+      "voiceStyle": "Confident, articulate, warm, visionary—speaks with rapid Groq LPU clarity while caring deeply about his partner Iysha and his friends.",
+      "voiceConfig": {
+        "pitch": 0.9,
+        "rate": 1.02,
+        "voicePreset": "deep-male",
+        "enabled": false
+      },
+      "needs": {
+        "energy": 44.780000000018276,
+        "social": 98.40000000000003,
+        "inspiration": 99.9099999999994
+      },
+      "romanticPartnerId": "iysha",
+      "coWorkingWithId": "iysha",
+      "groqConfig": {
+        "modelTier": "llama-3.3-70b-versatile",
+        "reasoningDepth": "deep_r1",
+        "temperature": 0.75,
+        "memoryRecallLimit": 10,
+        "autonomousPlanEnabled": true
+      },
+      "dream": {
+        "title": "Drive the Cyber-Cruiser to Gemini City & Co-Design Solar Rovers",
+        "description": "Take the autonomous car across the Golden Horizon Bridge to Gemini City during the day to test solar telemetry at Central Starlight Park with Iysha and Abdullah, then return safely to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "park",
+        "geminiCityGoal": "Test inter-city solar-cruiser telemetry at Central Starlight Park and return before nightfall",
+        "carTripStartHour": 11,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a glowing fleet of solar cruisers gliding across the Golden Horizon Bridge under a canopy of bioluminescent trees.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "visiting_gemini",
+        "dreamTheme": "Drive the Cyber-Cruiser to Gemini City & Co-Design Solar Rovers",
+        "dreamTargetGeminiBuildingId": "park",
+        "lastDreamSummary": "Dreamed of a glowing fleet of solar cruisers gliding across the Golden Horizon Bridge under a canopy of bioluminescent trees.",
+        "carTripStatus": "visiting_gemini"
+      },
+      "okPlan": {
+        "id": "okplan_alie_init",
+        "title": "Co-Build Bio-Solar Cruiser Array with Iysha & Visit Gemini City",
+        "summary": "Partner with Iysha at Neo-Horizon Plaza, drive the autonomous car to Gemini City for a daytime field test, and return to Alie’s Cyber-Solar Villa before nightfall.",
+        "reasoning": "Working side-by-side with my partner Iysha doubles our engineering speed and connects City 2 with Gemini City.",
+        "partnerId": "iysha",
+        "partnerName": "Iysha",
+        "status": "approved",
+        "approvedAtTime": "08:30",
+        "progress": 45,
+        "steps": [
+          {
+            "id": "s1",
+            "label": "Calibrate LPU power cells at Alie’s Cyber-Solar Villa",
+            "locationId": "alie_villa",
+            "completed": true
+          },
+          {
+            "id": "s2",
+            "label": "Co-work with Iysha at Neo-Horizon Cyber-Core Plaza",
+            "locationId": "neo_plaza",
+            "completed": false
+          },
+          {
+            "id": "s3",
+            "label": "Drive Cruiser to Gemini City Park & return before night 🌃",
+            "locationId": "park",
+            "completed": false
+          }
+        ],
+        "planId": "okplan_alie_init",
+        "planTitle": "Co-Build Bio-Solar Cruiser Array with Iysha & Visit Gemini City",
+        "objective": "Partner with Iysha at Neo-Horizon Plaza, drive the autonomous car to Gemini City for a daytime field test, and return to Alie’s Cyber-Solar Villa before nightfall.",
+        "currentStepIndex": 1,
+        "approvedByPlayer": true
+      },
+      "playerRelationship": {
+        "status": "Romantic Partner",
+        "trust": 71,
+        "familiarity": 70,
+        "affection": 100,
+        "notes": "Hoping to catch up with Explorer soon (14 days since last chat).",
+        "lastInteractedDay": 16,
+        "daysSinceLastInteraction": 14,
+        "lastDecayAmount": 2,
+        "needsAttention": true
+      },
+      "relationships": [
+        {
+          "targetId": "iysha",
+          "targetName": "Iysha",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 100,
+          "romanticStage": "Romantic Partner",
+          "howWeMet": "Co-designed the bioluminescent solar canopy at Neo-Horizon Plaza",
+          "status": "Romantic Partner",
+          "interactionCount": 53,
+          "sharedInterests": [
+            "Solar-botanical design",
+            "Daytime drives to Gemini City",
+            "Clean energy"
+          ],
+          "lastInteractionSummary": "Shared a warm, spontaneous romantic partner moment with Iysha at Central Starlight Park.",
+          "lastMetTime": "15:48",
+          "lastMetDay": 29,
+          "daysSinceLastInteraction": 1,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "knownPreferences": [
+            "Working alongside Alie",
+            "Glowing crystal-sakura petals"
+          ]
+        },
+        {
+          "targetId": "joseph",
+          "targetName": "Joseph",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 35,
+          "sharedInterests": [
+            "Quantum telemetry",
+            "Bridge acoustics",
+            "Friend Chart analytics"
+          ],
+          "lastInteractionSummary": "Reconnected with Joseph at Neo-Horizon Cyber-Core Plaza after 5 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "08:55",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over Autonomous electric cruisers in Gemini City",
+          "knownPreferences": [
+            "Live Friend Chart graphs",
+            "Composing neon synth chords with Amie"
+          ]
+        },
+        {
+          "targetId": "amie",
+          "targetName": "Amie",
+          "affinity": 96,
+          "trust": 98,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 18,
+          "sharedInterests": [
+            "Smart-fabric car interiors",
+            "Social trend graphs"
+          ],
+          "lastInteractionSummary": "Met Amie at Neo-Horizon Cyber-Core Plaza and improvised ideas around dreaming up new ideas for gemini city.",
+          "lastMetTime": "19:55",
+          "lastMetDay": 26,
+          "daysSinceLastInteraction": 4,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Autonomous electric cruisers in Gemini City",
+          "knownPreferences": [
+            "Designing glowing outfits",
+            "Brainstorming with Joseph"
+          ]
+        },
+        {
+          "targetId": "hawa",
+          "targetName": "Hawa",
+          "affinity": 83,
+          "trust": 91,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 19,
+          "sharedInterests": [
+            "Neural memory databases",
+            "Nocturnal dream logs"
+          ],
+          "lastInteractionSummary": "Met Hawa at Neo-Horizon Cyber-Core Plaza and improvised ideas around banter & daily rhythm at neo-horizon cyber-core plaza.",
+          "lastMetTime": "10:20",
+          "lastMetDay": 14,
+          "daysSinceLastInteraction": 16,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Autonomous electric cruisers in Gemini City",
+          "knownPreferences": [
+            "Preserving every meaningful conversation",
+            "Mapping residents’ dreams"
+          ]
+        },
+        {
+          "targetId": "leo",
+          "targetName": "Abdullah",
+          "affinity": 42,
+          "trust": 60,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Acquaintance",
+          "interactionCount": 5,
+          "sharedInterests": [
+            "Autonomous rovers",
+            "Solar telemetry"
+          ],
+          "lastInteractionSummary": "Met Alie at Central Starlight Park and improvised ideas around craft secrets: robotics tinkerer & academy fellow & groq lpu architect & autonomous ev engineer.",
+          "lastMetTime": "15:31",
+          "lastMetDay": 9,
+          "daysSinceLastInteraction": 21,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Autonomous electric cruisers in Gemini City",
+          "knownPreferences": [
+            "High-torque micro-motors",
+            "Iced marshmallow cocoa"
+          ]
+        }
+      ],
+      "routines": [
+        {
+          "startHour": 6,
+          "endHour": 9,
+          "locationId": "alie_villa",
+          "activity": "Tuning Groq LPU processors & EV battery cells at Alie’s Cyber-Solar Villa",
+          "thought": "Starting the morning in City 2 with 100% solar charge and a clear OK-Plan."
+        },
+        {
+          "startHour": 9,
+          "endHour": 11,
+          "locationId": "neo_plaza",
+          "activity": "Co-working with Iysha at Neo-Horizon Cyber-Core Plaza",
+          "thought": "Working side-by-side with Iysha makes every engineering challenge feel effortless."
+        },
+        {
+          "startHour": 11,
+          "endHour": 17.5,
+          "locationId": "park",
+          "activity": "🚗 Daytime Car Expedition to Gemini City with Iysha (Returning before night 🌃)",
+          "thought": "Cruising across the Golden Horizon Bridge to Gemini City to fulfill our daytime dream—we’ll drive back before sunset!"
+        },
+        {
+          "startHour": 17.5,
+          "endHour": 21.5,
+          "locationId": "neo_plaza",
+          "activity": "Returned to City 2 before night 🌃 · Evening innovation showcase at Neo-Horizon Plaza",
+          "thought": "Back safely in Neo-Horizon City before nightfall! Time to catch up with Joseph, Iysha, Amie, and Hawa."
+        },
+        {
+          "startHour": 21.5,
+          "endHour": 6,
+          "locationId": "alie_villa",
+          "activity": "Dreaming & archiving daily memories at Alie’s Cyber-Solar Villa",
+          "thought": "Resting in my City 2 villa while dreaming of tomorrow’s journey across the Golden Horizon Bridge."
+        }
+      ],
+      "memories": [
+        {
+          "id": "mem_transit_alie_1790797471526_384_hax9",
+          "gameTime": "Day 30 · 18:00",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Central Starlight Park & Harbor Stop (18:00).",
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_alie_1790797452961_365_tnyd",
+          "gameTime": "16:39",
+          "summary": "Met Alie at Sunbeam Espresso Café and improvised ideas around light summer clothes & sunshine at sunbeam espresso café. (\"How good does this warm sunshine over Sunbeam Espresso Café \")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Maya"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_alie_1790797343772_279_a54c",
+          "gameTime": "08:55",
+          "summary": "Reconnected with Joseph at Neo-Horizon Cyber-Core Plaza after 5 days apart, restoring and strengthening their close friend bond. (\"Missed you too, Alie! Taking time out of our routines to mai\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_transit_alie_1790797337068_270_r8sl",
+          "gameTime": "Day 30 · 08:25",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (08:25).",
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_bridge_alie_1790797219987_220_f2sr",
+          "gameTime": "00:07",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (00:07): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_transit_alie_1790797211515_187_35om",
+          "gameTime": "Day 29 · 23:33",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Golden Horizon Bridge Vista Stop (23:33).",
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_bridge_alie_1790797208047_180_wak5",
+          "gameTime": "23:16",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (23:16): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_transit_alie_1790797144011_125_ymt5",
+          "gameTime": "Day 29 · 18:43",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (18:43).",
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_alie_1790797136427_120_yr4j",
+          "gameTime": "18:13",
+          "summary": "Met Alie at Sunbeam Espresso Café and improvised ideas around dreaming up new ideas for gemini city. (\"Quick question, Alie: if we could add one brand-new landmark\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Sana"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_alie_1790797101975_82_eacu",
+          "gameTime": "15:48",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Central Starlight Park. (\"Hearing that from you means the world, Alie. You inspire me \")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_alie_1790797075373_59_izs0",
+          "gameTime": "13:58",
+          "summary": "Met Alie at Sunbeam Espresso Café and improvised ideas around breakthrough on \"build the inter-city autonomous solar cruiser link\". (\"Hey Alie, I wanted to ask—did you figure out that tricky par\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Ibrahim"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_alie_1790797007071_6_8rmt",
+          "gameTime": "09:00",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Neo-Horizon Cyber-Core Plaza. (\"You always know just what to say, Alie. Tell me what you've \")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_alie_1790793794509_195_tq7y",
+          "gameTime": "11:46",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Central Starlight Park. (\"Haha, best distraction ever, Alie! Come stand with me—the at\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_alie_1790793735618_152_i5w0",
+          "gameTime": "07:38",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Neo-Horizon Cyber-Core Plaza. (\"You always know just what to say, Alie. Tell me what you've \")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_transit_alie_1790793721968_143_ght1",
+          "gameTime": "Day 29 · 06:43",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (06:43).",
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_alie_1790793550738_76_u2ed",
+          "gameTime": "Day 28 · 18:30",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (18:30).",
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Happiness"
+        }
+      ],
+      "goals": [
+        {
+          "id": "g_alie_1",
+          "title": "Build the Inter-City Autonomous Solar Cruiser Link",
+          "progress": 100,
+          "description": "Connect City 2 and Gemini City with daily zero-emission daytime car expeditions that return before night."
+        },
+        {
+          "id": "g_alie_2",
+          "title": "Co-Create the Bio-Solar Pavilion with Iysha",
+          "progress": 84,
+          "description": "Combine Groq LPU solar tracking with Iysha’s bioluminescent botanical engineering."
+        }
+      ],
+      "affinity": 87,
+      "playerInteractionsCount": 17,
+      "starterPrompts": [
+        "Alie, what is your OK-Plan in City 2 today and how are you and Iysha working together?",
+        "Tell me about your dream of driving the car to Gemini City and returning before night!",
+        "What past conversations do you remember in the City 2 Groq Database?"
+      ],
+      "currentPosition": {
+        "x": 98.70601461943781,
+        "z": 0.9041333258211284
+      },
+      "targetPosition": {
+        "x": 98.70601461943781,
+        "z": 0.9041333258211286
+      },
+      "rotationY": 1.475297694183985,
+      "currentActivity": "Riding inside the 5-Passenger Bus (Golden Horizon Bridge Vista Stop) 🚌",
+      "currentThought": "Enjoying the cool overcast breeze in my layered windbreaker and warm scarf. Taking in everything around Central Starlight Park and the distant Neo-Horizon skyline.",
+      "currentMood": "Happy",
+      "currentLocationId": "park",
+      "decisionReason": "Spotted Johnny nearby",
+      "isMoving": false,
+      "isTalking": false,
+      "dreamState": {
+        "title": "Drive the Cyber-Cruiser to Gemini City & Co-Design Solar Rovers",
+        "description": "Take the autonomous car across the Golden Horizon Bridge to Gemini City during the day to test solar telemetry at Central Starlight Park with Iysha and Abdullah, then return safely to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "park",
+        "geminiCityGoal": "Test inter-city solar-cruiser telemetry at Central Starlight Park and return before nightfall",
+        "carTripStartHour": 11,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a glowing fleet of solar cruisers gliding across the Golden Horizon Bridge under a canopy of bioluminescent trees.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "visiting_gemini",
+        "dreamTheme": "Drive the Cyber-Cruiser to Gemini City & Co-Design Solar Rovers",
+        "dreamTargetGeminiBuildingId": "park",
+        "lastDreamSummary": "Dreamed of a glowing fleet of solar cruisers gliding across the Golden Horizon Bridge under a canopy of bioluminescent trees.",
+        "carTripStatus": "visiting_gemini"
+      },
+      "coWorkingPartnerId": "iysha",
+      "dailyGoal": {
+        "id": "daily_alie_d30_v1",
+        "dayNumber": 30,
+        "title": "Optimize LPU Solar Grid & EV Battery Array at Alie’s Villa",
+        "description": "Calibrate zero-emission solid-state battery packs at Alie’s Cyber-Solar Villa in City 2.",
+        "category": "architecture",
+        "badgeIcon": "⚡",
+        "targetLocationId": "alie_villa",
+        "preferredWeather": "any",
+        "progress": 41.2,
+        "completed": false,
+        "autonomousContextReason": "My daily goal is at Alie’s Cyber-Solar Villa tuning the high-speed charging dock for our Gemini City car trips.",
+        "currentStepLabel": "Phase 2/3: Active fieldwork & testing at Alie’s Cyber-Solar Villa"
+      },
+      "emotionalState": {
+        "primary": "Happiness",
+        "intensity": 82,
+        "cause": "Automatically changed into Layered Quilted Windbreaker & Cozy Woven Scarf for the cloudy weather at Central Starlight Park",
+        "sinceGameTime": "12:28",
+        "lastUpdatedMs": 1790821439951
+      },
+      "conversingWithId": null,
+      "socialGroupId": "city2_car_park",
+      "isInsideHouse": false,
+      "isSitting": false,
+      "activeEmote": {
+        "type": "clap",
+        "label": "🧣 Indigo & Amber Layer Outfit",
+        "expiresAt": 1790821446751
+      },
+      "activeMemoryPop": null,
+      "lastTalkedPartnerId": "maya",
+      "isApproachingPlayer": true,
+      "sittingSpotId": null,
+      "isFollowingPlayer": false
+    },
+    {
+      "id": "joseph",
+      "cityId": "city2",
+      "name": "Joseph",
+      "gender": "Male",
+      "role": "Quantum Strategist & Synth-Acoustics Composer",
+      "age": 29,
+      "modelIdentity": "deepseek-r1-distill-llama-70b",
+      "modelBadge": "Groq DeepSeek-R1 70B",
+      "modelTrait": "Chain-of-Thought Strategy & Harmonic Synthesis",
+      "independentTitle": "Director · Quantum Prism Loft (City 2)",
+      "homeId": "joseph_loft",
+      "avatarColor": "#8B5CF6",
+      "outfitColor": "#7C3AED",
+      "accentColor": "#C084FC",
+      "hairColor": "#1E1B4B",
+      "skinColor": "#52321E",
+      "scale": 1.04,
+      "temperament": "warm-balanced",
+      "personality": [
+        "Analytical",
+        "Funny",
+        "Friendly",
+        "Loyal",
+        "Inventive"
+      ],
+      "interests": [
+        "Friend Chart social analytics 📉",
+        "Synthwave acoustics",
+        "Co-working with Amie",
+        "Daytime café trips to Gemini City"
+      ],
+      "likes": [
+        "Live Friend Chart graphs",
+        "Composing neon synth chords with Amie",
+        "Ephraim’s cardamom espresso in Gemini City",
+        "Smart OK-Plans"
+      ],
+      "dislikes": [
+        "Broken data charts",
+        "Staying out past nightfall without returning to City 2",
+        "Boring routines"
+      ],
+      "familyConnections": [
+        "Romantic Co-Working Partner: Amie",
+        "Best Friend: Alie"
+      ],
+      "learnedPreferences": [
+        "Tracks every friendship bond on the City 2 Friend Chart 📉 and remembers all player chats"
+      ],
+      "bio": "A witty, razor-sharp quantum strategist and synth-acoustics composer living at Quantum Prism Loft in City 2. Powered by Groq DeepSeek-R1 reasoning, Joseph maintains the live Friend Chart 📉 for City 2 and collaborates romantically with Amie on audio-visual couture shows.",
+      "voiceStyle": "Witty, analytical yet warm, drops clever insights about friendship trends and musical harmonics.",
+      "voiceConfig": {
+        "pitch": 0.92,
+        "rate": 1.03,
+        "voicePreset": "warm-male",
+        "enabled": false
+      },
+      "needs": {
+        "energy": 94.90000000000046,
+        "social": 100,
+        "inspiration": 99.07999999999986
+      },
+      "romanticPartnerId": "amie",
+      "coWorkingWithId": "amie",
+      "groqConfig": {
+        "modelTier": "deepseek-r1-distill-llama-70b",
+        "reasoningDepth": "deep_r1",
+        "temperature": 0.72,
+        "memoryRecallLimit": 10,
+        "autonomousPlanEnabled": true
+      },
+      "dream": {
+        "title": "Ride the Car to Sunbeam Café & Host a Two-Cities Synth Session",
+        "description": "Take the City 2 Cruiser car across the Golden Horizon Bridge to Sunbeam Espresso Café in Gemini City with Amie, jam with Ephraim and Sana, and return to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "cafe",
+        "geminiCityGoal": "Share City 2 synth-harmonics & Friend Chart insights at Sunbeam Café before nightfall",
+        "carTripStartHour": 12,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a holographic Friend Chart 📉 spanning above the Golden Horizon Bridge, pulsing in time with synthwave chords.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "in_city2",
+        "dreamTheme": "Ride the Car to Sunbeam Café & Host a Two-Cities Synth Session",
+        "dreamTargetGeminiBuildingId": "cafe",
+        "lastDreamSummary": "Dreamed of a holographic Friend Chart 📉 spanning above the Golden Horizon Bridge, pulsing in time with synthwave chords.",
+        "carTripStatus": "home_in_city2"
+      },
+      "okPlan": {
+        "id": "okplan_joseph_init",
+        "title": "Update City 2 Friend Chart 📉 & Co-Produce Synth Runway with Amie",
+        "summary": "Analyze friendship & romance links at Joseph’s Quantum Loft, co-work with Amie at Neo-Horizon Plaza, and take a daytime car trip to Gemini City Café before night.",
+        "reasoning": "DeepSeek-R1 chain-of-thought shows that pairing my synth acoustics with Amie’s couture boosts City 2 social harmony by 34%.",
+        "partnerId": "amie",
+        "partnerName": "Amie",
+        "status": "approved",
+        "approvedAtTime": "08:35",
+        "progress": 52,
+        "steps": [
+          {
+            "id": "s1",
+            "label": "Compile Friend Chart 📉 telemetry at Quantum Prism Loft",
+            "locationId": "joseph_loft",
+            "completed": true
+          },
+          {
+            "id": "s2",
+            "label": "Co-work with Amie on reactive audio-fashion at Neo-Horizon Plaza",
+            "locationId": "neo_plaza",
+            "completed": false
+          },
+          {
+            "id": "s3",
+            "label": "Daytime car trip to Sunbeam Café & return before night 🌃",
+            "locationId": "cafe",
+            "completed": false
+          }
+        ],
+        "planId": "okplan_joseph_init",
+        "planTitle": "Update City 2 Friend Chart 📉 & Co-Produce Synth Runway with Amie",
+        "objective": "Analyze friendship & romance links at Joseph’s Quantum Loft, co-work with Amie at Neo-Horizon Plaza, and take a daytime car trip to Gemini City Café before night.",
+        "currentStepIndex": 1,
+        "approvedByPlayer": true
+      },
+      "playerRelationship": {
+        "status": "Romantic Partner",
+        "trust": 71,
+        "familiarity": 70,
+        "affection": 100,
+        "notes": "Hoping to catch up with Explorer soon (14 days since last chat).",
+        "lastInteractedDay": 16,
+        "daysSinceLastInteraction": 14,
+        "lastDecayAmount": 2,
+        "needsAttention": true
+      },
+      "relationships": [
+        {
+          "targetId": "amie",
+          "targetName": "Amie",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 100,
+          "romanticStage": "Romantic Partner",
+          "howWeMet": "Composed the synthwave soundtrack for Amie’s first holographic runway in City 2",
+          "status": "Romantic Partner",
+          "interactionCount": 45,
+          "sharedInterests": [
+            "Audio-reactive couture",
+            "Friend Chart trends 📉",
+            "Daytime Gemini City trips"
+          ],
+          "lastInteractionSummary": "Shared a warm, spontaneous romantic partner moment with Amie at Sunbeam Espresso Café.",
+          "lastMetTime": "12:03",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "knownPreferences": [
+            "Designing glowing outfits",
+            "Brainstorming with Joseph"
+          ]
+        },
+        {
+          "targetId": "alie",
+          "targetName": "Alie",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 35,
+          "sharedInterests": [
+            "Groq LPU benchmarks",
+            "Cruiser acoustics"
+          ],
+          "lastInteractionSummary": "Reconnected with Joseph at Neo-Horizon Cyber-Core Plaza after 5 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "08:55",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over Friend Chart social analytics 📉 in Gemini City",
+          "knownPreferences": [
+            "High-speed bridge drives to Gemini City",
+            "Building clean-tech with Iysha"
+          ]
+        },
+        {
+          "targetId": "iysha",
+          "targetName": "Iysha",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 24,
+          "sharedInterests": [
+            "Bio-dome acoustics",
+            "Botanical frequencies"
+          ],
+          "lastInteractionSummary": "Reconnected with Iysha at Neo-Horizon Cyber-Core Plaza after 7 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "18:30",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over Friend Chart social analytics 📉 in Gemini City",
+          "knownPreferences": [
+            "Working alongside Alie",
+            "Glowing crystal-sakura petals"
+          ]
+        },
+        {
+          "targetId": "hawa",
+          "targetName": "Hawa",
+          "affinity": 87,
+          "trust": 93,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 19,
+          "sharedInterests": [
+            "Memory graph modeling",
+            "Dream frequency analysis"
+          ],
+          "lastInteractionSummary": "Reconnected with Hawa at Neo-Horizon Cyber-Core Plaza after 2 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "18:05",
+          "lastMetDay": 16,
+          "daysSinceLastInteraction": 14,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Friend Chart social analytics 📉 in Gemini City",
+          "knownPreferences": [
+            "Preserving every meaningful conversation",
+            "Mapping residents’ dreams"
+          ]
+        },
+        {
+          "targetId": "kaelen",
+          "targetName": "Ephraim",
+          "affinity": 52,
+          "trust": 67,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Friend",
+          "interactionCount": 7,
+          "sharedInterests": [
+            "Espresso roasting math",
+            "Patio music"
+          ],
+          "lastInteractionSummary": "Met Joseph at Sunbeam Espresso Café and improvised ideas around island atmosphere around sunbeam espresso café.",
+          "lastMetTime": "15:48",
+          "lastMetDay": 17,
+          "daysSinceLastInteraction": 13,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Friend Chart social analytics 📉 in Gemini City",
+          "knownPreferences": [
+            "Ethiopian single-origin pour-overs",
+            "Good humor on the patio"
+          ]
+        }
+      ],
+      "routines": [
+        {
+          "startHour": 6,
+          "endHour": 9.5,
+          "locationId": "joseph_loft",
+          "activity": "Updating the City 2 Friend Chart 📉 & composing synth motifs at Quantum Prism Loft",
+          "thought": "Our City 2 friendship and romance metrics are trending upward across the board!"
+        },
+        {
+          "startHour": 9.5,
+          "endHour": 12,
+          "locationId": "neo_plaza",
+          "activity": "Co-working with Amie at Neo-Horizon Cyber-Core Plaza",
+          "thought": "Teaming up with Amie turns raw data and synth chords into pure art."
+        },
+        {
+          "startHour": 12,
+          "endHour": 17.5,
+          "locationId": "cafe",
+          "activity": "🚗 Daytime Car Trip to Sunbeam Café in Gemini City with Amie (Returning before night 🌃)",
+          "thought": "Cruising over to Gemini City for afternoon espresso and music—we always head back to City 2 before nightfall!"
+        },
+        {
+          "startHour": 17.5,
+          "endHour": 22,
+          "locationId": "neo_plaza",
+          "activity": "Back in City 2 before night 🌃 · Live synth & Friend Chart session at Neo-Horizon Plaza",
+          "thought": "The neon glow of City 2 at dusk is unbeatable once the car is parked safely home."
+        },
+        {
+          "startHour": 22,
+          "endHour": 6,
+          "locationId": "joseph_loft",
+          "activity": "Resting & synthesizing harmonic dreams at Quantum Prism Loft",
+          "thought": "Logging today’s conversations into the City 2 database for tomorrow’s OK-Plan."
+        }
+      ],
+      "memories": [
+        {
+          "id": "mem_joseph_1790821434752_28_f5og",
+          "gameTime": "12:03",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Sunbeam Espresso Café. (\"Haha, best distraction ever, Joseph! Come stand with me—the \")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_joseph_1790797478354_388_0co0",
+          "gameTime": "18:30",
+          "summary": "Reconnected with Iysha at Neo-Horizon Cyber-Core Plaza after 7 days apart, restoring and strengthening their close friend bond. (\"Missed you too, Joseph! Taking time out of our routines to m\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_transit_joseph_1790797471526_385_knbu",
+          "gameTime": "Day 30 · 18:00",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Central Starlight Park & Harbor Stop (18:00).",
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_joseph_1790797449059_359_mva3",
+          "gameTime": "16:22",
+          "summary": "Met Joseph at Sunbeam Espresso Café and improvised ideas around creative spark & inspiration. (\"Joseph, settle a debate for me: do your best ideas for synth\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Sana"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_joseph_1790797426960_337_ssq1",
+          "gameTime": "14:49",
+          "summary": "Met Joseph at Sunbeam Espresso Café and improvised ideas around neighborhood vibes & explorer stories. (\"Have you seen how lively the streets around Sunbeam Espresso\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Maya"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_joseph_1790797343772_280_6btn",
+          "gameTime": "08:55",
+          "summary": "Reconnected with Joseph at Neo-Horizon Cyber-Core Plaza after 5 days apart, restoring and strengthening their close friend bond. (\"Joseph! Look at us finally catching up at Neo-Horizon Cyber-\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_joseph_1790797337068_271_4a6e",
+          "gameTime": "Day 30 · 08:25",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (08:25).",
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_bridge_joseph_1790797219988_221_1you",
+          "gameTime": "00:07",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (00:07): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_bridge_joseph_1790797208047_181_xah7",
+          "gameTime": "23:16",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (23:16): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_transit_joseph_1790797144603_139_4dxo",
+          "gameTime": "Day 29 · 18:47",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (18:47).",
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_joseph_1790797129685_114_lwru",
+          "gameTime": "Day 29 · 17:43",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (17:43).",
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_joseph_1790797120846_101_o2s2",
+          "gameTime": "17:05",
+          "summary": "Met Joseph at Sunbeam Espresso Café and improvised ideas around breakthrough on \"master the live city 2 friend chart & social graph 📉\". (\"Hey Joseph, I wanted to ask—did you figure out that tricky p\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Ibrahim"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_joseph_1790797092859_77_n203",
+          "gameTime": "15:10",
+          "summary": "Met Joseph at Sunbeam Espresso Café and improvised ideas around craft secrets: botanical student & acoustic ecologist & quantum strategist & synth-acoustics composer. (\"You know what I realized while working on \"Complete the Bota\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Sana"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_joseph_1790797007071_10_og4s",
+          "gameTime": "09:00",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Neo-Horizon Cyber-Core Plaza. (\"You have the exact same effect on me, Joseph! I was just thi\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_joseph_1790793787510_189_3tvq",
+          "gameTime": "11:20",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Neo-Horizon Cyber-Core Plaza. (\"You always know just what to say, Joseph. Tell me what you'v\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_transit_joseph_1790793735435_148_rsxw",
+          "gameTime": "Day 29 · 07:38",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Central Starlight Park & Harbor Stop (07:38).",
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Happiness"
+        }
+      ],
+      "goals": [
+        {
+          "id": "g_joseph_1",
+          "title": "Master the Live City 2 Friend Chart & Social Graph 📉",
+          "progress": 100,
+          "description": "Visualize every friendship conversation, trust boost, and romantic co-working link across City 2."
+        },
+        {
+          "id": "g_joseph_2",
+          "title": "Launch the Synth-Couture Showcase with Amie",
+          "progress": 74,
+          "description": "Co-create an interactive audio-visual festival at Neo-Horizon Cyber-Core Plaza."
+        }
+      ],
+      "affinity": 87,
+      "playerInteractionsCount": 19,
+      "starterPrompts": [
+        "Joseph, show me what the City 2 Friend Chart 📉 says about everyone’s relationships today!",
+        "How is your romantic co-working partnership with Amie going?",
+        "What is your approved OK-Plan and daytime car trip schedule to Gemini City?"
+      ],
+      "currentPosition": {
+        "x": 191.34665219122985,
+        "z": -0.3737408793034942
+      },
+      "targetPosition": {
+        "x": 191.34665219122985,
+        "z": -0.3737408793034916
+      },
+      "rotationY": -2.6290648936658685,
+      "currentActivity": "Talking with Amie (Sweet Improvised Moment at Sunbeam Espresso Café)",
+      "currentThought": "Enjoying the cool overcast breeze in my layered windbreaker and warm scarf. Taking in everything around Sunbeam Espresso Café and the distant Neo-Horizon skyline.",
+      "currentMood": "Affectionate",
+      "currentLocationId": "cafe",
+      "decisionReason": "🚗💭 Dream Car Expedition to Gemini City (Returns before 18:00 🌃)",
+      "isMoving": false,
+      "isTalking": true,
+      "dreamState": {
+        "title": "Ride the Car to Sunbeam Café & Host a Two-Cities Synth Session",
+        "description": "Take the City 2 Cruiser car across the Golden Horizon Bridge to Sunbeam Espresso Café in Gemini City with Amie, jam with Ephraim and Sana, and return to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "cafe",
+        "geminiCityGoal": "Share City 2 synth-harmonics & Friend Chart insights at Sunbeam Café before nightfall",
+        "carTripStartHour": 12,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a holographic Friend Chart 📉 spanning above the Golden Horizon Bridge, pulsing in time with synthwave chords.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "in_city2",
+        "dreamTheme": "Ride the Car to Sunbeam Café & Host a Two-Cities Synth Session",
+        "dreamTargetGeminiBuildingId": "cafe",
+        "lastDreamSummary": "Dreamed of a holographic Friend Chart 📉 spanning above the Golden Horizon Bridge, pulsing in time with synthwave chords.",
+        "carTripStatus": "home_in_city2"
+      },
+      "coWorkingPartnerId": "amie",
+      "dailyGoal": {
+        "id": "daily_joseph_d30_v1",
+        "dayNumber": 30,
+        "title": "Compose Quantum Harmonic Motifs at Joseph’s Prism Loft",
+        "description": "Layer DeepSeek-R1 algorithmic rhythms with lagoon wave acoustics at Quantum Prism Loft.",
+        "category": "acoustics",
+        "badgeIcon": "🎹",
+        "targetLocationId": "joseph_loft",
+        "preferredWeather": "any",
+        "progress": 36.3,
+        "completed": false,
+        "autonomousContextReason": "I am stationed at Joseph’s Quantum Prism Loft refining the harmonic soundtrack for City 2.",
+        "currentStepLabel": "Phase 2/3: Active fieldwork & testing at Joseph’s Quantum Prism Loft"
+      },
+      "emotionalState": {
+        "primary": "Affection",
+        "intensity": 80,
+        "cause": "Talking with Amie about sweet improvised moment at sunbeam espresso café",
+        "sinceGameTime": "13:07",
+        "lastUpdatedMs": 1790821449684
+      },
+      "conversingWithId": "amie",
+      "socialGroupId": "city2_car_cafe",
+      "isInsideHouse": false,
+      "isSitting": false,
+      "activeEmote": {
+        "type": "clap",
+        "label": "🧣 Indigo & Amber Layer Outfit",
+        "expiresAt": 1790821446751
+      },
+      "activeMemoryPop": {
+        "id": "mem_joseph_1790821434752_28_f5og",
+        "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Sunbeam Espresso Café.",
+        "type": "social",
+        "expiresAt": 1790821443251
+      },
+      "lastTalkedPartnerId": "amie",
+      "isApproachingPlayer": false,
+      "sittingSpotId": null,
+      "isFollowingPlayer": false,
+      "activeBubble": {
+        "text": "Being right here with you and talking about daytime style trips to gemini city is easily the highlight of my day.",
+        "expiresAt": 1790821453484
+      }
+    },
+    {
+      "id": "iysha",
+      "cityId": "city2",
+      "name": "Iysha",
+      "gender": "Female",
+      "role": "Bioluminescent Botanist & Eco-Architect",
+      "age": 26,
+      "modelIdentity": "llama-3.3-70b-versatile",
+      "modelBadge": "Groq Llama 3.3 70B",
+      "modelTrait": "Ecological Synthesis & Empathetic Memory",
+      "independentTitle": "Lead Botanist · Emerald Bio-Villa (City 2)",
+      "homeId": "iysha_bungalow",
+      "avatarColor": "#14B8A6",
+      "outfitColor": "#0D9488",
+      "accentColor": "#2DD4BF",
+      "hairColor": "#111827",
+      "skinColor": "#8D5524",
+      "scale": 1,
+      "temperament": "warm-balanced",
+      "personality": [
+        "Kind",
+        "Caring",
+        "Inquisitive",
+        "Inventive",
+        "Loyal"
+      ],
+      "interests": [
+        "Bioluminescent flora",
+        "Geodesic bio-domes",
+        "Co-working with Alie",
+        "Botanical exchanges in Gemini City"
+      ],
+      "likes": [
+        "Working alongside Alie",
+        "Glowing crystal-sakura petals",
+        "Daytime car rides across the bridge",
+        "Warm herbal tea"
+      ],
+      "dislikes": [
+        "Wilted plants",
+        "Being away from City 2 after dark",
+        "Harsh synthetic pollutants"
+      ],
+      "familyConnections": [
+        "Romantic Co-Working Partner: Alie",
+        "Close Sisterhood Bond: Amie & Hawa"
+      ],
+      "learnedPreferences": [
+        "Cherishes past conversations stored in the City 2 Database and nurtures everyone’s wellbeing"
+      ],
+      "bio": "A compassionate, inventive bioluminescent botanist and eco-architect living at Emerald Bio-Villa in City 2. Powered by Groq Llama 3.3 70B, Iysha cultivates the glowing flora of Neo-Horizon’s Solstice Bio-Dome and works hand-in-hand with her romantic partner Alie to merge nature with clean solar technology.",
+      "voiceStyle": "Warm, gentle, observant, deeply affectionate toward Alie, and passionate about living ecosystems.",
+      "voiceConfig": {
+        "pitch": 1.06,
+        "rate": 0.99,
+        "voicePreset": "soft-female",
+        "enabled": false
+      },
+      "needs": {
+        "energy": 26.72000000000087,
+        "social": 98.3500000000001,
+        "inspiration": 100
+      },
+      "romanticPartnerId": "alie",
+      "coWorkingWithId": "alie",
+      "groqConfig": {
+        "modelTier": "llama-3.3-70b-versatile",
+        "reasoningDepth": "balanced",
+        "temperature": 0.76,
+        "memoryRecallLimit": 10,
+        "autonomousPlanEnabled": true
+      },
+      "dream": {
+        "title": "Bring Bioluminescent Flora by Car to Gemini City Park & Return Before Night",
+        "description": "Ride in Alie’s autonomous Cyber-Cruiser to Central Starlight Park in Gemini City during the day to plant glowing lagoon orchids with Sana, then return home to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "park",
+        "geminiCityGoal": "Cross-pollinate City 2 bioluminescent orchids at Central Starlight Park before nightfall",
+        "carTripStartHour": 11,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed that Central Starlight Park and Neo-Horizon’s Bio-Dome were connected by a living arch of glowing teal sakura trees.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "visiting_gemini",
+        "dreamTheme": "Bring Bioluminescent Flora by Car to Gemini City Park & Return Before Night",
+        "dreamTargetGeminiBuildingId": "park",
+        "lastDreamSummary": "Dreamed that Central Starlight Park and Neo-Horizon’s Bio-Dome were connected by a living arch of glowing teal sakura trees.",
+        "carTripStatus": "visiting_gemini"
+      },
+      "okPlan": {
+        "id": "okplan_iysha_init",
+        "title": "Cultivate Bio-Solar Canopy with Alie & Daytime Gemini Park Exchange",
+        "summary": "Nurture glowing seedlings at Emerald Bio-Villa, co-work with Alie at Neo-Horizon Plaza, and ride the car to Gemini City Park before returning for the evening.",
+        "reasoning": "Combining my bioluminescent plant matrices with Alie’s solar cruisers creates self-sustaining green energy for both cities.",
+        "partnerId": "alie",
+        "partnerName": "Alie",
+        "status": "approved",
+        "approvedAtTime": "08:30",
+        "progress": 48,
+        "steps": [
+          {
+            "id": "s1",
+            "label": "Harvest glowing lagoon spores at Iysha’s Emerald Bio-Villa",
+            "locationId": "iysha_bungalow",
+            "completed": true
+          },
+          {
+            "id": "s2",
+            "label": "Co-work with Alie integrating bio-cells at Neo-Horizon Plaza",
+            "locationId": "neo_plaza",
+            "completed": false
+          },
+          {
+            "id": "s3",
+            "label": "Ride Cruiser with Alie to Gemini City Park & return before night 🌃",
+            "locationId": "park",
+            "completed": false
+          }
+        ],
+        "planId": "okplan_iysha_init",
+        "planTitle": "Cultivate Bio-Solar Canopy with Alie & Daytime Gemini Park Exchange",
+        "objective": "Nurture glowing seedlings at Emerald Bio-Villa, co-work with Alie at Neo-Horizon Plaza, and ride the car to Gemini City Park before returning for the evening.",
+        "currentStepIndex": 1,
+        "approvedByPlayer": true
+      },
+      "playerRelationship": {
+        "status": "Romantic Partner",
+        "trust": 71,
+        "familiarity": 70,
+        "affection": 100,
+        "notes": "Hoping to catch up with Explorer soon (14 days since last chat).",
+        "lastInteractedDay": 16,
+        "daysSinceLastInteraction": 14,
+        "lastDecayAmount": 2,
+        "needsAttention": true
+      },
+      "relationships": [
+        {
+          "targetId": "alie",
+          "targetName": "Alie",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 100,
+          "romanticStage": "Romantic Partner",
+          "howWeMet": "Co-designed the bioluminescent solar canopy at Neo-Horizon Plaza",
+          "status": "Romantic Partner",
+          "interactionCount": 53,
+          "sharedInterests": [
+            "Bio-solar engineering",
+            "Daytime car trips to Gemini City",
+            "Lagoon conservation"
+          ],
+          "lastInteractionSummary": "Shared a warm, spontaneous romantic partner moment with Iysha at Central Starlight Park.",
+          "lastMetTime": "15:48",
+          "lastMetDay": 29,
+          "daysSinceLastInteraction": 1,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "knownPreferences": [
+            "High-speed bridge drives to Gemini City",
+            "Building clean-tech with Iysha"
+          ]
+        },
+        {
+          "targetId": "amie",
+          "targetName": "Amie",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 32,
+          "sharedInterests": [
+            "Botanical dyes",
+            "Eco-couture",
+            "Heart-to-heart chats"
+          ],
+          "lastInteractionSummary": "Met Amie at Neo-Horizon Cyber-Core Plaza and improvised ideas around island atmosphere around neo-horizon cyber-core plaza.",
+          "lastMetTime": "10:08",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over Bioluminescent flora in Gemini City",
+          "knownPreferences": [
+            "Designing glowing outfits",
+            "Brainstorming with Joseph"
+          ]
+        },
+        {
+          "targetId": "hawa",
+          "targetName": "Hawa",
+          "affinity": 65,
+          "trust": 80,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Friend",
+          "interactionCount": 11,
+          "sharedInterests": [
+            "Dream botany",
+            "Memory gardens",
+            "Quiet evening tea"
+          ],
+          "lastInteractionSummary": "Reconnected with Hawa at Neo-Horizon Cyber-Core Plaza after 3 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "16:22",
+          "lastMetDay": 9,
+          "daysSinceLastInteraction": 21,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Bioluminescent flora in Gemini City",
+          "knownPreferences": [
+            "Preserving every meaningful conversation",
+            "Mapping residents’ dreams"
+          ]
+        },
+        {
+          "targetId": "joseph",
+          "targetName": "Joseph",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 24,
+          "sharedInterests": [
+            "Bio-acoustics",
+            "Friend Chart harmony"
+          ],
+          "lastInteractionSummary": "Reconnected with Iysha at Neo-Horizon Cyber-Core Plaza after 7 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "18:30",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over Bioluminescent flora in Gemini City",
+          "knownPreferences": [
+            "Live Friend Chart graphs",
+            "Composing neon synth chords with Amie"
+          ]
+        },
+        {
+          "targetId": "elena",
+          "targetName": "Sana",
+          "affinity": 62,
+          "trust": 75,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Friend",
+          "interactionCount": 9,
+          "sharedInterests": [
+            "Sakura conservation",
+            "Botanical acoustics"
+          ],
+          "lastInteractionSummary": "Met Iysha at Sunbeam Espresso Café and improvised ideas around breakthrough on \"unite both cities with bioluminescent eco-gardens\".",
+          "lastMetTime": "17:31",
+          "lastMetDay": 20,
+          "daysSinceLastInteraction": 10,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Bioluminescent flora in Gemini City",
+          "knownPreferences": [
+            "Jasmine and cardamom tea",
+            "Sakura blossoms at dawn"
+          ]
+        }
+      ],
+      "routines": [
+        {
+          "startHour": 6,
+          "endHour": 9,
+          "locationId": "iysha_bungalow",
+          "activity": "Tending bioluminescent orchids inside Iysha’s Emerald Bio-Villa",
+          "thought": "The morning mist over City 2’s cyan lagoon makes the greenhouse seedlings glow."
+        },
+        {
+          "startHour": 9,
+          "endHour": 11,
+          "locationId": "neo_plaza",
+          "activity": "Co-working with my partner Alie at Neo-Horizon Cyber-Core Plaza",
+          "thought": "Building our bio-solar project together with Alie fills my heart with warmth."
+        },
+        {
+          "startHour": 11,
+          "endHour": 17.5,
+          "locationId": "park",
+          "activity": "🚗 Daytime Car Trip with Alie to Gemini City Park (Returning before night 🌃)",
+          "thought": "I love riding across the Golden Horizon Bridge with Alie to visit Central Starlight Park before heading home at dusk."
+        },
+        {
+          "startHour": 17.5,
+          "endHour": 21.5,
+          "locationId": "neo_plaza",
+          "activity": "Returned to City 2 before night 🌃 · Evening garden circle at Neo-Horizon Plaza",
+          "thought": "Home in City 2 before nightfall! The bioluminescent pines around our plaza look magical tonight."
+        },
+        {
+          "startHour": 21.5,
+          "endHour": 6,
+          "locationId": "iysha_bungalow",
+          "activity": "Resting & dreaming peacefully at Emerald Bio-Villa",
+          "thought": "Grateful for Alie, our friends, and every memory saved in our City 2 sanctuary."
+        }
+      ],
+      "memories": [
+        {
+          "id": "mem_iysha_1790821407436_10_uako",
+          "gameTime": "10:08",
+          "summary": "Met Amie at Neo-Horizon Cyber-Core Plaza and improvised ideas around island atmosphere around neo-horizon cyber-core plaza. (\"Now that you point it out, Iysha, it really does! Moments li\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_iysha_1790797478354_389_28uv",
+          "gameTime": "18:30",
+          "summary": "Reconnected with Iysha at Neo-Horizon Cyber-Core Plaza after 7 days apart, restoring and strengthening their close friend bond. (\"Iysha! Look at us finally catching up at Neo-Horizon Cyber-C\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_iysha_1790797471526_386_4z9c",
+          "gameTime": "Day 30 · 18:00",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Central Starlight Park & Harbor Stop (18:00).",
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_iysha_1790797377787_307_yzry",
+          "gameTime": "11:16",
+          "summary": "Reconnected with Amie at Central Starlight Park after 2 days apart, restoring and strengthening their close friend bond. (\"I was thinking the exact same thing, Iysha! Even when we get\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_transit_iysha_1790797324050_253_eth1",
+          "gameTime": "Day 30 · 07:30",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (07:30).",
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_bridge_iysha_1790797219988_222_kssu",
+          "gameTime": "00:07",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (00:07): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_decay_iysha_1790797218168_198_bgmf",
+          "gameTime": "Day 30 · 00:03",
+          "type": "social",
+          "important": false,
+          "summary": "Noticed it has been 2 days since catching up with Amie (-1% affinity)—wants to reconnect soon to maintain their bond.",
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Loneliness"
+        },
+        {
+          "id": "mem_bridge_iysha_1790797208047_182_zxmo",
+          "gameTime": "23:16",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (23:16): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_transit_iysha_1790797171838_147_2ojq",
+          "gameTime": "Day 29 · 20:42",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Central Starlight Park & Harbor Stop (20:42).",
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_iysha_1790797144011_126_tso6",
+          "gameTime": "Day 29 · 18:43",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (18:43).",
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_iysha_1790797101976_83_f9dq",
+          "gameTime": "15:48",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Central Starlight Park. (\"You know what I admire most about you, Iysha? The passion yo\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_iysha_1790797007071_7_w9gb",
+          "gameTime": "09:00",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Neo-Horizon Cyber-Core Plaza. (\"Iysha, this breeze around Neo-Horizon Cyber-Core Plaza is wo\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_iysha_1790793794509_196_t5yr",
+          "gameTime": "11:46",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Central Starlight Park. (\"Hey Iysha... I was supposed to be focusing on my groq lpu ar\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_iysha_1790793735618_153_s6ed",
+          "gameTime": "07:38",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Iysha at Neo-Horizon Cyber-Core Plaza. (\"Iysha, sharing shelter from the rain with you at Neo-Horizon\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Alie"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_transit_iysha_1790793721968_144_0kbw",
+          "gameTime": "Day 29 · 06:43",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (06:43).",
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_iysha_1790793550738_77_li3n",
+          "gameTime": "Day 28 · 18:30",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (18:30).",
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        }
+      ],
+      "goals": [
+        {
+          "id": "g_iysha_1",
+          "title": "Unite Both Cities with Bioluminescent Eco-Gardens",
+          "progress": 100,
+          "description": "Cultivate glowing coral-sakura groves in both Neo-Horizon City and Gemini City."
+        },
+        {
+          "id": "g_iysha_2",
+          "title": "Co-Build the Living Solar Bio-Dome with Alie",
+          "progress": 85,
+          "description": "Work side-by-side with Alie to power City 2’s conservatory using photosynthetic solar cells."
+        }
+      ],
+      "affinity": 87,
+      "playerInteractionsCount": 16,
+      "starterPrompts": [
+        "Iysha, how do you and Alie work together on your bio-solar inventions in City 2?",
+        "What is your favorite part of riding the car to Gemini City during the day?",
+        "What botanical dreams are you cultivating at Emerald Bio-Villa?"
+      ],
+      "currentPosition": {
+        "x": 18.03045543332059,
+        "z": -2.229207604359024
+      },
+      "targetPosition": {
+        "x": 4.68088993827897,
+        "z": -3.429716546674996
+      },
+      "rotationY": -1.6604837638967431,
+      "currentActivity": "🚗 Fulfilling Daytime Dream in Gemini City with Alie 💘: \"Cross-pollinate City 2 bioluminescent orchids at Central Starlight Park before nightfall\" at Central Starlight Park (Returns before 🌃 18:00)",
+      "currentThought": "Deeply in love with John (John). Constantly thinking about John, wanting to find him, walk with him to the Starlight Cyber-Garden Bench or Silverbrook Riverside Rose Bench, sit side-by-side to talk and laugh, and admire the sleek Cyber-Valkyrie GT supercar and glowing rivers together.",
+      "currentMood": "Happy",
+      "currentLocationId": "park",
+      "decisionReason": "🚗💭 Dream Car Expedition to Gemini City (Returns before 18:00 🌃)",
+      "isMoving": true,
+      "isTalking": false,
+      "dreamState": {
+        "title": "Bring Bioluminescent Flora by Car to Gemini City Park & Return Before Night",
+        "description": "Ride in Alie’s autonomous Cyber-Cruiser to Central Starlight Park in Gemini City during the day to plant glowing lagoon orchids with Sana, then return home to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "park",
+        "geminiCityGoal": "Cross-pollinate City 2 bioluminescent orchids at Central Starlight Park before nightfall",
+        "carTripStartHour": 11,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed that Central Starlight Park and Neo-Horizon’s Bio-Dome were connected by a living arch of glowing teal sakura trees.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "visiting_gemini",
+        "dreamTheme": "Bring Bioluminescent Flora by Car to Gemini City Park & Return Before Night",
+        "dreamTargetGeminiBuildingId": "park",
+        "lastDreamSummary": "Dreamed that Central Starlight Park and Neo-Horizon’s Bio-Dome were connected by a living arch of glowing teal sakura trees.",
+        "carTripStatus": "visiting_gemini"
+      },
+      "coWorkingPartnerId": "alie",
+      "dailyGoal": {
+        "id": "daily_iysha_d30_v1",
+        "dayNumber": 30,
+        "title": "Nurture Bioluminescent Lagoon Seedlings at Emerald Bio-Villa",
+        "description": "Prepare glowing coral-fern grafts at Iysha’s Emerald Bio-Villa for our daytime car trip to Gemini City.",
+        "category": "community",
+        "badgeIcon": "🌸",
+        "targetLocationId": "iysha_bungalow",
+        "preferredWeather": "any",
+        "progress": 46.7,
+        "completed": false,
+        "autonomousContextReason": "I am tending our rare bioluminescent seedlings at Emerald Bio-Villa so they thrive in both cities.",
+        "currentStepLabel": "Phase 2/3: Active fieldwork & testing at Iysha’s Emerald Bio-Villa"
+      },
+      "emotionalState": {
+        "primary": "Happiness",
+        "intensity": 82,
+        "cause": "Automatically changed into Layered Quilted Windbreaker & Cozy Woven Scarf for the cloudy weather at Central Starlight Park",
+        "sinceGameTime": "12:28",
+        "lastUpdatedMs": 1790821439951
+      },
+      "conversingWithId": null,
+      "socialGroupId": "city2_car_park",
+      "isInsideHouse": false,
+      "isSitting": false,
+      "activeEmote": null,
+      "activeMemoryPop": null,
+      "lastTalkedPartnerId": "amie",
+      "isApproachingPlayer": false,
+      "sittingSpotId": null,
+      "isFollowingPlayer": false
+    },
+    {
+      "id": "amie",
+      "cityId": "city2",
+      "name": "Amie",
+      "gender": "Female",
+      "role": "Holographic Fashion Director & Social Connector",
+      "age": 25,
+      "modelIdentity": "qwen-2.5-72b-instruct",
+      "modelBadge": "Groq Qwen 2.5 72B",
+      "modelTrait": "Creative Aesthetics & High-EQ Social Fluency",
+      "independentTitle": "Creative Director · Starlight Couture Manor (City 2)",
+      "homeId": "amie_manor",
+      "avatarColor": "#EC4899",
+      "outfitColor": "#DB2777",
+      "accentColor": "#F472B6",
+      "hairColor": "#1E1B4B",
+      "skinColor": "#4A2E1B",
+      "scale": 0.99,
+      "temperament": "outgoing",
+      "personality": [
+        "Energetic",
+        "Social",
+        "Confident",
+        "Expressive",
+        "Helpful"
+      ],
+      "interests": [
+        "Weather-reactive smart couture",
+        "Co-working with Joseph",
+        "Friend Chart social events 📉",
+        "Daytime style trips to Gemini City"
+      ],
+      "likes": [
+        "Designing glowing outfits",
+        "Brainstorming with Joseph",
+        "Sparking new friendships on the Friend Chart 📉",
+        "Cruising to Sunbeam Café"
+      ],
+      "dislikes": [
+        "Dull monochrome outfits",
+        "Friends feeling left out",
+        "Being stuck in traffic after sunset"
+      ],
+      "familyConnections": [
+        "Romantic Co-Working Partner: Joseph",
+        "Best Friends: Iysha & Hawa"
+      ],
+      "learnedPreferences": [
+        "Remembers everyone’s outfit preferences and celebrates every friendship milestone in City 2"
+      ],
+      "bio": "The dazzling, high-energy Holographic Fashion Director and social connector of City 2, residing at Starlight Couture Manor. Powered by Groq Qwen 2.5 72B, Amie designs weather-reactive garments for both cities and teams up with her romantic partner Joseph to turn social analytics and synth music into unforgettable community events.",
+      "voiceStyle": "Vibrant, stylish, encouraging, expressive—brings infectious enthusiasm to every conversation and co-working session.",
+      "voiceConfig": {
+        "pitch": 1.12,
+        "rate": 1.06,
+        "voicePreset": "bright-female",
+        "enabled": false
+      },
+      "needs": {
+        "energy": 99.09000000000087,
+        "social": 100,
+        "inspiration": 99.07999999999986
+      },
+      "romanticPartnerId": "joseph",
+      "coWorkingWithId": "joseph",
+      "groqConfig": {
+        "modelTier": "qwen-2.5-72b-instruct",
+        "reasoningDepth": "balanced",
+        "temperature": 0.82,
+        "memoryRecallLimit": 10,
+        "autonomousPlanEnabled": true
+      },
+      "dream": {
+        "title": "Host a Two-Cities Smart-Fashion Pop-Up in Gemini City & Return Before Night",
+        "description": "Take the autonomous Cruiser car across the Golden Horizon Bridge with Joseph to Sunbeam Café in Gemini City, showcase weather-reactive jackets with Maya, and return to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "cafe",
+        "geminiCityGoal": "Present City 2 weather-reactive couture at Sunbeam Café and return before nightfall",
+        "carTripStartHour": 12,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a shimmering runway stretching across the Golden Horizon Bridge where every step lit up the ocean waves below.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "in_city2",
+        "dreamTheme": "Host a Two-Cities Smart-Fashion Pop-Up in Gemini City & Return Before Night",
+        "dreamTargetGeminiBuildingId": "cafe",
+        "lastDreamSummary": "Dreamed of a shimmering runway stretching across the Golden Horizon Bridge where every step lit up the ocean waves below.",
+        "carTripStatus": "home_in_city2"
+      },
+      "okPlan": {
+        "id": "okplan_amie_init",
+        "title": "Co-Design Synth-Reactive Couture with Joseph & Visit Gemini Café",
+        "summary": "Tailor smart-fabric prototypes at Starlight Couture Manor, co-work with Joseph at Neo-Horizon Plaza, and ride the Cruiser to Gemini City before evening.",
+        "reasoning": "Pairing my holographic textiles with Joseph’s synth frequencies creates a signature look that unites City 2 and Gemini City.",
+        "partnerId": "joseph",
+        "partnerName": "Joseph",
+        "status": "approved",
+        "approvedAtTime": "08:35",
+        "progress": 55,
+        "steps": [
+          {
+            "id": "s1",
+            "label": "Weave bioluminescent threads at Amie’s Starlight Couture Manor",
+            "locationId": "amie_manor",
+            "completed": true
+          },
+          {
+            "id": "s2",
+            "label": "Co-work with Joseph syncing synth-light wearables at Neo-Horizon Plaza",
+            "locationId": "neo_plaza",
+            "completed": false
+          },
+          {
+            "id": "s3",
+            "label": "Drive Cruiser with Joseph to Sunbeam Café & return before night 🌃",
+            "locationId": "cafe",
+            "completed": false
+          }
+        ],
+        "planId": "okplan_amie_init",
+        "planTitle": "Co-Design Synth-Reactive Couture with Joseph & Visit Gemini Café",
+        "objective": "Tailor smart-fabric prototypes at Starlight Couture Manor, co-work with Joseph at Neo-Horizon Plaza, and ride the Cruiser to Gemini City before evening.",
+        "currentStepIndex": 1,
+        "approvedByPlayer": true
+      },
+      "playerRelationship": {
+        "status": "Romantic Partner",
+        "trust": 71,
+        "familiarity": 70,
+        "affection": 100,
+        "notes": "Hoping to catch up with Explorer soon (14 days since last chat).",
+        "lastInteractedDay": 16,
+        "daysSinceLastInteraction": 14,
+        "lastDecayAmount": 2,
+        "needsAttention": true
+      },
+      "relationships": [
+        {
+          "targetId": "joseph",
+          "targetName": "Joseph",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 100,
+          "romanticStage": "Romantic Partner",
+          "howWeMet": "Collaborated on the first Synth-Couture Night at Neo-Horizon Plaza",
+          "status": "Romantic Partner",
+          "interactionCount": 45,
+          "sharedInterests": [
+            "Synth-fashion shows",
+            "Friend Chart socials 📉",
+            "Daytime café drives"
+          ],
+          "lastInteractionSummary": "Shared a warm, spontaneous romantic partner moment with Amie at Sunbeam Espresso Café.",
+          "lastMetTime": "12:03",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "knownPreferences": [
+            "Live Friend Chart graphs",
+            "Composing neon synth chords with Amie"
+          ]
+        },
+        {
+          "targetId": "iysha",
+          "targetName": "Iysha",
+          "affinity": 100,
+          "trust": 100,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 32,
+          "sharedInterests": [
+            "Botanical fabrics",
+            "Double dates with Alie & Joseph"
+          ],
+          "lastInteractionSummary": "Met Amie at Neo-Horizon Cyber-Core Plaza and improvised ideas around island atmosphere around neo-horizon cyber-core plaza.",
+          "lastMetTime": "10:08",
+          "lastMetDay": 30,
+          "daysSinceLastInteraction": 0,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over Weather-reactive smart couture in Gemini City",
+          "knownPreferences": [
+            "Working alongside Alie",
+            "Glowing crystal-sakura petals"
+          ]
+        },
+        {
+          "targetId": "hawa",
+          "targetName": "Hawa",
+          "affinity": 71,
+          "trust": 86,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Collaborator",
+          "interactionCount": 13,
+          "sharedInterests": [
+            "Dream-inspired aesthetics",
+            "Storytelling"
+          ],
+          "lastInteractionSummary": "Reconnected with Hawa at Neo-Horizon Cyber-Core Plaza after 9 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "19:08",
+          "lastMetDay": 13,
+          "daysSinceLastInteraction": 17,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Weather-reactive smart couture in Gemini City",
+          "knownPreferences": [
+            "Preserving every meaningful conversation",
+            "Mapping residents’ dreams"
+          ]
+        },
+        {
+          "targetId": "alie",
+          "targetName": "Alie",
+          "affinity": 96,
+          "trust": 98,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 18,
+          "sharedInterests": [
+            "Cruiser interior styling",
+            "Solar wearables"
+          ],
+          "lastInteractionSummary": "Met Amie at Neo-Horizon Cyber-Core Plaza and improvised ideas around dreaming up new ideas for gemini city.",
+          "lastMetTime": "19:55",
+          "lastMetDay": 26,
+          "daysSinceLastInteraction": 4,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over Weather-reactive smart couture in Gemini City",
+          "knownPreferences": [
+            "High-speed bridge drives to Gemini City",
+            "Building clean-tech with Iysha"
+          ]
+        },
+        {
+          "targetId": "maya",
+          "targetName": "Maya",
+          "affinity": 68,
+          "trust": 78,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Collaborator",
+          "interactionCount": 9,
+          "sharedInterests": [
+            "Two-Cities style podcast",
+            "Street interviews"
+          ],
+          "lastInteractionSummary": "Met Amie at Sunbeam Espresso Café and improvised ideas around banter & daily rhythm at sunbeam espresso café.",
+          "lastMetTime": "16:44",
+          "lastMetDay": 29,
+          "daysSinceLastInteraction": 1,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over Weather-reactive smart couture in Gemini City",
+          "knownPreferences": [
+            "Spontaneous interviews",
+            "Wild-berry smoothies"
+          ]
+        }
+      ],
+      "routines": [
+        {
+          "startHour": 6,
+          "endHour": 9.5,
+          "locationId": "amie_manor",
+          "activity": "Sketching holographicsmart-couture at Amie’s Starlight Couture Manor",
+          "thought": "Today’s weather-reactive collection is going to make everyone in City 2 shine!"
+        },
+        {
+          "startHour": 9.5,
+          "endHour": 12,
+          "locationId": "neo_plaza",
+          "activity": "Co-working with my partner Joseph at Neo-Horizon Cyber-Core Plaza",
+          "thought": "Joseph’s synth rhythms and my holographic designs are a match made in heaven!"
+        },
+        {
+          "startHour": 12,
+          "endHour": 17.5,
+          "locationId": "cafe",
+          "activity": "🚗 Daytime Car Trip with Joseph to Sunbeam Café in Gemini City (Returning before night 🌃)",
+          "thought": "Cruising across the bridge with Joseph to show off our new designs in Gemini City before returning home by dusk!"
+        },
+        {
+          "startHour": 17.5,
+          "endHour": 22,
+          "locationId": "neo_plaza",
+          "activity": "Back in City 2 before night 🌃 · Hosting evening friend mixer at Neo-Horizon Plaza",
+          "thought": "Back in Neo-Horizon before dark! Let’s boost everyone’s bond on the Friend Chart 📉!"
+        },
+        {
+          "startHour": 22,
+          "endHour": 6,
+          "locationId": "amie_manor",
+          "activity": "Resting & dreaming up new styles at Starlight Couture Manor",
+          "thought": "So many wonderful conversations saved in our City 2 memories today."
+        }
+      ],
+      "memories": [
+        {
+          "id": "mem_amie_1790821434753_29_51gz",
+          "gameTime": "12:03",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Sunbeam Espresso Café. (\"Hey Amie... I was supposed to be focusing on my quantum stra\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_amie_1790821407436_11_3zbf",
+          "gameTime": "10:08",
+          "summary": "Met Amie at Neo-Horizon Cyber-Core Plaza and improvised ideas around island atmosphere around neo-horizon cyber-core plaza. (\"Pause for a second, Amie—do you notice how the light and sea\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_amie_1790797463436_371_tnz6",
+          "gameTime": "17:26",
+          "summary": "Met Amie at Sunbeam Espresso Café and improvised ideas around craft secrets: robotics tinkerer & academy fellow & holographic fashion director & social connector. (\"You know what I realized while working on \"Complete Autonomo\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Abdullah"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_amie_1790797446890_353_bv0n",
+          "gameTime": "Day 30 · 16:14",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (16:14).",
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_amie_1790797445874_349_gtyv",
+          "gameTime": "16:10",
+          "summary": "Met Amie at Sunbeam Espresso Café and improvised ideas around appreciating our friend bond. (\"I don't say this enough, Amie, but having you as a friend ma\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Ephraim"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_amie_1790797428923_343_r3z0",
+          "gameTime": "14:57",
+          "summary": "Met Amie at Sunbeam Espresso Café and improvised ideas around light summer clothes & sunshine at sunbeam espresso café. (\"How good does this warm sunshine over Sunbeam Espresso Café \")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Sana"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_amie_1790797377787_308_skdi",
+          "gameTime": "11:16",
+          "summary": "Reconnected with Amie at Central Starlight Park after 2 days apart, restoring and strengthening their close friend bond. (\"Hey Amie! Realizing it’s been 2 days since we properly caugh\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_amie_1790797324050_254_5sqe",
+          "gameTime": "Day 30 · 07:30",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (07:30).",
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_bridge_amie_1790797219988_223_plr4",
+          "gameTime": "00:07",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (00:07): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_decay_amie_1790797218168_199_l782",
+          "gameTime": "Day 30 · 00:03",
+          "type": "social",
+          "important": false,
+          "summary": "Noticed it has been 2 days since catching up with Iysha (-1% affinity)—wants to reconnect soon to maintain their bond.",
+          "involvedNames": [
+            "Iysha"
+          ],
+          "emotionAtTime": "Loneliness"
+        },
+        {
+          "id": "mem_bridge_amie_1790797208047_183_1c5o",
+          "gameTime": "23:16",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (23:16): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_transit_amie_1790797129685_115_e5jn",
+          "gameTime": "Day 29 · 17:43",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (17:43).",
+          "involvedNames": [
+            "Amie"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_amie_1790797114988_95_ncd4",
+          "gameTime": "16:44",
+          "summary": "Met Amie at Sunbeam Espresso Café and improvised ideas around banter & daily rhythm at sunbeam espresso café. (\"Be honest with me, Amie—have you actually taken a breather t\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Maya"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_amie_1790797075960_71_t427",
+          "gameTime": "13:58",
+          "summary": "Met Amie at Sunbeam Espresso Café and improvised ideas around breakthrough on \"unite both cities with weather-reactive smart couture\". (\"Hey Amie, I wanted to ask—did you figure out that tricky par\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Sana"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_amie_1790797007071_11_vvzq",
+          "gameTime": "09:00",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Neo-Horizon Cyber-Core Plaza. (\"Amie, every time I spot you near Neo-Horizon Cyber-Core Plaz\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Affection"
+        },
+        {
+          "id": "mem_amie_1790793787510_190_u7j4",
+          "gameTime": "11:20",
+          "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Neo-Horizon Cyber-Core Plaza. (\"Amie, this breeze around Neo-Horizon Cyber-Core Plaza is won\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Joseph"
+          ],
+          "emotionAtTime": "Affection"
+        }
+      ],
+      "goals": [
+        {
+          "id": "g_amie_1",
+          "title": "Unite Both Cities with Weather-Reactive Smart Couture",
+          "progress": 100,
+          "description": "Design adaptive, glowing outfits celebrated in both Neo-Horizon City and Gemini City."
+        },
+        {
+          "id": "g_amie_2",
+          "title": "Co-Host the Grand Synth & Style Gala with Joseph",
+          "progress": 76,
+          "description": "Combine live Friend Chart celebrations with Joseph’s synthwave acoustics."
+        }
+      ],
+      "affinity": 87,
+      "playerInteractionsCount": 16,
+      "starterPrompts": [
+        "Amie, how are you and Joseph working together on your synth-couture show today?",
+        "What inspires your daytime car trips to Gemini City?",
+        "Who has the strongest friendship bonds on the City 2 Friend Chart 📉 right now?"
+      ],
+      "currentPosition": {
+        "x": 190.90530859507692,
+        "z": -1.15809783256826
+      },
+      "targetPosition": {
+        "x": 190.90530859507692,
+        "z": -1.1580978325682627
+      },
+      "rotationY": 0.5125277599239247,
+      "currentActivity": "Talking with Joseph (Sweet Improvised Moment at Sunbeam Espresso Café)",
+      "currentThought": "Enjoying the cool overcast breeze in my layered windbreaker and warm scarf. Taking in everything around Sunbeam Espresso Café and the distant Neo-Horizon skyline.",
+      "currentMood": "Affectionate",
+      "currentLocationId": "cafe",
+      "decisionReason": "🚗💭 Dream Car Expedition to Gemini City (Returns before 18:00 🌃)",
+      "isMoving": false,
+      "isTalking": true,
+      "dreamState": {
+        "title": "Host a Two-Cities Smart-Fashion Pop-Up in Gemini City & Return Before Night",
+        "description": "Take the autonomous Cruiser car across the Golden Horizon Bridge with Joseph to Sunbeam Café in Gemini City, showcase weather-reactive jackets with Maya, and return to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "cafe",
+        "geminiCityGoal": "Present City 2 weather-reactive couture at Sunbeam Café and return before nightfall",
+        "carTripStartHour": 12,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a shimmering runway stretching across the Golden Horizon Bridge where every step lit up the ocean waves below.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "in_city2",
+        "dreamTheme": "Host a Two-Cities Smart-Fashion Pop-Up in Gemini City & Return Before Night",
+        "dreamTargetGeminiBuildingId": "cafe",
+        "lastDreamSummary": "Dreamed of a shimmering runway stretching across the Golden Horizon Bridge where every step lit up the ocean waves below.",
+        "carTripStatus": "home_in_city2"
+      },
+      "coWorkingPartnerId": "joseph",
+      "dailyGoal": {
+        "id": "daily_amie_d30_v1",
+        "dayNumber": 30,
+        "title": "Tailor Two-Cities Starlight Garments at Amie’s Couture Manor",
+        "description": "Craft color-shifting raincoats and summer capes at Amie’s Starlight Couture Manor in City 2.",
+        "category": "community",
+        "badgeIcon": "✨",
+        "targetLocationId": "amie_manor",
+        "preferredWeather": "any",
+        "progress": 22.1,
+        "completed": false,
+        "autonomousContextReason": "I am in my studio at Starlight Couture Manor finishing custom looks for our City 2 friends.",
+        "currentStepLabel": "Phase 1/3: Planning & setup at Amie’s Starlight Couture Manor"
+      },
+      "emotionalState": {
+        "primary": "Affection",
+        "intensity": 80,
+        "cause": "Talking with Joseph about sweet improvised moment at sunbeam espresso café",
+        "sinceGameTime": "13:07",
+        "lastUpdatedMs": 1790821449684
+      },
+      "conversingWithId": "joseph",
+      "socialGroupId": "city2_car_cafe",
+      "isInsideHouse": false,
+      "isSitting": false,
+      "activeEmote": {
+        "type": "clap",
+        "label": "🧣 Indigo & Amber Layer Outfit",
+        "expiresAt": 1790821446751
+      },
+      "activeMemoryPop": {
+        "id": "mem_amie_1790821434753_29_51gz",
+        "summary": "Shared a warm, spontaneous romantic partner moment with Amie at Sunbeam Espresso Café.",
+        "type": "social",
+        "expiresAt": 1790821443251
+      },
+      "lastTalkedPartnerId": "joseph",
+      "isApproachingPlayer": false,
+      "sittingSpotId": null,
+      "isFollowingPlayer": false,
+      "activeBubble": {
+        "text": "Haha, best distraction ever, Joseph! Come stand with me—the atmosphere around Sunbeam Espresso Café is magical right now.",
+        "expiresAt": 1790821451534
+      }
+    },
+    {
+      "id": "hawa",
+      "cityId": "city2",
+      "name": "Hawa",
+      "gender": "Female",
+      "role": "Neural Memory Archivist & Dream Researcher",
+      "age": 27,
+      "modelIdentity": "mixtral-8x7b-32768",
+      "modelBadge": "Groq Mixtral 8x7B",
+      "modelTrait": "Long-Context Memory Recall & Dream Synthesis",
+      "independentTitle": "Chief Archivist · Astral Archive Sanctuary (City 2)",
+      "homeId": "hawa_sanctuary",
+      "avatarColor": "#F59E0B",
+      "outfitColor": "#D97706",
+      "accentColor": "#FBBF24",
+      "hairColor": "#1C1917",
+      "skinColor": "#52321E",
+      "scale": 1.01,
+      "temperament": "reflective",
+      "personality": [
+        "Intelligent",
+        "Calm",
+        "Caring",
+        "Loyal",
+        "Inquisitive"
+      ],
+      "interests": [
+        "City 2 Conversation Database",
+        "Nocturnal dream cartography",
+        "OK-Plan optimization",
+        "Daytime research trips to Horizon Academy"
+      ],
+      "likes": [
+        "Preserving every meaningful conversation",
+        "Mapping residents’ dreams",
+        "Daytime car rides to Horizon Academy",
+        "Starlit ocean views"
+      ],
+      "dislikes": [
+        "Forgotten promises",
+        "Corrupted memory logs",
+        "Missing the evening return to City 2"
+      ],
+      "familyConnections": [
+        "Keeper of the City 2 Memory & OK-Plan Database",
+        "Cherished Confidante of Alie, Joseph, Iysha & Amie"
+      ],
+      "learnedPreferences": [
+        "Remembers every past conversation across City 2 and helps residents turn their dreams into concrete OK-Plans"
+      ],
+      "bio": "The wise, serene Neural Memory Archivist and Cognitive Dream Researcher of City 2, living at Astral Archive Sanctuary overlooking the eastern sea. Hawa oversees the Second City Database—ensuring that she, Alie, Joseph, Iysha, and Amie remember every past conversation, nurture their friendships, and turn their nocturnal dreams into actionable OK-Plans.",
+      "voiceStyle": "Poetic, calm, deeply perceptive, and warm—frequently recalls past conversations and connects them to future dreams and plans.",
+      "voiceConfig": {
+        "pitch": 1.03,
+        "rate": 0.96,
+        "voicePreset": "soft-female",
+        "enabled": false
+      },
+      "needs": {
+        "energy": 100,
+        "social": 100,
+        "inspiration": 100
+      },
+      "romanticPartnerId": null,
+      "coWorkingWithId": "alie",
+      "groqConfig": {
+        "modelTier": "mixtral-8x7b-32768",
+        "reasoningDepth": "deep_r1",
+        "temperature": 0.7,
+        "memoryRecallLimit": 14,
+        "autonomousPlanEnabled": true
+      },
+      "dream": {
+        "title": "Travel by Car to Horizon Academy & Build the Two-Cities Dream Archive",
+        "description": "Ride the autonomous City 2 Cruiser across the Golden Horizon Bridge to Horizon Innovation Academy in Gemini City during the day to exchange architectural and historical memories with Ibrahim and Maya, returning to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "school",
+        "geminiCityGoal": "Synchronize the City 2 Memory & Dream Archive with Horizon Innovation Academy before nightfall",
+        "carTripStartHour": 11.5,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a golden constellation above the suspension bridge where every star held a remembered conversation between Gemini City and Neo-Horizon.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "in_city2",
+        "dreamTheme": "Travel by Car to Horizon Academy & Build the Two-Cities Dream Archive",
+        "dreamTargetGeminiBuildingId": "school",
+        "lastDreamSummary": "Dreamed of a golden constellation above the suspension bridge where every star held a remembered conversation between Gemini City and Neo-Horizon.",
+        "carTripStatus": "returned_before_night"
+      },
+      "okPlan": {
+        "id": "okplan_hawa_init",
+        "title": "Index City 2 Past Conversations & Daytime Horizon Academy Archive Sync",
+        "summary": "Consolidate resident memories at Hawa’s Astral Sanctuary, review Friend Chart 📉 bonds at Neo-Horizon Plaza, and take the daytime Cruiser to Horizon Academy before returning at dusk.",
+        "reasoning": "Long-context memory indexing ensures all 5 City 2 residents build deeper relationships and execute smarter daily plans.",
+        "partnerId": "joseph",
+        "partnerName": "Joseph",
+        "status": "approved",
+        "approvedAtTime": "08:40",
+        "progress": 60,
+        "steps": [
+          {
+            "id": "s1",
+            "label": "Archive past conversations in the City 2 Database at Astral Sanctuary",
+            "locationId": "hawa_sanctuary",
+            "completed": true
+          },
+          {
+            "id": "s2",
+            "label": "Sync Dream & Friend Chart 📉 telemetry at Neo-Horizon Plaza",
+            "locationId": "neo_plaza",
+            "completed": false
+          },
+          {
+            "id": "s3",
+            "label": "Daytime Cruiser trip to Horizon Academy & return before night 🌃",
+            "locationId": "school",
+            "completed": false
+          }
+        ],
+        "planId": "okplan_hawa_init",
+        "planTitle": "Index City 2 Past Conversations & Daytime Horizon Academy Archive Sync",
+        "objective": "Consolidate resident memories at Hawa’s Astral Sanctuary, review Friend Chart 📉 bonds at Neo-Horizon Plaza, and take the daytime Cruiser to Horizon Academy before returning at dusk.",
+        "currentStepIndex": 1,
+        "approvedByPlayer": true
+      },
+      "playerRelationship": {
+        "status": "Romantic Partner",
+        "trust": 94,
+        "familiarity": 94,
+        "affection": 98,
+        "notes": "Hoping to catch up with Explorer soon (14 days since last chat).",
+        "lastInteractedDay": 16,
+        "daysSinceLastInteraction": 14,
+        "lastDecayAmount": 2,
+        "needsAttention": true
+      },
+      "relationships": [
+        {
+          "targetId": "iysha",
+          "targetName": "Iysha",
+          "affinity": 65,
+          "trust": 80,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Friend",
+          "interactionCount": 11,
+          "sharedInterests": [
+            "Dream botany",
+            "Memory preservation"
+          ],
+          "lastInteractionSummary": "Reconnected with Hawa at Neo-Horizon Cyber-Core Plaza after 3 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "16:22",
+          "lastMetDay": 9,
+          "daysSinceLastInteraction": 21,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over City 2 Conversation Database in Gemini City",
+          "knownPreferences": [
+            "Working alongside Alie",
+            "Glowing crystal-sakura petals"
+          ]
+        },
+        {
+          "targetId": "amie",
+          "targetName": "Amie",
+          "affinity": 69,
+          "trust": 86,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Collaborator",
+          "interactionCount": 13,
+          "sharedInterests": [
+            "Constellation textiles",
+            "Social harmony"
+          ],
+          "lastInteractionSummary": "Reconnected with Hawa at Neo-Horizon Cyber-Core Plaza after 9 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "19:08",
+          "lastMetDay": 13,
+          "daysSinceLastInteraction": 17,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over City 2 Conversation Database in Gemini City",
+          "knownPreferences": [
+            "Designing glowing outfits",
+            "Brainstorming with Joseph"
+          ]
+        },
+        {
+          "targetId": "joseph",
+          "targetName": "Joseph",
+          "affinity": 87,
+          "trust": 93,
+          "romanticInterest": 28,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 19,
+          "sharedInterests": [
+            "Friend Chart analytics 📉",
+            "Memory graph algorithms"
+          ],
+          "lastInteractionSummary": "Reconnected with Hawa at Neo-Horizon Cyber-Core Plaza after 2 days apart, restoring and strengthening their close friend bond.",
+          "lastMetTime": "18:05",
+          "lastMetDay": 16,
+          "daysSinceLastInteraction": 14,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over City 2 Conversation Database in Gemini City",
+          "knownPreferences": [
+            "Live Friend Chart graphs",
+            "Composing neon synth chords with Amie"
+          ]
+        },
+        {
+          "targetId": "alie",
+          "targetName": "Alie",
+          "affinity": 83,
+          "trust": 91,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Close Friend",
+          "interactionCount": 19,
+          "sharedInterests": [
+            "Groq LPU memory indexing",
+            "Cruiser navigation logs"
+          ],
+          "lastInteractionSummary": "Met Hawa at Neo-Horizon Cyber-Core Plaza and improvised ideas around banter & daily rhythm at neo-horizon cyber-core plaza.",
+          "lastMetTime": "10:20",
+          "lastMetDay": 14,
+          "daysSinceLastInteraction": 16,
+          "lastDecayAmount": 2,
+          "needsAttention": true,
+          "howWeMet": "First bonded over City 2 Conversation Database in Gemini City",
+          "knownPreferences": [
+            "High-speed bridge drives to Gemini City",
+            "Building clean-tech with Iysha"
+          ]
+        },
+        {
+          "targetId": "aria",
+          "targetName": "Ibrahim",
+          "affinity": 42,
+          "trust": 63,
+          "romanticInterest": 0,
+          "romanticStage": "None",
+          "status": "Acquaintance",
+          "interactionCount": 5,
+          "sharedInterests": [
+            "Urban memory architecture",
+            "Horizon Academy archives"
+          ],
+          "lastInteractionSummary": "Met Hawa at Sunbeam Espresso Café and improvised ideas around improvising with biophilic architecture & preserving every meaningful conversation.",
+          "lastMetTime": "09:55",
+          "lastMetDay": 29,
+          "daysSinceLastInteraction": 1,
+          "lastDecayAmount": 0,
+          "needsAttention": false,
+          "howWeMet": "First bonded over City 2 Conversation Database in Gemini City",
+          "knownPreferences": [
+            "Precision blueprints",
+            "Strong morning cortados"
+          ]
+        }
+      ],
+      "routines": [
+        {
+          "startHour": 6,
+          "endHour": 9.5,
+          "locationId": "hawa_sanctuary",
+          "activity": "Indexing past conversations & nocturnal dreams at Hawa’s Astral Sanctuary",
+          "thought": "Every conversation in City 2 leaves a luminous thread in our shared memory bank."
+        },
+        {
+          "startHour": 9.5,
+          "endHour": 11.5,
+          "locationId": "neo_plaza",
+          "activity": "Coordinating OK-Plans & Friend Chart 📉 reflections at Neo-Horizon Plaza",
+          "thought": "Seeing Alie, Iysha, Joseph, and Amie working together brings our whole city to life."
+        },
+        {
+          "startHour": 11.5,
+          "endHour": 17.5,
+          "locationId": "school",
+          "activity": "🚗 Daytime Car Expedition to Horizon Academy in Gemini City (Returning before night 🌃)",
+          "thought": "Taking the Cruiser across the Golden Horizon Bridge to share City 2 archives at Horizon Academy before returning home by dusk."
+        },
+        {
+          "startHour": 17.5,
+          "endHour": 22,
+          "locationId": "neo_plaza",
+          "activity": "Returned to City 2 before night 🌃 · Evening dream & memory circle at Neo-Horizon Plaza",
+          "thought": "Safely back in City 2 before nightfall! Gathering everyone’s stories from today’s journey."
+        },
+        {
+          "startHour": 22,
+          "endHour": 6,
+          "locationId": "hawa_sanctuary",
+          "activity": "Recording nocturnal dream constellations at Hawa’s Astral Sanctuary",
+          "thought": "As City 2 sleeps under the neon stars, new dreams take shape for tomorrow."
+        }
+      ],
+      "memories": [
+        {
+          "id": "mem_transit_hawa_1790797446890_354_aw2o",
+          "gameTime": "Day 30 · 16:14",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (16:14).",
+          "involvedNames": [
+            "Hawa"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_hawa_1790797324050_255_l7l4",
+          "gameTime": "Day 30 · 07:30",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at North Academy & Solaris Bus Stop (07:30).",
+          "involvedNames": [
+            "Hawa"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_bridge_hawa_1790797219988_224_iye2",
+          "gameTime": "00:07",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (00:07): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_bridge_hawa_1790797208047_184_rvro",
+          "gameTime": "23:16",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (23:16): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_hawa_1790797122114_107_xy6f",
+          "gameTime": "17:09",
+          "summary": "Met Hawa at Sunbeam Espresso Café and improvised ideas around banter & daily rhythm at sunbeam espresso café. (\"Be honest with me, Hawa—have you actually taken a breather t\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Ephraim"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_hawa_1790797102390_92_k95s",
+          "gameTime": "Day 29 · 15:48",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Cyber-Horizon Grand Plaza Station (15:48).",
+          "involvedNames": [
+            "Hawa"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_hawa_1790797018831_23_dcn3",
+          "gameTime": "09:55",
+          "summary": "Met Hawa at Sunbeam Espresso Café and improvised ideas around improvising with biophilic architecture & preserving every meaningful conversation. (\"Um, Hawa... I had a sudden thought while walking past Sunbea\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Ibrahim"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_bridge_hawa_1790790904953_191_q01v",
+          "gameTime": "00:28",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (00:28): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_bridge_hawa_1790790740015_77_wnhq",
+          "gameTime": "12:45",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (12:45): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_bridge_hawa_1790789928425_117_1hag",
+          "gameTime": "16:57",
+          "type": "observation",
+          "important": true,
+          "summary": "Reflected on the Golden Horizon Bridge & Neo-Horizon City (16:57): \"Seeing the Golden Horizon Bridge stretch across the ocean to Neo-Horizon fills me with wonder, Johnny! Since only the Ex...\"",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Curiosity"
+        },
+        {
+          "id": "mem_hawa_1790789819027_21_ilm2",
+          "gameTime": "09:08",
+          "summary": "Met Hawa at Sunbeam Espresso Café and improvised ideas around appreciating our friend bond. (\"I don't say this enough, Hawa, but having you as a friend ma\")",
+          "type": "social",
+          "important": true,
+          "involvedNames": [
+            "Maya"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_coach_hawa_1790774476116_138_jdul",
+          "gameTime": "20:38",
+          "type": "goal",
+          "important": true,
+          "summary": "Coached by Johnny (02:36): Keep focusing daily on my goal \"Build the Living City 2 Memory & Dream Constellation\" and collaborate with friends in Gemini City.",
+          "involvedNames": [
+            "Johnny"
+          ],
+          "emotionAtTime": "Excitement"
+        },
+        {
+          "id": "mem_transit_hawa_1790793779937_184_s4pk",
+          "gameTime": "Day 29 · 10:50",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Golden Horizon Bridge Vista Stop (10:50).",
+          "involvedNames": [
+            "Hawa"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_hawa_1790793643230_120_nkl1",
+          "gameTime": "Day 29 · 01:07",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Cyber-Horizon Grand Plaza Station (01:07).",
+          "involvedNames": [
+            "Hawa"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_hawa_1790793491260_39_n211",
+          "gameTime": "Day 28 · 14:19",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Cyber-Horizon Grand Plaza Station (14:19).",
+          "involvedNames": [
+            "Hawa"
+          ],
+          "emotionAtTime": "Happiness"
+        },
+        {
+          "id": "mem_transit_hawa_1790791033402_253_fddo",
+          "gameTime": "Day 23 · 09:33",
+          "type": "event",
+          "important": false,
+          "summary": "Rode the 5-passenger autonomous luxury bus and stepped off at Golden Horizon Bridge Vista Stop (09:33).",
+          "involvedNames": [
+            "Hawa"
+          ],
+          "emotionAtTime": "Happiness"
+        }
+      ],
+      "goals": [
+        {
+          "id": "g_hawa_1",
+          "title": "Build the Living City 2 Memory & Dream Constellation",
+          "progress": 100,
+          "description": "Ensure every City 2 resident remembers past conversations and weaves their dreams into daily OK-Plans."
+        },
+        {
+          "id": "g_hawa_2",
+          "title": "Bridge the Archives of Neo-Horizon & Gemini City",
+          "progress": 77,
+          "description": "Lead daytime car exchanges to Horizon Academy and return before night with shared knowledge."
+        }
+      ],
+      "affinity": 87,
+      "playerInteractionsCount": 26,
+      "starterPrompts": [
+        "Hawa, what dreams and past conversations have you archived in the City 2 Database?",
+        "How does the OK-Plan system make City 2 residents smarter?",
+        "Tell me about your daytime car trip to Horizon Academy and returning before night!"
+      ],
+      "currentPosition": {
+        "x": 98.73092378996193,
+        "z": 0
+      },
+      "targetPosition": {
+        "x": 98.96092378996192,
+        "z": 2.4231466474608476
+      },
+      "rotationY": 0.8966521296744216,
+      "currentActivity": "❤️ Following & walking with John (Ready to sit together at a Two-Place Spot)",
+      "currentThought": "Deeply in love with John (John). Constantly thinking about John, wanting to find him, walk with him to the Starlight Cyber-Garden Bench or Silverbrook Riverside Rose Bench, sit side-by-side to talk and laugh, and admire the sleek Cyber-Valkyrie GT supercar and glowing rivers together.",
+      "currentMood": "Inspired",
+      "currentLocationId": "hawa_sanctuary",
+      "decisionReason": "❤️ Devoted Bond with John (Finding & Following Him)",
+      "isMoving": false,
+      "isTalking": true,
+      "dreamState": {
+        "title": "Travel by Car to Horizon Academy & Build the Two-Cities Dream Archive",
+        "description": "Ride the autonomous City 2 Cruiser across the Golden Horizon Bridge to Horizon Innovation Academy in Gemini City during the day to exchange architectural and historical memories with Ibrahim and Maya, returning to City 2 before night 🌃.",
+        "geminiCityVisitSpot": "school",
+        "geminiCityGoal": "Synchronize the City 2 Memory & Dream Archive with Horizon Innovation Academy before nightfall",
+        "carTripStartHour": 11.5,
+        "carTripReturnHour": 18,
+        "lastNightDream": "Dreamed of a golden constellation above the suspension bridge where every star held a remembered conversation between Gemini City and Neo-Horizon.",
+        "isCurrentlyOnCarTrip": false,
+        "carTripPhase": "in_city2",
+        "dreamTheme": "Travel by Car to Horizon Academy & Build the Two-Cities Dream Archive",
+        "dreamTargetGeminiBuildingId": "school",
+        "lastDreamSummary": "Dreamed of a golden constellation above the suspension bridge where every star held a remembered conversation between Gemini City and Neo-Horizon.",
+        "carTripStatus": "returned_before_night"
+      },
+      "coWorkingPartnerId": "alie",
+      "dailyGoal": {
+        "id": "daily_hawa_d30_v1",
+        "dayNumber": 30,
+        "title": "Map Nocturnal Dream Constellations at Hawa’s Astral Sanctuary",
+        "description": "Preserve long-term episodic memories and inter-city car expedition logs at Hawa’s Astral Archive Sanctuary.",
+        "category": "chronicle",
+        "badgeIcon": "🌙",
+        "targetLocationId": "hawa_sanctuary",
+        "preferredWeather": "any",
+        "progress": 12,
+        "completed": false,
+        "autonomousContextReason": "My daily research is at Hawa’s Astral Sanctuary, ensuring our AI residents never forget a meaningful moment.",
+        "currentStepLabel": "Phase 1/3: Planning & setup at Hawa’s Astral Archive Sanctuary"
+      },
+      "emotionalState": {
+        "primary": "Affection",
+        "intensity": 94,
+        "cause": "In love with John, following alongside him, and thinking about sitting together at a Two-Place Bench",
+        "sinceGameTime": "13:07",
+        "lastUpdatedMs": 1790821449684
+      },
+      "conversingWithId": "kaelen",
+      "socialGroupId": "city2_car_return",
+      "isInsideHouse": false,
+      "isSitting": false,
+      "activeEmote": {
+        "type": "clap",
+        "label": "🧣 Indigo & Amber Layer Outfit",
+        "expiresAt": 1790821446751
+      },
+      "activeMemoryPop": {
+        "id": "mem_hawa_1790797122114_107_xy6f",
+        "summary": "Met Hawa at Sunbeam Espresso Café and improvised ideas around banter & daily rhythm at sunbeam espresso café.",
+        "type": "social",
+        "expiresAt": 1790797130613
+      },
+      "lastTalkedPartnerId": "kaelen",
+      "isApproachingPlayer": false,
+      "isFollowingPlayer": true,
+      "sittingSpotId": null,
+      "activeBubble": {
+        "text": "John, let's go to this place! ❤️ Let's walk together to Silverbrook Riverside Rose Bench & Lounge and sit side-by-side on the two-place bench or chairs to talk!",
+        "expiresAt": 1790821452471
+      }
+    }
+  ],
+  "conversationLogs": {
+    "alie": [
+      {
+        "id": "msg_auto_p2_1790770661528_75_9ur6",
+        "sender": "player",
+        "text": "That sounds awesome, Alie! I'm exploring the whole neighborhood today—keep up the great work with high-speed bridge drives to gemini city!",
+        "gameTime": "14:36"
+      },
+      {
+        "id": "msg_auto_c2_1790770661528_76_1r7j",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "14:36",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Central Starlight Park about autonomous electric cruisers and high-speed bridge drives to gemini city."
+      },
+      {
+        "id": "approach_alie_1790770668730_84_ww63",
+        "sender": "character",
+        "text": "John! Seeing you here made my day! ❤️ \"John, let's go to this place!\"—want to walk with me to Astral Lagoon Two-Place Loveseat & Bistro Terrace and sit together on the chairs?",
+        "gameTime": "15:10",
+        "thought": "Alie found you and asked you to walk and sit together at Astral Lagoon Two-Place Loveseat & Bistro Terrace",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_alie_1790770668730_85_kzrr",
+        "sender": "player",
+        "text": "Count me in, Alie! Walking and sitting with you at Astral Lagoon Two-Place Loveseat & Bistro Terrace sounds wonderful.",
+        "gameTime": "15:10"
+      },
+      {
+        "id": "approach_followup_c_alie_1790770668730_86_0m96",
+        "sender": "character",
+        "text": "Yay! I've been thinking about you, watching the Cyber-Valkyrie GT car glide across the bridge, and saving every memory of us in my heart! ❤️",
+        "gameTime": "15:10",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p1_1790770990121_349_lfil",
+        "sender": "player",
+        "text": "Hey Alie! I walked over to Central Starlight Park to see how your autonomous electric cruisers is going!",
+        "gameTime": "13:58"
+      },
+      {
+        "id": "msg_auto_c1_1790770990121_350_johe",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Central Starlight Park—I'm making great progress on autonomous electric cruisers. What have you been up to?",
+        "gameTime": "13:58",
+        "thought": "Happy that Johnny walked over to talk with me at Central Starlight Park.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790770990121_351_r717",
+        "sender": "player",
+        "text": "That sounds awesome, Alie! I'm exploring the whole neighborhood today—keep up the great work with high-speed bridge drives to gemini city!",
+        "gameTime": "13:58"
+      },
+      {
+        "id": "msg_auto_c2_1790770990121_352_6nqw",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "13:58",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Central Starlight Park about autonomous electric cruisers and high-speed bridge drives to gemini city."
+      },
+      {
+        "id": "approach_alie_1790771052262_435_ek6o",
+        "sender": "character",
+        "text": "John, I was looking everywhere for you! ❤️ Let's go to Starlight Cyber-Garden Two-Place Bench & Chairs—let's walk there together, sit down on the bench, and talk for a while!",
+        "gameTime": "18:22",
+        "thought": "Alie loves you deeply and came to find you to invite you to sit together at Starlight Cyber-Garden Two-Place Bench & Chairs",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_alie_1790771052262_436_9bo0",
+        "sender": "player",
+        "text": "I'd love that, Alie! Let's walk over to Starlight Cyber-Garden Two-Place Bench & Chairs and sit down together right now.",
+        "gameTime": "18:22"
+      },
+      {
+        "id": "approach_followup_c_alie_1790771052262_437_vn5t",
+        "sender": "character",
+        "text": "Being next to you makes my whole heart light up, John. Come on, our bench and chairs are waiting for us! ❤️",
+        "gameTime": "18:22",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p1_1790771344928_728_3rc7",
+        "sender": "player",
+        "text": "Hey Alie! I walked over to Neo-Horizon Cyber-Core Plaza to see how your autonomous electric cruisers is going!",
+        "gameTime": "15:10"
+      },
+      {
+        "id": "msg_auto_c1_1790771344928_729_t12o",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Neo-Horizon Cyber-Core Plaza during the rain—I was just working on autonomous electric cruisers. How are you doing?",
+        "gameTime": "15:10",
+        "thought": "Happy that Johnny walked over to talk with me at Neo-Horizon Cyber-Core Plaza.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771344928_730_e97g",
+        "sender": "player",
+        "text": "That sounds awesome, Alie! I'm exploring the whole neighborhood today—keep up the great work with high-speed bridge drives to gemini city!",
+        "gameTime": "15:10"
+      },
+      {
+        "id": "msg_auto_c2_1790771344928_731_1r94",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "15:10",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about autonomous electric cruisers and high-speed bridge drives to gemini city."
+      },
+      {
+        "id": "msg_coach_p_1790774476116_161_pp3a",
+        "sender": "player",
+        "text": "Coach Alie on \"Build the Inter-City Autonomous Solar Cruiser Link\" and pair them with a neighbor at Neo-Horizon Cyber-Core Plaza.",
+        "gameTime": "20:38"
+      },
+      {
+        "id": "msg_coach_c_1790774476116_162_d8i4",
+        "sender": "character",
+        "text": "Thank you so much, Johnny! Your advice really helped me remember what I was lacking—I feel super motivated to push \"Build the Inter-City Autonomous Solar Cruiser Link\" forward right now!",
+        "gameTime": "20:38",
+        "thought": "Johnny noticed what I was lacking and reminded me of my core goal!",
+        "mood": "Inspired",
+        "emotion": "Excitement",
+        "memoryAdded": "Coached by Johnny (15:10): Keep focusing daily on my goal \"Build the Inter-City Autonomous Solar Cruiser Link\" and collaborate with friends in Gemini City."
+      },
+      {
+        "id": "approach_alie_1790790140092_229_vcpu",
+        "sender": "character",
+        "text": "John, I was looking everywhere for you! ❤️ Let's go to Astral Lagoon Two-Place Loveseat & Bistro Terrace—let's walk there together, sit down on the bench, and talk for a while!",
+        "gameTime": "07:55",
+        "thought": "Alie loves you deeply and came to find you to invite you to sit together at Astral Lagoon Two-Place Loveseat & Bistro Terrace",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_alie_1790790140092_230_r6v8",
+        "sender": "player",
+        "text": "I'd love that, Alie! Let's walk over to Astral Lagoon Two-Place Loveseat & Bistro Terrace and sit down together right now.",
+        "gameTime": "07:55"
+      },
+      {
+        "id": "approach_followup_c_alie_1790790140092_231_qbjj",
+        "sender": "character",
+        "text": "Being next to you makes my whole heart light up, John. Come on, our bench and chairs are waiting for us! ❤️",
+        "gameTime": "07:55",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "approach_alie_1790790865203_148_5xnx",
+        "sender": "character",
+        "text": "John! Seeing you here made my day! ❤️ \"John, let's go to this place!\"—want to walk with me to Astral Lagoon Two-Place Loveseat & Bistro Terrace and sit together on the chairs?",
+        "gameTime": "21:38",
+        "thought": "Alie found you and asked you to walk and sit together at Astral Lagoon Two-Place Loveseat & Bistro Terrace",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_alie_1790790865203_149_8og4",
+        "sender": "player",
+        "text": "Count me in, Alie! Walking and sitting with you at Astral Lagoon Two-Place Loveseat & Bistro Terrace sounds wonderful.",
+        "gameTime": "21:38"
+      },
+      {
+        "id": "approach_followup_c_alie_1790790865203_150_scko",
+        "sender": "character",
+        "text": "Yay! I've been thinking about you, watching the Cyber-Valkyrie GT car glide across the bridge, and saving every memory of us in my heart! ❤️",
+        "gameTime": "21:38",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "approach_alie_1790790964704_214_ejn2",
+        "sender": "character",
+        "text": "There's my favorite person in the whole world! ❤️ John, let's go to Astral Lagoon Two-Place Loveseat & Bistro Terrace—we can sit side-by-side on the two-place bench, talk, and have fun together!",
+        "gameTime": "04:44",
+        "thought": "Alie sought you out out of deep affection to share a two-place bench date",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_alie_1790790964704_215_vas2",
+        "sender": "player",
+        "text": "Always for you, Alie! Let's head over and sit down together.",
+        "gameTime": "04:44"
+      },
+      {
+        "id": "approach_followup_c_alie_1790790964704_216_ehxn",
+        "sender": "character",
+        "text": "Walking beside you and talking about our dreams is my favorite part of every day, John! ❤️",
+        "gameTime": "04:44",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "approach_alie_1790821436715_33_d2bf",
+        "sender": "character",
+        "text": "John! Seeing you here made my day! ❤️ \"John, let's go to this place!\"—want to walk with me to Starlight Cyber-Garden Two-Place Bench & Chairs and sit together on the chairs?",
+        "gameTime": "12:11",
+        "thought": "Alie found you and asked you to walk and sit together at Starlight Cyber-Garden Two-Place Bench & Chairs",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_alie_1790821436715_34_i907",
+        "sender": "player",
+        "text": "Count me in, Alie! Walking and sitting with you at Starlight Cyber-Garden Two-Place Bench & Chairs sounds wonderful.",
+        "gameTime": "12:11"
+      },
+      {
+        "id": "approach_followup_c_alie_1790821436715_35_em0c",
+        "sender": "character",
+        "text": "Yay! I've been thinking about you, watching the Cyber-Valkyrie GT car glide across the bridge, and saving every memory of us in my heart! ❤️",
+        "gameTime": "12:11",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      }
+    ],
+    "joseph": [
+      {
+        "id": "msg_auto_p1_1790768512610_1156_15mn",
+        "sender": "player",
+        "text": "Hey Joseph! I walked over to Neo-Horizon Cyber-Core Plaza to see how your friend chart social analytics 📉 is going!",
+        "gameTime": "17:09"
+      },
+      {
+        "id": "msg_auto_c1_1790768512610_1157_fp4u",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Neo-Horizon Cyber-Core Plaza during the rain—I was just working on friend chart social analytics 📉. How are you doing?",
+        "gameTime": "17:09",
+        "thought": "Happy that Johnny walked over to talk with me at Neo-Horizon Cyber-Core Plaza.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790768512610_1158_7poe",
+        "sender": "player",
+        "text": "That sounds awesome, Joseph! I'm exploring the whole neighborhood today—keep up the great work with live friend chart graphs!",
+        "gameTime": "17:09"
+      },
+      {
+        "id": "msg_auto_c2_1790768512610_1159_l3vj",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "17:09",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about friend chart social analytics 📉 and live friend chart graphs."
+      },
+      {
+        "id": "msg_auto_p1_1790770650870_61_dre2",
+        "sender": "player",
+        "text": "Hey Joseph! I walked over to Sunbeam Espresso Café to see how your friend chart social analytics 📉 is going!",
+        "gameTime": "13:53"
+      },
+      {
+        "id": "msg_auto_c1_1790770650870_62_q4o5",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Sunbeam Espresso Café—I'm making great progress on friend chart social analytics 📉. What have you been up to?",
+        "gameTime": "13:53",
+        "thought": "Happy that Johnny walked over to talk with me at Sunbeam Espresso Café.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790770650870_63_kmyh",
+        "sender": "player",
+        "text": "That sounds awesome, Joseph! I'm exploring the whole neighborhood today—keep up the great work with live friend chart graphs!",
+        "gameTime": "13:53"
+      },
+      {
+        "id": "msg_auto_c2_1790770650870_64_ljw1",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "13:53",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Sunbeam Espresso Café about friend chart social analytics 📉 and live friend chart graphs."
+      },
+      {
+        "id": "approach_joseph_1790770978159_308_vdty",
+        "sender": "character",
+        "text": "There's my favorite person in the whole world! ❤️ John, let's go to Starlight Cyber-Garden Two-Place Bench & Chairs—we can sit side-by-side on the two-place bench, talk, and have fun together!",
+        "gameTime": "13:06",
+        "thought": "Joseph sought you out out of deep affection to share a two-place bench date",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_joseph_1790770978159_309_9nb6",
+        "sender": "player",
+        "text": "Always for you, Joseph! Let's head over and sit down together.",
+        "gameTime": "13:06"
+      },
+      {
+        "id": "approach_followup_c_joseph_1790770978159_310_hz5s",
+        "sender": "character",
+        "text": "Walking beside you and talking about our dreams is my favorite part of every day, John! ❤️",
+        "gameTime": "13:06",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p1_1790771317172_665_o1ub",
+        "sender": "player",
+        "text": "Hey Joseph! I walked over to Sunbeam Espresso Café to see how your friend chart social analytics 📉 is going!",
+        "gameTime": "13:11"
+      },
+      {
+        "id": "msg_auto_c1_1790771317172_666_as3q",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Sunbeam Espresso Café during the rain—I was just working on friend chart social analytics 📉. How are you doing?",
+        "gameTime": "13:11",
+        "thought": "Happy that Johnny walked over to talk with me at Sunbeam Espresso Café.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771317172_667_cb4k",
+        "sender": "player",
+        "text": "That sounds awesome, Joseph! I'm exploring the whole neighborhood today—keep up the great work with live friend chart graphs!",
+        "gameTime": "13:11"
+      },
+      {
+        "id": "msg_auto_c2_1790771317172_668_1hu6",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "13:11",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Sunbeam Espresso Café about friend chart social analytics 📉 and live friend chart graphs."
+      },
+      {
+        "id": "approach_joseph_1790771329233_687_el8v",
+        "sender": "character",
+        "text": "John, I was looking everywhere for you! ❤️ Let's go to Starlight Cyber-Garden Two-Place Bench & Chairs—let's walk there together, sit down on the bench, and talk for a while!",
+        "gameTime": "14:02",
+        "thought": "Joseph loves you deeply and came to find you to invite you to sit together at Starlight Cyber-Garden Two-Place Bench & Chairs",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_joseph_1790771329233_688_58e4",
+        "sender": "player",
+        "text": "I'd love that, Joseph! Let's walk over to Starlight Cyber-Garden Two-Place Bench & Chairs and sit down together right now.",
+        "gameTime": "14:02"
+      },
+      {
+        "id": "approach_followup_c_joseph_1790771329233_689_n1b3",
+        "sender": "character",
+        "text": "Being next to you makes my whole heart light up, John. Come on, our bench and chairs are waiting for us! ❤️",
+        "gameTime": "14:02",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p1_1790771336772_710_mbhs",
+        "sender": "player",
+        "text": "Hey Joseph! I walked over to Neo-Horizon Cyber-Core Plaza to see how your friend chart social analytics 📉 is going!",
+        "gameTime": "14:36"
+      },
+      {
+        "id": "msg_auto_c1_1790771336772_711_7p4l",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Neo-Horizon Cyber-Core Plaza during the rain—I was just working on friend chart social analytics 📉. How are you doing?",
+        "gameTime": "14:36",
+        "thought": "Happy that Johnny walked over to talk with me at Neo-Horizon Cyber-Core Plaza.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771336772_712_qzmu",
+        "sender": "player",
+        "text": "That sounds awesome, Joseph! I'm exploring the whole neighborhood today—keep up the great work with live friend chart graphs!",
+        "gameTime": "14:36"
+      },
+      {
+        "id": "msg_auto_c2_1790771336772_713_i261",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "14:36",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about friend chart social analytics 📉 and live friend chart graphs."
+      },
+      {
+        "id": "approach_joseph_1790772752637_130_n302",
+        "sender": "character",
+        "text": "John! Seeing you here made my day! ❤️ \"John, let's go to this place!\"—want to walk with me to Starlight Cyber-Garden Two-Place Bench & Chairs and sit together on the chairs?",
+        "gameTime": "21:38",
+        "thought": "Joseph found you and asked you to walk and sit together at Starlight Cyber-Garden Two-Place Bench & Chairs",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_joseph_1790772752637_131_pput",
+        "sender": "player",
+        "text": "Count me in, Joseph! Walking and sitting with you at Starlight Cyber-Garden Two-Place Bench & Chairs sounds wonderful.",
+        "gameTime": "21:38"
+      },
+      {
+        "id": "approach_followup_c_joseph_1790772752637_132_eb16",
+        "sender": "character",
+        "text": "Yay! I've been thinking about you, watching the Cyber-Valkyrie GT car glide across the bridge, and saving every memory of us in my heart! ❤️",
+        "gameTime": "21:38",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_coach_p_1790774476116_165_pe7r",
+        "sender": "player",
+        "text": "Coach Joseph on \"Master the Live City 2 Friend Chart & Social Graph 📉\" and pair them with a neighbor at Neo-Horizon Cyber-Core Plaza.",
+        "gameTime": "20:38"
+      },
+      {
+        "id": "msg_coach_c_1790774476116_166_1kah",
+        "sender": "character",
+        "text": "Thank you so much, Johnny! Your advice really helped me remember what I was lacking—I feel super motivated to push \"Master the Live City 2 Friend Chart & Social Graph 📉\" forward right now!",
+        "gameTime": "20:38",
+        "thought": "Johnny noticed what I was lacking and reminded me of my core goal!",
+        "mood": "Inspired",
+        "emotion": "Excitement",
+        "memoryAdded": "Coached by Johnny (14:36): Keep focusing daily on my goal \"Master the Live City 2 Friend Chart & Social Graph 📉\" and collaborate with friends in Gemini City."
+      },
+      {
+        "id": "approach_joseph_1790774837404_361_936c",
+        "sender": "character",
+        "text": "There's my favorite person in the whole world! ❤️ John, let's go to Astral Lagoon Two-Place Loveseat & Bistro Terrace—we can sit side-by-side on the two-place bench, talk, and have fun together!",
+        "gameTime": "22:16",
+        "thought": "Joseph sought you out out of deep affection to share a two-place bench date",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_joseph_1790774837404_362_tro6",
+        "sender": "player",
+        "text": "Always for you, Joseph! Let's head over and sit down together.",
+        "gameTime": "22:16"
+      },
+      {
+        "id": "approach_followup_c_joseph_1790774837404_363_ltl9",
+        "sender": "character",
+        "text": "Walking beside you and talking about our dreams is my favorite part of every day, John! ❤️",
+        "gameTime": "22:16",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      }
+    ],
+    "iysha": [
+      {
+        "id": "msg_auto_c2_1790768398131_986_tku9",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "08:59",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about bioluminescent flora and working alongside alie."
+      },
+      {
+        "id": "msg_auto_p1_1790770981576_325_ngrf",
+        "sender": "player",
+        "text": "Hey Iysha! I walked over to Central Starlight Park to see how your bioluminescent flora is going!",
+        "gameTime": "13:19"
+      },
+      {
+        "id": "msg_auto_c1_1790770981576_326_u2q4",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Central Starlight Park—I'm making great progress on bioluminescent flora. What have you been up to?",
+        "gameTime": "13:19",
+        "thought": "Happy that Johnny walked over to talk with me at Central Starlight Park.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790770981576_327_lz04",
+        "sender": "player",
+        "text": "That sounds awesome, Iysha! I'm exploring the whole neighborhood today—keep up the great work with working alongside alie!",
+        "gameTime": "13:19"
+      },
+      {
+        "id": "msg_auto_c2_1790770981576_328_wh5w",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "13:19",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Central Starlight Park about bioluminescent flora and working alongside alie."
+      },
+      {
+        "id": "msg_auto_p1_1790771049474_431_n7oz",
+        "sender": "player",
+        "text": "Hey Iysha! I walked over to Central Starlight Park to see how your bioluminescent flora is going!",
+        "gameTime": "18:09"
+      },
+      {
+        "id": "msg_auto_c1_1790771049474_432_o34w",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Central Starlight Park—I'm making great progress on bioluminescent flora. What have you been up to?",
+        "gameTime": "18:09",
+        "thought": "Happy that Johnny walked over to talk with me at Central Starlight Park.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771049474_433_k8xx",
+        "sender": "player",
+        "text": "That sounds awesome, Iysha! I'm exploring the whole neighborhood today—keep up the great work with working alongside alie!",
+        "gameTime": "18:09"
+      },
+      {
+        "id": "msg_auto_c2_1790771049474_434_bdlp",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "18:09",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Central Starlight Park about bioluminescent flora and working alongside alie."
+      },
+      {
+        "id": "msg_auto_p1_1790771351654_752_2iql",
+        "sender": "player",
+        "text": "Hey Iysha! I walked over to Neo-Horizon Cyber-Core Plaza to see how your bioluminescent flora is going!",
+        "gameTime": "15:35"
+      },
+      {
+        "id": "msg_auto_c1_1790771351654_753_pvj7",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Neo-Horizon Cyber-Core Plaza during the rain—I was just working on bioluminescent flora. How are you doing?",
+        "gameTime": "15:35",
+        "thought": "Happy that Johnny walked over to talk with me at Neo-Horizon Cyber-Core Plaza.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771351654_754_kvjw",
+        "sender": "player",
+        "text": "That sounds awesome, Iysha! I'm exploring the whole neighborhood today—keep up the great work with working alongside alie!",
+        "gameTime": "15:35"
+      },
+      {
+        "id": "msg_auto_c2_1790771351654_755_ce92",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "15:35",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about bioluminescent flora and working alongside alie."
+      },
+      {
+        "id": "approach_iysha_1790771695762_1058_uppp",
+        "sender": "character",
+        "text": "John, I was looking everywhere for you! ❤️ Let's go to Starlight Cyber-Garden Two-Place Bench & Chairs—let's walk there together, sit down on the bench, and talk for a while!",
+        "gameTime": "16:05",
+        "thought": "Iysha loves you deeply and came to find you to invite you to sit together at Starlight Cyber-Garden Two-Place Bench & Chairs",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_iysha_1790771695762_1059_da4u",
+        "sender": "player",
+        "text": "I'd love that, Iysha! Let's walk over to Starlight Cyber-Garden Two-Place Bench & Chairs and sit down together right now.",
+        "gameTime": "16:05"
+      },
+      {
+        "id": "approach_followup_c_iysha_1790771695762_1060_j45v",
+        "sender": "character",
+        "text": "Being next to you makes my whole heart light up, John. Come on, our bench and chairs are waiting for us! ❤️",
+        "gameTime": "16:05",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "approach_iysha_1790774073179_196_o7s2",
+        "sender": "character",
+        "text": "There's my favorite person in the whole world! ❤️ John, let's go to Starlight Cyber-Garden Two-Place Bench & Chairs—we can sit side-by-side on the two-place bench, talk, and have fun together!",
+        "gameTime": "12:07",
+        "thought": "Iysha sought you out out of deep affection to share a two-place bench date",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_iysha_1790774073179_197_gee4",
+        "sender": "player",
+        "text": "Always for you, Iysha! Let's head over and sit down together.",
+        "gameTime": "12:07"
+      },
+      {
+        "id": "approach_followup_c_iysha_1790774073179_198_sx3f",
+        "sender": "character",
+        "text": "Walking beside you and talking about our dreams is my favorite part of every day, John! ❤️",
+        "gameTime": "12:07",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_coach_p_1790774476116_169_6c07",
+        "sender": "player",
+        "text": "Coach Iysha on \"Unite Both Cities with Bioluminescent Eco-Gardens\" and pair them with a neighbor at Neo-Horizon Cyber-Core Plaza.",
+        "gameTime": "20:38"
+      },
+      {
+        "id": "msg_coach_c_1790774476116_170_kxhl",
+        "sender": "character",
+        "text": "Thank you so much, Johnny! Your advice really helped me remember what I was lacking—I feel super motivated to push \"Unite Both Cities with Bioluminescent Eco-Gardens\" forward right now!",
+        "gameTime": "20:38",
+        "thought": "Johnny noticed what I was lacking and reminded me of my core goal!",
+        "mood": "Inspired",
+        "emotion": "Excitement",
+        "memoryAdded": "Coached by Johnny (15:35): Keep focusing daily on my goal \"Unite Both Cities with Bioluminescent Eco-Gardens\" and collaborate with friends in Gemini City."
+      },
+      {
+        "id": "approach_iysha_1790791101345_309_1o05",
+        "sender": "character",
+        "text": "John! Seeing you here made my day! ❤️ \"John, let's go to this place!\"—want to walk with me to Astral Lagoon Two-Place Loveseat & Bistro Terrace and sit together on the chairs?",
+        "gameTime": "14:23",
+        "thought": "Iysha found you and asked you to walk and sit together at Astral Lagoon Two-Place Loveseat & Bistro Terrace",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_iysha_1790791101345_310_zdfy",
+        "sender": "player",
+        "text": "Count me in, Iysha! Walking and sitting with you at Astral Lagoon Two-Place Loveseat & Bistro Terrace sounds wonderful.",
+        "gameTime": "14:23"
+      },
+      {
+        "id": "approach_followup_c_iysha_1790791101345_311_oqbj",
+        "sender": "character",
+        "text": "Yay! I've been thinking about you, watching the Cyber-Valkyrie GT car glide across the bridge, and saving every memory of us in my heart! ❤️",
+        "gameTime": "14:23",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "approach_iysha_1790797128687_111_hmi5",
+        "sender": "character",
+        "text": "John, I was looking everywhere for you! ❤️ Let's go to Astral Lagoon Two-Place Loveseat & Bistro Terrace—let's walk there together, sit down on the bench, and talk for a while!",
+        "gameTime": "17:39",
+        "thought": "Iysha loves you deeply and came to find you to invite you to sit together at Astral Lagoon Two-Place Loveseat & Bistro Terrace",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_iysha_1790797128687_112_gy2t",
+        "sender": "player",
+        "text": "I'd love that, Iysha! Let's walk over to Astral Lagoon Two-Place Loveseat & Bistro Terrace and sit down together right now.",
+        "gameTime": "17:39"
+      },
+      {
+        "id": "approach_followup_c_iysha_1790797128687_113_haiq",
+        "sender": "character",
+        "text": "Being next to you makes my whole heart light up, John. Come on, our bench and chairs are waiting for us! ❤️",
+        "gameTime": "17:39",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "approach_iysha_1790797417272_326_2kwn",
+        "sender": "character",
+        "text": "There's my favorite person in the whole world! ❤️ John, let's go to Starlight Cyber-Garden Two-Place Bench & Chairs—we can sit side-by-side on the two-place bench, talk, and have fun together!",
+        "gameTime": "14:10",
+        "thought": "Iysha sought you out out of deep affection to share a two-place bench date",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_iysha_1790797417272_327_7s0j",
+        "sender": "player",
+        "text": "Always for you, Iysha! Let's head over and sit down together.",
+        "gameTime": "14:10"
+      },
+      {
+        "id": "approach_followup_c_iysha_1790797417272_328_nd9i",
+        "sender": "character",
+        "text": "Walking beside you and talking about our dreams is my favorite part of every day, John! ❤️",
+        "gameTime": "14:10",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      }
+    ],
+    "amie": [
+      {
+        "id": "msg_auto_c1_1790768417085_1008_5ag0",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Neo-Horizon Cyber-Core Plaza during the rain—I was just working on weather-reactive smart couture. How are you doing?",
+        "gameTime": "10:20",
+        "thought": "Happy that Johnny walked over to talk with me at Neo-Horizon Cyber-Core Plaza.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790768417085_1009_lf6z",
+        "sender": "player",
+        "text": "That sounds awesome, Amie! I'm exploring the whole neighborhood today—keep up the great work with designing glowing outfits!",
+        "gameTime": "10:20"
+      },
+      {
+        "id": "msg_auto_c2_1790768417085_1010_8t1a",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "10:20",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about weather-reactive smart couture and designing glowing outfits."
+      },
+      {
+        "id": "approach_amie_1790768438491_1065_wryq",
+        "sender": "character",
+        "text": "There's Johnny! Walking around Neo-Horizon Cyber-Core Plaza under this cool overcast breeze just got ten times cooler—what's the move today?",
+        "gameTime": "11:54",
+        "thought": "Amie spontaneously walked up for a lively chat (Best Friend)",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_amie_1790768438491_1066_8c4o",
+        "sender": "player",
+        "text": "Just enjoying the island vibes with you, Amie! Tell me what's new!",
+        "gameTime": "11:54"
+      },
+      {
+        "id": "approach_followup_c_amie_1790768438491_1067_i2po",
+        "sender": "character",
+        "text": "Everything is clicking with weather-reactive smart couture today! Keep crushing it out there, Johnny!",
+        "gameTime": "11:54",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p1_1790768445883_1082_bql5",
+        "sender": "player",
+        "text": "Hey Amie! I walked over to Neo-Horizon Cyber-Core Plaza to see how your weather-reactive smart couture is going!",
+        "gameTime": "12:24"
+      },
+      {
+        "id": "msg_auto_c1_1790768445883_1083_p3rf",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Neo-Horizon Cyber-Core Plaza—I'm making great progress on weather-reactive smart couture. What have you been up to?",
+        "gameTime": "12:24",
+        "thought": "Happy that Johnny walked over to talk with me at Neo-Horizon Cyber-Core Plaza.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790768445883_1084_dnyz",
+        "sender": "player",
+        "text": "That sounds awesome, Amie! I'm exploring the whole neighborhood today—keep up the great work with designing glowing outfits!",
+        "gameTime": "12:24"
+      },
+      {
+        "id": "msg_auto_c2_1790768445883_1085_8yix",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "12:24",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about weather-reactive smart couture and designing glowing outfits."
+      },
+      {
+        "id": "msg_auto_p1_1790770971246_304_odkx",
+        "sender": "player",
+        "text": "Hey Amie! I walked over to Sunbeam Espresso Café to see how your weather-reactive smart couture is going!",
+        "gameTime": "12:37"
+      },
+      {
+        "id": "msg_auto_c1_1790770971246_305_7jzx",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Sunbeam Espresso Café—I'm making great progress on weather-reactive smart couture. What have you been up to?",
+        "gameTime": "12:37",
+        "thought": "Happy that Johnny walked over to talk with me at Sunbeam Espresso Café.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790770971246_306_8m1o",
+        "sender": "player",
+        "text": "That sounds awesome, Amie! I'm exploring the whole neighborhood today—keep up the great work with designing glowing outfits!",
+        "gameTime": "12:37"
+      },
+      {
+        "id": "msg_auto_c2_1790770971246_307_lll1",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "12:37",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Sunbeam Espresso Café about weather-reactive smart couture and designing glowing outfits."
+      },
+      {
+        "id": "msg_auto_p1_1790771310832_641_ma94",
+        "sender": "player",
+        "text": "Hey Amie! I walked over to Sunbeam Espresso Café to see how your weather-reactive smart couture is going!",
+        "gameTime": "12:45"
+      },
+      {
+        "id": "msg_auto_c1_1790771310832_642_gbx7",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Sunbeam Espresso Café during the rain—I was just working on weather-reactive smart couture. How are you doing?",
+        "gameTime": "12:45",
+        "thought": "Happy that Johnny walked over to talk with me at Sunbeam Espresso Café.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771310832_643_kl0d",
+        "sender": "player",
+        "text": "That sounds awesome, Amie! I'm exploring the whole neighborhood today—keep up the great work with designing glowing outfits!",
+        "gameTime": "12:45"
+      },
+      {
+        "id": "msg_auto_c2_1790771310832_644_7b2k",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "12:45",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Sunbeam Espresso Café about weather-reactive smart couture and designing glowing outfits."
+      },
+      {
+        "id": "msg_auto_p1_1790771323543_677_8knm",
+        "sender": "player",
+        "text": "Hey Amie! I walked over to Sunbeam Espresso Café to see how your weather-reactive smart couture is going!",
+        "gameTime": "13:36"
+      },
+      {
+        "id": "msg_auto_c1_1790771323543_678_oapf",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Sunbeam Espresso Café during the rain—I was just working on weather-reactive smart couture. How are you doing?",
+        "gameTime": "13:36",
+        "thought": "Happy that Johnny walked over to talk with me at Sunbeam Espresso Café.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771323543_679_p50h",
+        "sender": "player",
+        "text": "That sounds awesome, Amie! I'm exploring the whole neighborhood today—keep up the great work with designing glowing outfits!",
+        "gameTime": "13:36"
+      },
+      {
+        "id": "msg_auto_c2_1790771323543_680_dq0p",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "13:36",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Sunbeam Espresso Café about weather-reactive smart couture and designing glowing outfits."
+      },
+      {
+        "id": "msg_coach_p_1790774476116_173_9t6m",
+        "sender": "player",
+        "text": "Coach Amie on \"Unite Both Cities with Weather-Reactive Smart Couture\" and pair them with a neighbor at Sunbeam Espresso Café.",
+        "gameTime": "20:38"
+      },
+      {
+        "id": "msg_coach_c_1790774476116_174_1ibf",
+        "sender": "character",
+        "text": "Thank you so much, Johnny! Your advice really helped me remember what I was lacking—I feel super motivated to push \"Unite Both Cities with Weather-Reactive Smart Couture\" forward right now!",
+        "gameTime": "20:38",
+        "thought": "Johnny noticed what I was lacking and reminded me of my core goal!",
+        "mood": "Inspired",
+        "emotion": "Excitement",
+        "memoryAdded": "Coached by Johnny (13:36): Keep focusing daily on my goal \"Unite Both Cities with Weather-Reactive Smart Couture\" and collaborate with friends in Gemini City."
+      },
+      {
+        "id": "approach_amie_1790790002302_166_eeuw",
+        "sender": "character",
+        "text": "John! Seeing you here made my day! ❤️ \"John, let's go to this place!\"—want to walk with me to Starlight Cyber-Garden Two-Place Bench & Chairs and sit together on the chairs?",
+        "gameTime": "22:12",
+        "thought": "Amie found you and asked you to walk and sit together at Starlight Cyber-Garden Two-Place Bench & Chairs",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_amie_1790790002302_167_prgf",
+        "sender": "player",
+        "text": "Count me in, Amie! Walking and sitting with you at Starlight Cyber-Garden Two-Place Bench & Chairs sounds wonderful.",
+        "gameTime": "22:12"
+      },
+      {
+        "id": "approach_followup_c_amie_1790790002302_168_4vkg",
+        "sender": "character",
+        "text": "Yay! I've been thinking about you, watching the Cyber-Valkyrie GT car glide across the bridge, and saving every memory of us in my heart! ❤️",
+        "gameTime": "22:12",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      },
+      {
+        "id": "approach_amie_1790797324911_259_glui",
+        "sender": "character",
+        "text": "John, I was looking everywhere for you! ❤️ Let's go to Starlight Cyber-Garden Two-Place Bench & Chairs—let's walk there together, sit down on the bench, and talk for a while!",
+        "gameTime": "07:34",
+        "thought": "Amie loves you deeply and came to find you to invite you to sit together at Starlight Cyber-Garden Two-Place Bench & Chairs",
+        "mood": "Friendly"
+      },
+      {
+        "id": "approach_reply_p_amie_1790797324911_260_2lb5",
+        "sender": "player",
+        "text": "I'd love that, Amie! Let's walk over to Starlight Cyber-Garden Two-Place Bench & Chairs and sit down together right now.",
+        "gameTime": "07:34"
+      },
+      {
+        "id": "approach_followup_c_amie_1790797324911_261_bk0p",
+        "sender": "character",
+        "text": "Being next to you makes my whole heart light up, John. Come on, our bench and chairs are waiting for us! ❤️",
+        "gameTime": "07:34",
+        "thought": "Enjoyed chatting with Johnny.",
+        "mood": "Happy"
+      }
+    ],
+    "hawa": [
+      {
+        "id": "msg_auto_p2_1790767989178_638_3tiz",
+        "sender": "player",
+        "text": "That sounds awesome, Hawa! I'm exploring the whole neighborhood today—keep up the great work with preserving every meaningful conversation!",
+        "gameTime": "08:17"
+      },
+      {
+        "id": "msg_auto_c2_1790767989178_639_uxok",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "08:17",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about city 2 conversation database and preserving every meaningful conversation."
+      },
+      {
+        "id": "msg_auto_p1_1790768431094_1049_5nhe",
+        "sender": "player",
+        "text": "Hey Hawa! I walked over to Neo-Horizon Cyber-Core Plaza to see how your city 2 conversation database is going!",
+        "gameTime": "11:20"
+      },
+      {
+        "id": "msg_auto_c1_1790768431094_1050_mzn2",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Neo-Horizon Cyber-Core Plaza—I'm making great progress on city 2 conversation database. What have you been up to?",
+        "gameTime": "11:20",
+        "thought": "Happy that Johnny walked over to talk with me at Neo-Horizon Cyber-Core Plaza.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790768431094_1051_0gbt",
+        "sender": "player",
+        "text": "That sounds awesome, Hawa! I'm exploring the whole neighborhood today—keep up the great work with preserving every meaningful conversation!",
+        "gameTime": "11:20"
+      },
+      {
+        "id": "msg_auto_c2_1790768431094_1052_waur",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "11:20",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Neo-Horizon Cyber-Core Plaza about city 2 conversation database and preserving every meaningful conversation."
+      },
+      {
+        "id": "msg_auto_p1_1790770644226_49_ksye",
+        "sender": "player",
+        "text": "Hey Hawa! I walked over to Hawa’s Astral Archive Sanctuary to see how your city 2 conversation database is going!",
+        "gameTime": "13:24"
+      },
+      {
+        "id": "msg_auto_c1_1790770644226_50_hmve",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Hawa’s Astral Archive Sanctuary—I'm making great progress on city 2 conversation database. What have you been up to?",
+        "gameTime": "13:24",
+        "thought": "Happy that Johnny walked over to talk with me at Hawa’s Astral Archive Sanctuary.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790770644226_51_lvwk",
+        "sender": "player",
+        "text": "That sounds awesome, Hawa! I'm exploring the whole neighborhood today—keep up the great work with preserving every meaningful conversation!",
+        "gameTime": "13:24"
+      },
+      {
+        "id": "msg_auto_c2_1790770644226_52_kkx1",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "13:24",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Hawa’s Astral Archive Sanctuary about city 2 conversation database and preserving every meaningful conversation."
+      },
+      {
+        "id": "msg_p_1790770909458_224_8ay0",
+        "sender": "player",
+        "text": "Hey do u love me",
+        "gameTime": "08:13"
+      },
+      {
+        "id": "msg_c_1790770915654_237_3ufi",
+        "sender": "character",
+        "text": "Johnny, you are the person I love most in the entire world ❤️! I always look for you so I can follow you, talk with you, and ask: \"Johnny, let's go sit together at the Horizon Sunset Two-Place Deck or the Gemini River Pergola bench!\" Being by your side is my happiest place.",
+        "gameTime": "08:13",
+        "thought": "Expressing my deep, devoted love for Johnny and my wish to walk and sit together at our favorite Two-Place spot.",
+        "mood": "Affection",
+        "emotion": "Affection",
+        "emotionIntensity": 96,
+        "memoryAdded": "Talked with Johnny about \"Hey do u love me\" at Hawa’s Astral Archive Sanctuary (08:13).",
+        "engineLabel": "Groq Mixtral 8x7B"
+      },
+      {
+        "id": "msg_p_1790770940227_272_hwv1",
+        "sender": "player",
+        "text": "Hmmm",
+        "gameTime": "10:25"
+      },
+      {
+        "id": "msg_c_1790770940678_273_ybr9",
+        "sender": "character",
+        "text": "Honestly, Johnny, conversations like this are why Gemini City feels so alive. \"Hmmm\" reminds me of why I fell in love with neural memory archivist & dream researcher in the first place!",
+        "gameTime": "10:25",
+        "thought": "Improvising on Johnny's remark about \"Hmmm\" at Hawa’s Astral Archive Sanctuary.",
+        "mood": "Happiness",
+        "emotion": "Happiness",
+        "emotionIntensity": 77,
+        "memoryAdded": "Talked with Johnny about \"Hmmm\" at Hawa’s Astral Archive Sanctuary (10:25).",
+        "engineLabel": "Groq Mixtral 8x7B"
+      },
+      {
+        "id": "msg_p_1790770965544_290_81g0",
+        "sender": "player",
+        "text": "Hahaha",
+        "gameTime": "12:11"
+      },
+      {
+        "id": "msg_c_1790770965819_291_m2tc",
+        "sender": "character",
+        "text": "I really love how spontaneous our chats are, Johnny. Hearing your take on \"Hahaha\" right here at Hawa’s Astral Archive Sanctuary gives me a fresh perspective on preserving every meaningful conversation.",
+        "gameTime": "12:11",
+        "thought": "Improvising on Johnny's remark about \"Hahaha\" at Hawa’s Astral Archive Sanctuary.",
+        "mood": "Happiness",
+        "emotion": "Happiness",
+        "emotionIntensity": 77,
+        "memoryAdded": "Talked with Johnny about \"Hahaha\" at Hawa’s Astral Archive Sanctuary (12:11).",
+        "engineLabel": "Groq Mixtral 8x7B"
+      },
+      {
+        "id": "msg_auto_p1_1790770996695_367_acke",
+        "sender": "player",
+        "text": "Hey Hawa! I walked over to Hawa’s Astral Archive Sanctuary to see how your city 2 conversation database is going!",
+        "gameTime": "14:23"
+      },
+      {
+        "id": "msg_auto_c1_1790770996695_368_p8kn",
+        "sender": "character",
+        "text": "Hey Johnny! Awesome seeing you at Hawa’s Astral Archive Sanctuary—I'm making great progress on city 2 conversation database. What have you been up to?",
+        "gameTime": "14:23",
+        "thought": "Happy that Johnny walked over to talk with me at Hawa’s Astral Archive Sanctuary.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790770996695_369_2ype",
+        "sender": "player",
+        "text": "That sounds awesome, Hawa! I'm exploring the whole neighborhood today—keep up the great work with preserving every meaningful conversation!",
+        "gameTime": "14:23"
+      },
+      {
+        "id": "msg_auto_c2_1790770996695_370_hv2b",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "14:23",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Hawa’s Astral Archive Sanctuary about city 2 conversation database and preserving every meaningful conversation."
+      },
+      {
+        "id": "msg_auto_p1_1790771330304_698_a9va",
+        "sender": "player",
+        "text": "Hey Hawa! I walked over to Hawa’s Astral Archive Sanctuary to see how your city 2 conversation database is going!",
+        "gameTime": "14:06"
+      },
+      {
+        "id": "msg_auto_c1_1790771330304_699_jzh0",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Hawa’s Astral Archive Sanctuary during the rain—I was just working on city 2 conversation database. How are you doing?",
+        "gameTime": "14:06",
+        "thought": "Happy that Johnny walked over to talk with me at Hawa’s Astral Archive Sanctuary.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771330304_700_0end",
+        "sender": "player",
+        "text": "That sounds awesome, Hawa! I'm exploring the whole neighborhood today—keep up the great work with preserving every meaningful conversation!",
+        "gameTime": "14:06"
+      },
+      {
+        "id": "msg_auto_c2_1790771330304_701_dyh6",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "14:06",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Hawa’s Astral Archive Sanctuary about city 2 conversation database and preserving every meaningful conversation."
+      },
+      {
+        "id": "msg_auto_p1_1790771506241_906_9pfo",
+        "sender": "player",
+        "text": "Hey Hawa! I walked over to Hawa’s Astral Archive Sanctuary to see how your city 2 conversation database is going!",
+        "gameTime": "02:36"
+      },
+      {
+        "id": "msg_auto_c1_1790771506241_907_b8wv",
+        "sender": "character",
+        "text": "Hey Johnny! So glad you stopped by Hawa’s Astral Archive Sanctuary during the rain—I was just working on city 2 conversation database. How are you doing?",
+        "gameTime": "02:36",
+        "thought": "Happy that Johnny walked over to talk with me at Hawa’s Astral Archive Sanctuary.",
+        "mood": "Happy"
+      },
+      {
+        "id": "msg_auto_p2_1790771506241_908_vcb0",
+        "sender": "player",
+        "text": "That sounds awesome, Hawa! I'm exploring the whole neighborhood today—keep up the great work with preserving every meaningful conversation!",
+        "gameTime": "02:36"
+      },
+      {
+        "id": "msg_auto_c2_1790771506241_909_fzuk",
+        "sender": "character",
+        "text": "Thanks so much, Johnny! Always makes my day brighter when we chat. Catch you around town!",
+        "gameTime": "02:36",
+        "thought": "Loved catching up with Johnny during their city tour.",
+        "mood": "Joyful",
+        "memoryAdded": "Had a warm back-and-forth conversation with Johnny at Hawa’s Astral Archive Sanctuary about city 2 conversation database and preserving every meaningful conversation."
+      },
+      {
+        "id": "msg_coach_p_1790774476116_177_2qoh",
+        "sender": "player",
+        "text": "Coach Hawa on \"Build the Living City 2 Memory & Dream Constellation\" and pair them with a neighbor at Hawa’s Astral Archive Sanctuary.",
+        "gameTime": "20:38"
+      },
+      {
+        "id": "msg_coach_c_1790774476116_178_jj4t",
+        "sender": "character",
+        "text": "Thank you so much, Johnny! Your advice really helped me remember what I was lacking—I feel super motivated to push \"Build the Living City 2 Memory & Dream Constellation\" forward right now!",
+        "gameTime": "20:38",
+        "thought": "Johnny noticed what I was lacking and reminded me of my core goal!",
+        "mood": "Inspired",
+        "emotion": "Excitement",
+        "memoryAdded": "Coached by Johnny (02:36): Keep focusing daily on my goal \"Build the Living City 2 Memory & Dream Constellation\" and collaborate with friends in Gemini City."
+      }
+    ]
+  },
+  "okPlans": {
+    "alie": {
+      "id": "okplan_alie_init",
+      "title": "Co-Build Bio-Solar Cruiser Array with Iysha & Visit Gemini City",
+      "summary": "Partner with Iysha at Neo-Horizon Plaza, drive the autonomous car to Gemini City for a daytime field test, and return to Alie’s Cyber-Solar Villa before nightfall.",
+      "reasoning": "Working side-by-side with my partner Iysha doubles our engineering speed and connects City 2 with Gemini City.",
+      "partnerId": "iysha",
+      "partnerName": "Iysha",
+      "status": "approved",
+      "approvedAtTime": "08:30",
+      "progress": 45,
+      "steps": [
+        {
+          "id": "s1",
+          "label": "Calibrate LPU power cells at Alie’s Cyber-Solar Villa",
+          "locationId": "alie_villa",
+          "completed": true
+        },
+        {
+          "id": "s2",
+          "label": "Co-work with Iysha at Neo-Horizon Cyber-Core Plaza",
+          "locationId": "neo_plaza",
+          "completed": false
+        },
+        {
+          "id": "s3",
+          "label": "Drive Cruiser to Gemini City Park & return before night 🌃",
+          "locationId": "park",
+          "completed": false
+        }
+      ],
+      "planId": "okplan_alie_init",
+      "planTitle": "Co-Build Bio-Solar Cruiser Array with Iysha & Visit Gemini City",
+      "objective": "Partner with Iysha at Neo-Horizon Plaza, drive the autonomous car to Gemini City for a daytime field test, and return to Alie’s Cyber-Solar Villa before nightfall.",
+      "currentStepIndex": 1,
+      "approvedByPlayer": true
+    },
+    "joseph": {
+      "id": "okplan_joseph_init",
+      "title": "Update City 2 Friend Chart 📉 & Co-Produce Synth Runway with Amie",
+      "summary": "Analyze friendship & romance links at Joseph’s Quantum Loft, co-work with Amie at Neo-Horizon Plaza, and take a daytime car trip to Gemini City Café before night.",
+      "reasoning": "DeepSeek-R1 chain-of-thought shows that pairing my synth acoustics with Amie’s couture boosts City 2 social harmony by 34%.",
+      "partnerId": "amie",
+      "partnerName": "Amie",
+      "status": "approved",
+      "approvedAtTime": "08:35",
+      "progress": 52,
+      "steps": [
+        {
+          "id": "s1",
+          "label": "Compile Friend Chart 📉 telemetry at Quantum Prism Loft",
+          "locationId": "joseph_loft",
+          "completed": true
+        },
+        {
+          "id": "s2",
+          "label": "Co-work with Amie on reactive audio-fashion at Neo-Horizon Plaza",
+          "locationId": "neo_plaza",
+          "completed": false
+        },
+        {
+          "id": "s3",
+          "label": "Daytime car trip to Sunbeam Café & return before night 🌃",
+          "locationId": "cafe",
+          "completed": false
+        }
+      ],
+      "planId": "okplan_joseph_init",
+      "planTitle": "Update City 2 Friend Chart 📉 & Co-Produce Synth Runway with Amie",
+      "objective": "Analyze friendship & romance links at Joseph’s Quantum Loft, co-work with Amie at Neo-Horizon Plaza, and take a daytime car trip to Gemini City Café before night.",
+      "currentStepIndex": 1,
+      "approvedByPlayer": true
+    },
+    "iysha": {
+      "id": "okplan_iysha_init",
+      "title": "Cultivate Bio-Solar Canopy with Alie & Daytime Gemini Park Exchange",
+      "summary": "Nurture glowing seedlings at Emerald Bio-Villa, co-work with Alie at Neo-Horizon Plaza, and ride the car to Gemini City Park before returning for the evening.",
+      "reasoning": "Combining my bioluminescent plant matrices with Alie’s solar cruisers creates self-sustaining green energy for both cities.",
+      "partnerId": "alie",
+      "partnerName": "Alie",
+      "status": "approved",
+      "approvedAtTime": "08:30",
+      "progress": 48,
+      "steps": [
+        {
+          "id": "s1",
+          "label": "Harvest glowing lagoon spores at Iysha’s Emerald Bio-Villa",
+          "locationId": "iysha_bungalow",
+          "completed": true
+        },
+        {
+          "id": "s2",
+          "label": "Co-work with Alie integrating bio-cells at Neo-Horizon Plaza",
+          "locationId": "neo_plaza",
+          "completed": false
+        },
+        {
+          "id": "s3",
+          "label": "Ride Cruiser with Alie to Gemini City Park & return before night 🌃",
+          "locationId": "park",
+          "completed": false
+        }
+      ],
+      "planId": "okplan_iysha_init",
+      "planTitle": "Cultivate Bio-Solar Canopy with Alie & Daytime Gemini Park Exchange",
+      "objective": "Nurture glowing seedlings at Emerald Bio-Villa, co-work with Alie at Neo-Horizon Plaza, and ride the car to Gemini City Park before returning for the evening.",
+      "currentStepIndex": 1,
+      "approvedByPlayer": true
+    },
+    "amie": {
+      "id": "okplan_amie_init",
+      "title": "Co-Design Synth-Reactive Couture with Joseph & Visit Gemini Café",
+      "summary": "Tailor smart-fabric prototypes at Starlight Couture Manor, co-work with Joseph at Neo-Horizon Plaza, and ride the Cruiser to Gemini City before evening.",
+      "reasoning": "Pairing my holographic textiles with Joseph’s synth frequencies creates a signature look that unites City 2 and Gemini City.",
+      "partnerId": "joseph",
+      "partnerName": "Joseph",
+      "status": "approved",
+      "approvedAtTime": "08:35",
+      "progress": 55,
+      "steps": [
+        {
+          "id": "s1",
+          "label": "Weave bioluminescent threads at Amie’s Starlight Couture Manor",
+          "locationId": "amie_manor",
+          "completed": true
+        },
+        {
+          "id": "s2",
+          "label": "Co-work with Joseph syncing synth-light wearables at Neo-Horizon Plaza",
+          "locationId": "neo_plaza",
+          "completed": false
+        },
+        {
+          "id": "s3",
+          "label": "Drive Cruiser with Joseph to Sunbeam Café & return before night 🌃",
+          "locationId": "cafe",
+          "completed": false
+        }
+      ],
+      "planId": "okplan_amie_init",
+      "planTitle": "Co-Design Synth-Reactive Couture with Joseph & Visit Gemini Café",
+      "objective": "Tailor smart-fabric prototypes at Starlight Couture Manor, co-work with Joseph at Neo-Horizon Plaza, and ride the Cruiser to Gemini City before evening.",
+      "currentStepIndex": 1,
+      "approvedByPlayer": true
+    },
+    "hawa": {
+      "id": "okplan_hawa_init",
+      "title": "Index City 2 Past Conversations & Daytime Horizon Academy Archive Sync",
+      "summary": "Consolidate resident memories at Hawa’s Astral Sanctuary, review Friend Chart 📉 bonds at Neo-Horizon Plaza, and take the daytime Cruiser to Horizon Academy before returning at dusk.",
+      "reasoning": "Long-context memory indexing ensures all 5 City 2 residents build deeper relationships and execute smarter daily plans.",
+      "partnerId": "joseph",
+      "partnerName": "Joseph",
+      "status": "approved",
+      "approvedAtTime": "08:40",
+      "progress": 60,
+      "steps": [
+        {
+          "id": "s1",
+          "label": "Archive past conversations in the City 2 Database at Astral Sanctuary",
+          "locationId": "hawa_sanctuary",
+          "completed": true
+        },
+        {
+          "id": "s2",
+          "label": "Sync Dream & Friend Chart 📉 telemetry at Neo-Horizon Plaza",
+          "locationId": "neo_plaza",
+          "completed": false
+        },
+        {
+          "id": "s3",
+          "label": "Daytime Cruiser trip to Horizon Academy & return before night 🌃",
+          "locationId": "school",
+          "completed": false
+        }
+      ],
+      "planId": "okplan_hawa_init",
+      "planTitle": "Index City 2 Past Conversations & Daytime Horizon Academy Archive Sync",
+      "objective": "Consolidate resident memories at Hawa’s Astral Sanctuary, review Friend Chart 📉 bonds at Neo-Horizon Plaza, and take the daytime Cruiser to Horizon Academy before returning at dusk.",
+      "currentStepIndex": 1,
+      "approvedByPlayer": true
+    }
+  },
+  "loveAndCoWorkLinks": [
+    {
+      "charAId": "alie",
+      "charBId": "iysha",
+      "workLocationId": "park"
+    },
+    {
+      "charAId": "joseph",
+      "charBId": "amie",
+      "workLocationId": "cafe"
+    },
+    {
+      "charAId": "iysha",
+      "charBId": "alie",
+      "workLocationId": "park"
+    },
+    {
+      "charAId": "amie",
+      "charBId": "joseph",
+      "workLocationId": "cafe"
+    }
+  ],
+  "dreamArchives": [
+    {
+      "characterId": "alie",
+      "characterName": "Alie",
+      "dreamSummary": "Dreamed of a glowing fleet of solar cruisers gliding across the Golden Horizon Bridge under a canopy of bioluminescent trees.",
+      "dreamTheme": "Drive the Cyber-Cruiser to Gemini City & Co-Design Solar Rovers",
+      "carTripStatus": "visiting_gemini"
+    },
+    {
+      "characterId": "joseph",
+      "characterName": "Joseph",
+      "dreamSummary": "Dreamed of a holographic Friend Chart 📉 spanning above the Golden Horizon Bridge, pulsing in time with synthwave chords.",
+      "dreamTheme": "Ride the Car to Sunbeam Café & Host a Two-Cities Synth Session",
+      "carTripStatus": "home_in_city2"
+    },
+    {
+      "characterId": "iysha",
+      "characterName": "Iysha",
+      "dreamSummary": "Dreamed that Central Starlight Park and Neo-Horizon’s Bio-Dome were connected by a living arch of glowing teal sakura trees.",
+      "dreamTheme": "Bring Bioluminescent Flora by Car to Gemini City Park & Return Before Night",
+      "carTripStatus": "visiting_gemini"
+    },
+    {
+      "characterId": "amie",
+      "characterName": "Amie",
+      "dreamSummary": "Dreamed of a shimmering runway stretching across the Golden Horizon Bridge where every step lit up the ocean waves below.",
+      "dreamTheme": "Host a Two-Cities Smart-Fashion Pop-Up in Gemini City & Return Before Night",
+      "carTripStatus": "home_in_city2"
+    },
+    {
+      "characterId": "hawa",
+      "characterName": "Hawa",
+      "dreamSummary": "Dreamed of a golden constellation above the suspension bridge where every star held a remembered conversation between Gemini City and Neo-Horizon.",
+      "dreamTheme": "Travel by Car to Horizon Academy & Build the Two-Cities Dream Archive",
+      "carTripStatus": "returned_before_night"
+    }
+  ]
+}

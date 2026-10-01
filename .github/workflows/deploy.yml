@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 2. Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 3. Install dependencies
+        run: npm install
+
+      - name: 4. Build Vite production bundle
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
+        run: npm run build
+
+      - name: 5. Confirm dist/ was created and prepare SPA routing
+        run: |
+          test -d ./dist
+          test -f ./dist/index.html
+          touch ./dist/.nojekyll
+          cp ./dist/index.html ./dist/404.html
+          ls -la ./dist
+          ls -la ./dist/assets
+
+      - name: 6. Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: 7. Upload ./dist as GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 8. Deploy artifact to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

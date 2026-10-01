@@ -1,0 +1,6 @@
+{
+  "name": "Gemini City — AI Living World",
+  "description": "A mobile-first 3D miniature living city where five AI residents with distinct Gemini model identities, family bonds, memories, and daily routines live, socialize, and converse with you.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

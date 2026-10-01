@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Gemini City — AI Living World</title>
+    <meta name="description" content="A mobile-first 3D miniature living city where five AI residents with distinct Gemini model identities, family bonds, memories, and daily routines live, socialize, and converse with you." />
+    <meta property="og:title" content="Gemini City — AI Living World" />
+    <meta property="og:description" content="A mobile-first 3D miniature living city where five AI residents with distinct Gemini model identities, family bonds, memories, and daily routines live, socialize, and converse with you." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased selection:bg-amber-400 selection:text-slate-950 overflow-hidden touch-none">
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+    <script id="raw-source-fallback">
+      window.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+          var isRawSource = !!document.querySelector('script[src*="src/main.tsx"]');
+          var rootEl = document.getElementById('root');
+          if (isRawSource && rootEl && rootEl.childElementCount === 0) {
+            rootEl.innerHTML =
+              '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#020617;color:#f8fafc;font-family:system-ui,sans-serif;">' +
+              '<div style="max-width:540px;background:#0f172a;border:1px solid rgba(251,191,36,0.4);border-radius:16px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,0.6);">' +
+              '<h1 style="margin:0 0 10px;font-size:20px;color:#fbbf24;">⚡ Gemini City — GitHub Pages Build Setup</h1>' +
+              '<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#cbd5e1;">If you are seeing this screen on GitHub Pages, GitHub is currently serving the raw uncompiled TypeScript files instead of the built 3D bundle.</p>' +
+              '<ol style="margin:0 0 16px;padding-left:20px;font-size:13px;line-height:1.7;color:#e2e8f0;">' +
+              '<li>Open your repository on <strong>GitHub</strong>.</li>' +
+              '<li>Click <strong>Settings</strong> &rarr; <strong>Pages</strong> (in the left sidebar).</li>' +
+              '<li>Under <strong>Build and deployment &rarr; Source</strong>, change <em>Deploy from a branch</em> to <strong>GitHub Actions</strong>.</li>' +
+              '<li>Wait ~60 seconds for the automatic <strong>Deploy to GitHub Pages</strong> workflow to finish, then refresh this page!</li>' +
+              '</ol>' +
+              '<p style="margin:0;font-size:12px;color:#94a3b8;">See <code>README.md</code> in the repository for full instructions on API keys, server hosting, and database setup.</p>' +
+              '</div></div>';
+          }
+        }, 4500);
+      });
+    </script>
+  </body>
+</html>
+
