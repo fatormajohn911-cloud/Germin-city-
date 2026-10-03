@@ -42,11 +42,17 @@ export type BuildingId =
   | 'iysha_bungalow'
   | 'amie_manor'
   | 'hawa_sanctuary'
-  | 'neo_plaza';
+  | 'neo_plaza'
+  | 'hokage_mansion'
+  | 'ninja_academy'
+  | 'ichiraku_ramen'
+  | 'training_grounds'
+  | 'uchiha_clan_compound'
+  | 'chunin_arena';
 
 export interface BuildingInfo {
   id: BuildingId;
-  cityId?: 'city1' | 'city2';
+  cityId?: 'city1' | 'city2' | 'city3';
   name: string;
   subtitle: string;
   category: 'residence' | 'cafe' | 'school' | 'park';
@@ -299,7 +305,9 @@ export type TwoPlaceSpotId =
   | 'gemini_river_pergola'
   | 'gemini_harbor_lounge'
   | 'neo_starlight_bench'
-  | 'neo_sakura_terrace';
+  | 'neo_sakura_terrace'
+  | 'leaf_ramen_terrace'
+  | 'leaf_hokage_overlook';
 
 export interface TwoPlaceSeatCoord {
   x: number;
@@ -310,7 +318,7 @@ export interface TwoPlaceSeatCoord {
 
 export interface TwoPlaceSpotInfo {
   id: TwoPlaceSpotId;
-  cityId: 'city1' | 'city2';
+  cityId: 'city1' | 'city2' | 'city3';
   name: string;
   subtitle: string;
   description: string;
@@ -372,7 +380,7 @@ export interface ActiveConversationSession {
 
 export interface AICharacter {
   id: string;
-  cityId?: 'city1' | 'city2';
+  cityId?: 'city1' | 'city2' | 'city3';
   name: string;
   gender: CharacterGender;
   customGender?: string;
@@ -388,6 +396,9 @@ export interface AICharacter {
   accentColor: string;
   hairColor: string;
   skinColor: string;
+  outfitStyle?: ExplorerOutfitStyle;
+  headgear?: ExplorerHeadgear;
+  backGear?: ExplorerBackGear;
   scale: number;
   temperament: SocialTemperament;
   personality: string[];
@@ -524,11 +535,31 @@ export type ExplorerOutfitStyle =
   | 'royal_commander'
   | 'street_hoodie'
   | 'tactical_suit'
-  | 'safari_blazer';
+  | 'safari_blazer'
+  | 'naruto_sage'
+  | 'akatsuki_cloak'
+  | 'jonin_vest'
+  | 'hokage_cloak';
 
-export type ExplorerHeadgear = 'visor' | 'crown' | 'cap' | 'headphones' | 'none';
+export type ExplorerHeadgear =
+  | 'visor'
+  | 'crown'
+  | 'cap'
+  | 'headphones'
+  | 'shinobi_headband'
+  | 'hokage_hat'
+  | 'anbu_mask'
+  | 'none';
 
-export type ExplorerBackGear = 'jetpack' | 'cape' | 'backpack' | 'none';
+export type ExplorerBackGear =
+  | 'jetpack'
+  | 'cape'
+  | 'backpack'
+  | 'giant_scroll'
+  | 'katana_pack'
+  | 'katana_sheath'
+  | 'uchiha_fan'
+  | 'none';
 
 export type ExplorerBrainMode = 'google_gemini' | 'groq_llama' | 'hybrid_dual_brain';
 

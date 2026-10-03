@@ -243,9 +243,13 @@ function getFabricMicroTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+// Character scale multiplier: 15% larger (within 10-20% target) for natural world proportions
+export const CHARACTER_SCALE_MULTIPLIER = 1.15;
+
 export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
+  const initialScale = (options.scale || 1.0) * CHARACTER_SCALE_MULTIPLIER;
   const group = new THREE.Group();
-  group.scale.setScalar(options.scale);
+  group.scale.setScalar(initialScale);
   group.userData = {
     type: options.isPlayer ? 'player' : 'character',
     characterId: options.id,
@@ -298,7 +302,7 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
     emissive: subsurfaceTint,
     emissiveIntensity: 0.045,
   });
-  const isFemaleChar = ['elena', 'maya', 'iysha', 'amie', 'hawa'].includes(options.id);
+  const isFemaleChar = ['elena', 'maya', 'iysha', 'amie', 'hawa', 'sakura'].includes(options.id);
   const lipMat = new THREE.MeshStandardMaterial({
     color: skinColorObj
       .clone()
@@ -331,6 +335,12 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
         ? '#312e81'
         : options.id === 'leo'
         ? '#334155'
+        : options.id === 'naruto'
+        ? '#f97316'
+        : options.id === 'sasuke'
+        ? '#1e1b4b'
+        : options.id === 'kakashi'
+        ? '#1e293b'
         : '#1e293b',
     bumpMap: fabricBump,
     bumpScale: 0.005,
@@ -497,6 +507,83 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
     lapelR.position.set(0.08, 0.38, 0.18);
     lapelR.rotation.z = 0.15;
     torsoGroup.add(lapelR);
+  } else if (options.id === 'naruto') {
+    // Naruto Shippuden Black Upper Jacket Panel + Red Whirlpool Crest + Sage Scroll on Back
+    const blackYoke = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.258, 0.252, 0.26, 22),
+      new THREE.MeshStandardMaterial({ color: '#18181b', roughness: 0.55 })
+    );
+    blackYoke.position.set(0, 0.45, 0);
+    blackYoke.scale.set(1.19, 1, 0.76);
+    torsoGroup.add(blackYoke);
+
+    const uzumakiCrest = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.085, 0.085, 0.02, 18),
+      new THREE.MeshStandardMaterial({ color: '#ef4444', emissive: '#dc2626', emissiveIntensity: 0.25 })
+    );
+    uzumakiCrest.rotation.x = Math.PI / 2;
+    uzumakiCrest.position.set(0, 0.42, -0.195);
+    torsoGroup.add(uzumakiCrest);
+
+    const sageScroll = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.085, 0.085, 0.56, 16),
+      new THREE.MeshStandardMaterial({ color: '#dc2626', roughness: 0.4 })
+    );
+    sageScroll.rotation.z = Math.PI / 2;
+    sageScroll.position.set(0, 0.16, -0.23);
+    torsoGroup.add(sageScroll);
+  } else if (options.id === 'sasuke') {
+    // Sasuke Uchiha High Collar + Purple Rope Obi Belt + Kusanagi Sword Sheath + Uchiha Fan Crest
+    const highCollar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.165, 0.15, 0.16, 18, 1, true, Math.PI * 0.18, Math.PI * 1.64),
+      outfitMat
+    );
+    highCollar.position.set(0, 0.62, -0.01);
+    torsoGroup.add(highCollar);
+
+    const ropeObi = new THREE.Mesh(
+      new THREE.TorusGeometry(0.22, 0.038, 10, 20),
+      new THREE.MeshStandardMaterial({ color: '#7e22ce', roughness: 0.45 })
+    );
+    ropeObi.rotation.x = Math.PI / 2;
+    ropeObi.scale.set(1.12, 0.78, 1);
+    ropeObi.position.set(0, 0.06, 0);
+    torsoGroup.add(ropeObi);
+
+    const swordSheath = new THREE.Mesh(
+      new THREE.BoxGeometry(0.05, 0.72, 0.06),
+      new THREE.MeshStandardMaterial({ color: '#0f172a', metalness: 0.4, roughness: 0.3 })
+    );
+    swordSheath.position.set(0.16, 0.12, -0.2);
+    swordSheath.rotation.z = -0.55;
+    torsoGroup.add(swordSheath);
+  } else if (options.id === 'kakashi') {
+    // Kakashi Leaf Jonin Tactical Green Flak Vest + High Collar
+    const flakVest = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.268, 0.245, 0.48, 20),
+      new THREE.MeshStandardMaterial({ color: '#15803d', roughness: 0.55 })
+    );
+    flakVest.position.set(0, 0.32, 0);
+    flakVest.scale.set(1.18, 1, 0.8);
+    torsoGroup.add(flakVest);
+
+    for (const side of [-1, 1]) {
+      const scrollPouch = new THREE.Mesh(
+        new THREE.BoxGeometry(0.085, 0.12, 0.05),
+        new THREE.MeshStandardMaterial({ color: '#166534', roughness: 0.6 })
+      );
+      scrollPouch.position.set(side * 0.1, 0.36, 0.2);
+      torsoGroup.add(scrollPouch);
+    }
+  } else if (options.id === 'sakura') {
+    // Sakura Haruno Crimson Qipao Tunic Skirt + White Trim Circle
+    const tunicSkirt = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.21, 0.27, 0.32, 18),
+      outfitMat
+    );
+    tunicSkirt.position.set(0, -0.02, 0);
+    tunicSkirt.scale.set(1.14, 1, 0.8);
+    torsoGroup.add(tunicSkirt);
   }
 
   // Unique Explorer (Player) Modular 3D Wardrobe Groups
@@ -572,6 +659,110 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
     safariGroup.add(satchel);
     torsoGroup.add(safariGroup);
 
+    // 6. Naruto Shippuden Sage Cloak (Orange/Black Tracksuit + Crimson Sage Cloak with Black Flame Hem)
+    const narutoSageGroup = new THREE.Group();
+    narutoSageGroup.visible = false;
+    const sageCoat = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.25, 0.34, 0.72, 20, 1, true, Math.PI * 0.18, Math.PI * 1.64),
+      new THREE.MeshStandardMaterial({ color: '#dc2626', roughness: 0.48, side: THREE.DoubleSide })
+    );
+    sageCoat.position.set(0, 0.16, -0.02);
+    sageCoat.scale.set(1.18, 1, 0.85);
+    narutoSageGroup.add(sageCoat);
+    const blackShoulderYoke = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.264, 0.255, 0.22, 20),
+      new THREE.MeshStandardMaterial({ color: '#18181b', roughness: 0.5 })
+    );
+    blackShoulderYoke.position.set(0, 0.46, 0);
+    blackShoulderYoke.scale.set(1.19, 1, 0.77);
+    narutoSageGroup.add(blackShoulderYoke);
+    torsoGroup.add(narutoSageGroup);
+
+    // 7. Akatsuki Red-Cloud Cloak (High Collar Jet-Black Long Cloak + Iconic Crimson Clouds)
+    const akatsukiGroup = new THREE.Group();
+    akatsukiGroup.visible = false;
+    const akatsukiMat = new THREE.MeshStandardMaterial({
+      color: '#09090b',
+      roughness: 0.55,
+      side: THREE.DoubleSide,
+    });
+    const akatsukiRobe = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.255, 0.36, 0.82, 22),
+      akatsukiMat
+    );
+    akatsukiRobe.position.set(0, 0.14, 0);
+    akatsukiRobe.scale.set(1.18, 1, 0.84);
+    akatsukiGroup.add(akatsukiRobe);
+    const akatsukiCollar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.16, 0.19, 18, 1, true),
+      akatsukiMat
+    );
+    akatsukiCollar.position.set(0, 0.64, 0);
+    akatsukiGroup.add(akatsukiCollar);
+    const cloudMat = new THREE.MeshStandardMaterial({
+      color: '#dc2626',
+      emissive: '#991b1b',
+      emissiveIntensity: 0.25,
+      roughness: 0.35,
+    });
+    for (const [cx, cy, cz] of [
+      [0.11, 0.36, 0.195],
+      [-0.12, 0.14, 0.21],
+      [0.08, 0.28, -0.21],
+      [-0.1, 0.05, -0.23],
+    ]) {
+      const cloudPatch = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 10), cloudMat);
+      cloudPatch.scale.set(1.45, 0.75, 0.25);
+      cloudPatch.position.set(cx, cy, cz);
+      akatsukiGroup.add(cloudPatch);
+    }
+    torsoGroup.add(akatsukiGroup);
+
+    // 8. Leaf Jonin Tactical Vest (Olive-Green Flak Vest + Scroll Pouches + High Neck)
+    const joninVestGroup = new THREE.Group();
+    joninVestGroup.visible = false;
+    const joninMat = new THREE.MeshStandardMaterial({ color: '#15803d', roughness: 0.52 });
+    const joninBody = new THREE.Mesh(new THREE.CylinderGeometry(0.272, 0.248, 0.5, 20), joninMat);
+    joninBody.position.set(0, 0.32, 0);
+    joninBody.scale.set(1.18, 1, 0.82);
+    joninVestGroup.add(joninBody);
+    const joninCollar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.165, 0.175, 0.14, 16, 1, true, Math.PI * 0.2, Math.PI * 1.6),
+      joninMat
+    );
+    joninCollar.position.set(0, 0.61, -0.01);
+    joninVestGroup.add(joninCollar);
+    for (const side of [-1, 1]) {
+      const chestPouch = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.055), joninMat);
+      chestPouch.position.set(side * 0.1, 0.35, 0.2);
+      joninVestGroup.add(chestPouch);
+    }
+    torsoGroup.add(joninVestGroup);
+
+    // 9. Hokage Flame Haori Cloak (Pure White Flowing Cloak + Crimson Flame Hem)
+    const hokageCloakGroup = new THREE.Group();
+    hokageCloakGroup.visible = false;
+    const hokageHaori = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.255, 0.37, 0.82, 22, 1, true, Math.PI * 0.16, Math.PI * 1.68),
+      new THREE.MeshStandardMaterial({ color: '#f8fafc', roughness: 0.4, side: THREE.DoubleSide })
+    );
+    hokageHaori.position.set(0, 0.14, -0.02);
+    hokageHaori.scale.set(1.19, 1, 0.86);
+    hokageCloakGroup.add(hokageHaori);
+    const flameHem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.34, 0.375, 0.18, 22, 1, true, Math.PI * 0.16, Math.PI * 1.68),
+      new THREE.MeshStandardMaterial({
+        color: '#ef4444',
+        emissive: '#dc2626',
+        emissiveIntensity: 0.3,
+        side: THREE.DoubleSide,
+      })
+    );
+    flameHem.position.set(0, -0.18, -0.02);
+    flameHem.scale.set(1.2, 1, 0.87);
+    hokageCloakGroup.add(flameHem);
+    torsoGroup.add(hokageCloakGroup);
+
     // Back Gear 1: AI Hover Jetpack
     const jetpackGroup = new THREE.Group();
     for (const jx of [-0.11, 0.11]) {
@@ -614,6 +805,67 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
     backpackGroup.add(antenna);
     torsoGroup.add(backpackGroup);
 
+    // Back Gear 4: Giant Mount Myoboku Summoning Scroll
+    const giantScrollGroup = new THREE.Group();
+    giantScrollGroup.visible = false;
+    const scrollBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.105, 0.105, 0.64, 18),
+      new THREE.MeshStandardMaterial({ color: '#dc2626', roughness: 0.42 })
+    );
+    scrollBody.rotation.z = Math.PI / 2;
+    scrollBody.position.set(0, 0.22, -0.25);
+    giantScrollGroup.add(scrollBody);
+    for (const sx of [-0.33, 0.33]) {
+      const scrollCap = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.112, 0.112, 0.05, 16),
+        new THREE.MeshStandardMaterial({ color: '#18181b', roughness: 0.35 })
+      );
+      scrollCap.rotation.z = Math.PI / 2;
+      scrollCap.position.set(sx, 0.22, -0.25);
+      giantScrollGroup.add(scrollCap);
+    }
+    torsoGroup.add(giantScrollGroup);
+
+    // Back Gear 5: Legendary Uchiha Gunbai War Fan
+    const uchihaFanGroup = new THREE.Group();
+    uchihaFanGroup.visible = false;
+    const fanGourdTop = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.22, 0.03, 20),
+      new THREE.MeshStandardMaterial({ color: '#f8fafc', roughness: 0.35 })
+    );
+    fanGourdTop.rotation.x = Math.PI / 2;
+    fanGourdTop.position.set(0, 0.45, -0.23);
+    uchihaFanGroup.add(fanGourdTop);
+    const fanGourdBot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.18, 0.03, 20),
+      new THREE.MeshStandardMaterial({ color: '#dc2626', roughness: 0.35 })
+    );
+    fanGourdBot.rotation.x = Math.PI / 2;
+    fanGourdBot.position.set(0, 0.22, -0.23);
+    uchihaFanGroup.add(fanGourdBot);
+    const fanPole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.02, 0.78, 10),
+      new THREE.MeshStandardMaterial({ color: '#1e1b4b', metalness: 0.5 })
+    );
+    fanPole.position.set(0, 0.2, -0.24);
+    fanPole.rotation.z = 0.25;
+    uchihaFanGroup.add(fanPole);
+    torsoGroup.add(uchihaFanGroup);
+
+    // Back Gear 6: Twin Anbu Shinobi Katana Blades
+    const katanaSheathGroup = new THREE.Group();
+    katanaSheathGroup.visible = false;
+    for (const rotZ of [-0.48, 0.48]) {
+      const bladeScabbard = new THREE.Mesh(
+        new THREE.BoxGeometry(0.042, 0.78, 0.042),
+        new THREE.MeshStandardMaterial({ color: '#0f172a', metalness: 0.55, roughness: 0.28 })
+      );
+      bladeScabbard.position.set(0, 0.34, -0.22);
+      bladeScabbard.rotation.z = rotZ;
+      katanaSheathGroup.add(bladeScabbard);
+    }
+    torsoGroup.add(katanaSheathGroup);
+
     explorerWardrobe = {
       outfitGroups: {
         cyber_explorer: cyberGroup,
@@ -621,17 +873,28 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
         street_hoodie: hoodieGroup,
         tactical_suit: tacticalGroup,
         safari_blazer: safariGroup,
+        naruto_sage: narutoSageGroup,
+        akatsuki_cloak: akatsukiGroup,
+        jonin_vest: joninVestGroup,
+        hokage_cloak: hokageCloakGroup,
       },
       headgearGroups: {
         visor: new THREE.Group(),
         crown: new THREE.Group(),
         cap: new THREE.Group(),
         headphones: new THREE.Group(),
+        shinobi_headband: new THREE.Group(),
+        hokage_hat: new THREE.Group(),
+        anbu_mask: new THREE.Group(),
       },
       backGearGroups: {
         jetpack: jetpackGroup,
         cape: capeGroup,
         backpack: backpackGroup,
+        giant_scroll: giantScrollGroup,
+        uchiha_fan: uchihaFanGroup,
+        katana_sheath: katanaSheathGroup,
+        katana_pack: katanaSheathGroup,
       },
     };
   }
@@ -810,6 +1073,14 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
       ? '#ec4899'
       : options.id === 'hawa'
       ? '#f59e0b'
+      : options.id === 'naruto'
+      ? '#0284c7'
+      : options.id === 'sasuke'
+      ? '#ef4444'
+      : options.id === 'sakura'
+      ? '#10b981'
+      : options.id === 'kakashi'
+      ? '#334155'
       : '#4f46e5';
   const irisColorObj = new THREE.Color(irisColorHex);
   const limbalMat = new THREE.MeshBasicMaterial({
@@ -1004,6 +1275,39 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
     neckAndHeadGroup.add(frontLock);
   }
 
+  // Authentic Shinobi Forehead Protector & Anime Spiky Hair Details for Hidden Leaf Residents
+  if (['naruto', 'sasuke', 'sakura', 'kakashi'].includes(options.id)) {
+    const bandColor = options.id === 'sakura' ? '#be123c' : '#1e293b';
+    const hbBand = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.205, 0.202, 0.058, 22),
+      new THREE.MeshStandardMaterial({ color: bandColor, roughness: 0.5 })
+    );
+    hbBand.position.set(0, headCenterY + 0.115, 0);
+    neckAndHeadGroup.add(hbBand);
+
+    const metalPlate = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.046, 0.022),
+      new THREE.MeshStandardMaterial({ color: '#e2e8f0', metalness: 0.88, roughness: 0.18 })
+    );
+    metalPlate.position.set(0, headCenterY + 0.115, 0.202);
+    neckAndHeadGroup.add(metalPlate);
+
+    if (options.id === 'naruto' || options.id === 'sasuke' || options.id === 'kakashi') {
+      for (let s = 0; s < 5; s++) {
+        const angle = (s - 2) * 0.42;
+        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.16, 8), hairMat);
+        spike.position.set(
+          Math.sin(angle) * 0.14,
+          headCenterY + 0.23,
+          Math.cos(angle) * 0.06 - 0.02
+        );
+        spike.rotation.z = -angle * 0.65;
+        spike.rotation.x = -0.25;
+        neckAndHeadGroup.add(spike);
+      }
+    }
+  }
+
   // Attach Explorer Headgear Options onto neckAndHeadGroup
   if (options.isPlayer && explorerWardrobe) {
     // 1. Cyber AI Visor Glasses (Sleek translucent holographic lens so Explorer's eyes stay visible!)
@@ -1067,6 +1371,74 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
       headphonesGroup.add(earCup);
     }
     neckAndHeadGroup.add(headphonesGroup);
+
+    // 5. Hidden Leaf Metal Shinobi Forehead Protector Headband
+    const shinobiHeadbandGroup = explorerWardrobe.headgearGroups.shinobi_headband;
+    shinobiHeadbandGroup.visible = false;
+    const clothBand = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.206, 0.202, 0.062, 22),
+      new THREE.MeshStandardMaterial({ color: '#0f172a', roughness: 0.48 })
+    );
+    clothBand.position.set(0, headCenterY + 0.112, 0);
+    shinobiHeadbandGroup.add(clothBand);
+    const leafPlate = new THREE.Mesh(
+      new THREE.BoxGeometry(0.148, 0.048, 0.024),
+      new THREE.MeshStandardMaterial({ color: '#e2e8f0', metalness: 0.9, roughness: 0.15 })
+    );
+    leafPlate.position.set(0, headCenterY + 0.112, 0.202);
+    shinobiHeadbandGroup.add(leafPlate);
+    for (const side of [-1, 1]) {
+      const ribbonTail = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 0.18, 0.018),
+        new THREE.MeshStandardMaterial({ color: '#0f172a', roughness: 0.5 })
+      );
+      ribbonTail.position.set(side * 0.06, headCenterY + 0.03, -0.21);
+      ribbonTail.rotation.z = side * 0.32;
+      ribbonTail.rotation.x = 0.25;
+      shinobiHeadbandGroup.add(ribbonTail);
+    }
+    neckAndHeadGroup.add(shinobiHeadbandGroup);
+
+    // 6. Crimson & White Hokage Ceremonial Kasa Hat
+    const hokageHatGroup = explorerWardrobe.headgearGroups.hokage_hat;
+    hokageHatGroup.visible = false;
+    const kasaCone = new THREE.Mesh(
+      new THREE.ConeGeometry(0.38, 0.18, 24),
+      new THREE.MeshStandardMaterial({ color: '#dc2626', roughness: 0.38 })
+    );
+    kasaCone.position.set(0, headCenterY + 0.25, 0);
+    hokageHatGroup.add(kasaCone);
+    const kasaWhiteStripe = new THREE.Mesh(
+      new THREE.ConeGeometry(0.385, 0.175, 8),
+      new THREE.MeshStandardMaterial({ color: '#f8fafc', roughness: 0.35 })
+    );
+    kasaWhiteStripe.position.set(0, headCenterY + 0.252, 0);
+    kasaWhiteStripe.scale.set(0.98, 1, 0.35);
+    hokageHatGroup.add(kasaWhiteStripe);
+    neckAndHeadGroup.add(hokageHatGroup);
+
+    // 7. Anbu Black Ops Fox Mask (Perched on side/front brow so face stays expressive)
+    const anbuMaskGroup = explorerWardrobe.headgearGroups.anbu_mask;
+    anbuMaskGroup.visible = false;
+    const maskDisk = new THREE.Mesh(
+      new THREE.SphereGeometry(0.145, 18, 14),
+      new THREE.MeshStandardMaterial({ color: '#f8fafc', roughness: 0.25 })
+    );
+    maskDisk.scale.set(0.95, 1.1, 0.35);
+    maskDisk.position.set(0.11, headCenterY + 0.14, 0.15);
+    maskDisk.rotation.y = 0.55;
+    maskDisk.rotation.z = -0.22;
+    anbuMaskGroup.add(maskDisk);
+    for (const earSide of [-1, 1]) {
+      const foxEar = new THREE.Mesh(
+        new THREE.ConeGeometry(0.038, 0.095, 8),
+        new THREE.MeshStandardMaterial({ color: '#ef4444', roughness: 0.3 })
+      );
+      foxEar.position.set(0.11 + earSide * 0.06, headCenterY + 0.26, 0.14);
+      foxEar.rotation.z = -0.22;
+      anbuMaskGroup.add(foxEar);
+    }
+    neckAndHeadGroup.add(anbuMaskGroup);
   }
 
   // Attach Weather-Appropriate Headgear for AI Residents (Keep eyes & faces 100% uncovered in Sunny weather!)
@@ -1471,7 +1843,7 @@ export function createHumanoidRig(options: HumanoidBuildOptions): HumanoidRig {
     residentWeatherWardrobe,
     pickMeshes,
     phaseOffset,
-    baseScale: options.scale,
+    baseScale: initialScale,
     animState: {
       walkWeight: 0,
       talkWeight: 0,
@@ -2128,8 +2500,9 @@ export function updateHumanoidRigAppearance(
     rig.hairMat.color.set(appearance.hairColor);
   }
   if (typeof appearance.scale === 'number' && appearance.scale > 0.5) {
-    rig.baseScale = appearance.scale;
-    rig.group.scale.setScalar(appearance.scale);
+    const updatedScale = appearance.scale * CHARACTER_SCALE_MULTIPLIER;
+    rig.baseScale = updatedScale;
+    rig.group.scale.setScalar(updatedScale);
   }
   if (rig.residentWeatherWardrobe && appearance.weather) {
     const w = appearance.weather;

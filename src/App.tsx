@@ -65,16 +65,12 @@ import {
   getResidentBridgeReflection,
 } from './components/CityViewport3D';
 import { VirtualJoystick } from './components/VirtualJoystick';
-import { CharacterSheet } from './components/CharacterSheet';
 import { ExplorerSheet } from './components/ExplorerSheet';
 import { WorldGuideModal } from './components/WorldGuideModal';
 import { CharacterEditorModal } from './components/CharacterEditorModal';
 import { City2GroqHubModal } from './components/City2GroqHubModal';
-import { AudioManager } from './audio/AudioManager';
-import {
-  AudioManagerPanel,
-  GameAudioQuickControls,
-} from './components/AudioManagerPanel';
+import { AudioManager, useAudioManager } from './audio/AudioManager';
+import { AudioStationHUD } from './components/AudioStationHUD';
 import {
   requestResidentChatWithFallback,
   resolveApiUrl,
@@ -288,9 +284,22 @@ function sanitizeCharactersList(chars: AICharacter[]): AICharacter[] {
         }
       : undefined;
 
+    const resolvedCityId =
+      c.cityId || template?.cityId || (isCity2Character(c.id) ? 'city2' : 'city1');
+    const shouldMigrateNinjaCoords =
+      resolvedCityId === 'city3' &&
+      template &&
+      (!c.currentPosition || c.currentPosition.z > -650);
+
     return {
       ...c,
-      cityId: c.cityId || template?.cityId || (isCity2Character(c.id) ? 'city2' : 'city1'),
+      cityId: resolvedCityId,
+      currentPosition: shouldMigrateNinjaCoords
+        ? { ...template.currentPosition }
+        : c.currentPosition,
+      targetPosition: shouldMigrateNinjaCoords
+        ? { ...template.targetPosition }
+        : c.targetPosition,
       groqConfig: c.groqConfig || template?.groqConfig,
       okPlan: normalizedPlan,
       dream: normalizedDream,
@@ -453,6 +462,8 @@ export default function App() {
   });
 
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [inWorldDialogueOptions, setInWorldDialogueOptions] = useState<string[]>([]);
+  const playerBubbleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<BuildingId | null>(null);
   const [selectedCreatedObject, setSelectedCreatedObject] = useState<CreatedWorldObject | null>(
     null
@@ -462,7 +473,7 @@ export default function App() {
   const [isGamepadMode, setIsGamepadMode] = useState<boolean>(false);
   const [gamepadScreenRotation, setGamepadScreenRotation] = useState<0 | 90 | -90>(0);
   const [isControlsDrawerOpen, setIsControlsDrawerOpen] = useState<boolean>(false);
-  const [isAudioManagerOpen, setIsAudioManagerOpen] = useState<boolean>(false);
+  const audioSnap = useAudioManager();
   const [isExplorerSheetOpen, setIsExplorerSheetOpen] = useState<boolean>(false);
   const [isAnalyzingExplorer, setIsAnalyzingExplorer] = useState<boolean>(false);
   const [lastAdvisorReply, setLastAdvisorReply] = useState<string | null>(null);
@@ -2066,40 +2077,8 @@ export default function App() {
               isMoving = true;
             }
 
-            let nextBubble = hasActiveBubble ? char.activeBubble : undefined;
+            const nextBubble = hasActiveBubble ? char.activeBubble : undefined;
             const displayJohn = explorerName.toLowerCase().startsWith('john') ? 'John' : explorerName;
-
-            // When Hawa (or the following partner) catches up to John, she asks: "John, let's go to this place!"
-            if (
-              distToPlayer < 4.8 &&
-              !activeConvoCharId &&
-              !approachInviteRef.current &&
-              !playerSittingSpotRef.current &&
-              nowMs - lastHawaInviteMsRef.current > 38000
-            ) {
-              lastHawaInviteMsRef.current = nowMs;
-              const isPlayerInCity2 = playerPos.x > 125;
-              const spotToSuggest = isPlayerInCity2
-                ? TWO_PLACE_SPOTS.neo_starlight_bench
-                : TWO_PLACE_SPOTS.gemini_river_pergola;
-              const inviteLine = `${displayJohn}, let's go to this place! ❤️ Let's walk together to ${spotToSuggest.name} and sit side-by-side on the two-place bench or chairs to talk!`;
-              nextBubble = {
-                text: inviteLine,
-                expiresAt: nowMs + 8500,
-              };
-              setApproachInvite({
-                characterId: char.id,
-                characterName: char.name,
-                modelBadge: char.modelBadge,
-                avatarColor: char.avatarColor,
-                greetingText: inviteLine,
-                reason: `${char.name} loves ${displayJohn} most, found him, and wants to walk together to ${spotToSuggest.name} to sit down and talk.`,
-                suggestedLocationId: spotToSuggest.nearestBuildingId,
-                suggestedTwoPlaceSpotId: spotToSuggest.id,
-                suggestedTwoPlaceSpotName: spotToSuggest.name,
-                expiresAt: nowMs + 22000,
-              });
-            }
 
             return {
               ...char,
@@ -2183,107 +2162,6 @@ export default function App() {
               isTalking: hasActiveBubble,
               activeBubble: hasActiveBubble ? char.activeBubble : undefined,
             };
-          }
-
-          // Autonomous Decision: Should this resident notice & approach the player nearby?
-          const isShyTrait = char.personality.some((p) =>
-            ['shy', 'quiet', 'introverted'].includes(p.toLowerCase())
-          );
-          const canApproachPlayer =
-            !activeConvoCharId &&
-            !approachInviteRef.current &&
-            distToPlayer < 7.5 &&
-            distToPlayer > 1.4 &&
-            nowMs - lastGlobalPlayerApproachRef.current > 36000 &&
-            nowMs - (lastCharApproachRef.current[char.id] || 0) > 90000;
-
-          if (canApproachPlayer) {
-            const baseChance = isShyTrait
-              ? 0.018
-              : char.temperament === 'outgoing'
-              ? 0.085
-              : char.temperament === 'warm-balanced'
-              ? 0.045
-              : 0.022;
-            const socialBoost = char.needs.social < 55 ? 0.04 : 0;
-
-            if ( Math.random() < baseChance + socialBoost) {
-              lastGlobalPlayerApproachRef.current = nowMs;
-              lastCharApproachRef.current[char.id] = nowMs;
-              const greeting = buildPlayerApproachGreeting(
-                char,
-                currentPhase,
-                explorerName,
-                currentWeather
-              );
-              const johnnyAutoReply = greeting.playerReplyText;
-              const charFollowUp = greeting.characterFollowUpText;
-
-              // Show Johnny's automatic reply bubble after a brief beat and save the full exchange to chat history
-              setTimeout(() => {
-                setPlayerActiveBubble(johnnyAutoReply);
-                setPlayerEmote('wave');
-                setTimeout(() => {
-                  setPlayerActiveBubble(null);
-                  setPlayerEmote('none');
-                }, 4200);
-              }, 2200);
-
-              pendingChatAppends.push({
-                charId: char.id,
-                checkText: charFollowUp,
-                messages: [
-                  {
-                    id: createUniqueId(`approach_${char.id}`),
-                    sender: 'character',
-                    text: greeting.greetingText,
-                    gameTime: formattedClock,
-                    thought: greeting.reason,
-                    mood: 'Friendly',
-                  },
-                  {
-                    id: createUniqueId(`approach_reply_p_${char.id}`),
-                    sender: 'player',
-                    text: johnnyAutoReply,
-                    gameTime: formattedClock,
-                  },
-                  {
-                    id: createUniqueId(`approach_followup_c_${char.id}`),
-                    sender: 'character',
-                    text: charFollowUp,
-                    gameTime: formattedClock,
-                    thought: `Enjoyed chatting with ${explorerName}.`,
-                    mood: 'Happy',
-                  },
-                ],
-              });
-
-              return {
-                ...char,
-                needs: {
-                  ...nextNeeds,
-                  social: Math.min(100, nextNeeds.social + 14),
-                },
-                emotionalState: {
-                  primary: isShyTrait ? 'Curiosity' : 'Excitement',
-                  intensity: 76,
-                  cause: `Spotted ${explorerName} nearby and had a friendly chat`,
-                  sinceGameTime: formattedClock,
-                  lastUpdatedMs: nowMs,
-                },
-                conversingWithId: null,
-                isApproachingPlayer: true,
-                isSitting: false,
-                isTalking: true,
-                currentActivity: `Chatting with ${explorerName} near ${CITY_BUILDINGS[char.currentLocationId].name}`,
-                currentThought: greeting.reason,
-                decisionReason: `Spotted ${explorerName} nearby`,
-                activeBubble: {
-                  text: greeting.greetingText,
-                  expiresAt: nowMs + 6500,
-                },
-              };
-            }
           }
 
           // Ensure resident has an active Daily Goal for the current day
@@ -2616,14 +2494,18 @@ export default function App() {
             if (nowMs - lastOutingEnd < 42000) continue;
 
             // Pick an available Two-Place Sanctuary in their city
+            const preferCity3 =
+              charA.cityId === 'city3' ||
+              charB.cityId === 'city3' ||
+              charA.currentPosition.z < -650;
             const preferCity2 =
-              charA.cityId === 'city2' ||
-              charB.cityId === 'city2' ||
-              charA.currentPosition.x > 120;
+              !preferCity3 &&
+              (charA.cityId === 'city2' ||
+                charB.cityId === 'city2' ||
+                charA.currentPosition.x > 120);
+            const targetCityId = preferCity3 ? 'city3' : preferCity2 ? 'city2' : 'city1';
             const candidateSpots = Object.values(TWO_PLACE_SPOTS).filter(
-              (s) =>
-                !occupiedSpotIds.has(s.id) &&
-                (preferCity2 ? s.cityId === 'city2' : s.cityId === 'city1')
+              (s) => !occupiedSpotIds.has(s.id) && s.cityId === targetCityId
             );
             const chosenSpot = candidateSpots[0];
             if (!chosenSpot) continue;
@@ -2798,32 +2680,27 @@ export default function App() {
     return () => clearInterval(tickInterval);
   }, [applyResidentSocialUpdate, pushMemoryNotification]);
 
+  const handleCloseInWorldChat = useCallback(() => {
+    setSelectedCharacterId(null);
+  }, []);
+
   const handlePlayerPositionChange = useCallback(
     (pos: { x: number; z: number }, nearbyId: string | null) => {
       playerPosRef.current = pos;
-      setNearbyCharacterId((prev) => (prev === nearbyId ? prev : nearbyId));
+      setNearbyCharacterId(nearbyId);
     },
     []
   );
 
-  const handleSelectCharacter = useCallback((id: string) => {
-    setSelectedCharacterId(id);
-    setIsSendingChat(false);
-    setIsExplorerSheetOpen(false);
-    setIsCity2HubOpen(false);
-    setIsControlsDrawerOpen(false);
-    setSelectedBuildingId(null);
-    setSelectedCreatedObject(null);
-    setApproachInvite((prev) => (prev?.characterId === id ? null : prev));
+  const handleSelectCharacter = useCallback((_id: string) => {
+    // NPC-to-Player communication is completely disabled.
+  }, []);
+
+  const handleInWorldPlayerReply = useCallback((_replyText: string) => {
+    // NPC-to-Player communication is completely disabled.
   }, []);
 
   const handleDismissApproach = useCallback(() => {
-    if (approachInviteRef.current) {
-      const charId = approachInviteRef.current.characterId;
-      setCharacters((prev) =>
-        prev.map((c) => (c.id === charId ? { ...c, isApproachingPlayer: false } : c))
-      );
-    }
     setApproachInvite(null);
   }, []);
 
@@ -2930,10 +2807,6 @@ export default function App() {
                     label: `❤️ Following ${displayJohn}!`,
                     expiresAt: Date.now() + 6000,
                   },
-                  activeBubble: {
-                    text: `I'm right beside you, ${displayJohn}! ❤️ Let's walk together and visit a Two-Place Bench whenever you want!`,
-                    expiresAt: Date.now() + 7000,
-                  },
                 }
               : { ...c, isFollowingPlayer: false }
           )
@@ -2977,17 +2850,6 @@ export default function App() {
               type: emote,
               label: emInfo.badge,
               expiresAt: nowMs + 6500,
-            },
-            activeBubble: {
-              text:
-                emote === 'dance'
-                  ? `Dancing along with ${explorerProfileRef.current.name}! 💃`
-                  : emote === 'laugh'
-                  ? `Haha, ${explorerProfileRef.current.name}, you always make me laugh! 😂`
-                  : emote === 'wave'
-                  ? `Waving right back at you, ${explorerProfileRef.current.name}! 👋`
-                  : `${emInfo.bubbleHint}`,
-              expiresAt: nowMs + 5500,
             },
           };
         }
@@ -3168,12 +3030,6 @@ export default function App() {
                 ? '✅ Daily Goal Complete!'
                 : `🎯 Goal ${Math.round(updatedGoal.progress)}%`,
               expiresAt: nowMs + 6500,
-            },
-            activeBubble: {
-              text: justCompleted
-                ? `Woohoo! Thanks ${explorerName}—I finished today's Daily Goal "${updatedGoal.title}"! 🎯✅`
-                : `Awesome boost, ${explorerName}! "${updatedGoal.title}" is now at ${Math.round(updatedGoal.progress)}% (${updatedGoal.currentStepLabel})!`,
-              expiresAt: nowMs + 6800,
             },
             memories: deduplicateCharacterMemories([
               {
@@ -3379,194 +3235,17 @@ export default function App() {
       const targetChar = charactersRef.current.find((c) => c.id === targetId);
       if (!targetChar) return;
 
-      const nowMs = Date.now();
-      const formattedClock = formatGameClock(gameHourRef.current);
-      const explorerName = explorerProfileRef.current.name || 'Johnny';
-      const locName = CITY_BUILDINGS[targetChar.currentLocationId]?.name || 'Gemini City';
-      const primaryInterest = targetChar.interests[0] || targetChar.role;
-      const secondaryInterest = targetChar.likes[0] || targetChar.interests[1] || 'city life';
-
-      setAutoExplorePhase('interacting');
+      setAutoExplorePhase('walking');
       setApproachInvite(null);
-
-      const emotesCycle: Exclude<EmoteType, 'none'>[] = ['wave', 'cheer', 'laugh', 'dance'];
-      const chosenEmote = emotesCycle[Math.floor(Math.random() * emotesCycle.length)];
-      const emInfo = EMOTE_CATALOG.find((e) => e.type === chosenEmote) || EMOTE_CATALOG[0];
-
-      // Multi-turn automatic conversation where Johnny initiates, resident replies, and Johnny replies back!
-      const johnnyLine1 = `Hey ${targetChar.name}! I walked over to ${locName} to see how your ${primaryInterest.toLowerCase()} is going!`;
-      const residentReply1 =
-        weatherRef.current === 'rainy'
-          ? `Hey ${explorerName}! So glad you stopped by ${locName} during the rain—I was just working on ${primaryInterest.toLowerCase()}. How are you doing?`
-          : `Hey ${explorerName}! Awesome seeing you at ${locName}—I'm making great progress on ${primaryInterest.toLowerCase()}. What have you been up to?`;
-      const johnnyReply2 = `That sounds awesome, ${targetChar.name}! I'm exploring the whole neighborhood today—keep up the great work with ${secondaryInterest.toLowerCase()}!`;
-      const residentReply2 = `Thanks so much, ${explorerName}! Always makes my day brighter when we chat. Catch you around town!`;
-
-      const newImportantMemory = `Had a warm back-and-forth conversation with ${explorerName} at ${locName} about ${primaryInterest.toLowerCase()} and ${secondaryInterest.toLowerCase()}.`;
-
-      // Step 1: Johnny greets the resident
-      setPlayerEmote(chosenEmote);
-      setPlayerActiveBubble(johnnyLine1);
-
-      // Step 2: Resident replies & Johnny replies back automatically
-      const step2Timer = setTimeout(() => {
-        if (!autoExploreEnabledRef.current) return;
-        setPlayerActiveBubble(johnnyReply2);
-        setCharacters((prev) =>
-          prev.map((c) =>
-            c.id === targetChar.id
-              ? {
-                  ...c,
-                  activeBubble: {
-                    text: residentReply2,
-                    expiresAt: Date.now() + 3400,
-                  },
-                }
-              : c
-          )
-        );
-      }, 2800);
-
-      setCharacters((prev) =>
-        prev.map((c) => {
-          if (c.id !== targetChar.id) return c;
-          const angleToPlayer = Math.atan2(
-            playerPosRef.current.x - c.currentPosition.x,
-            playerPosRef.current.z - c.currentPosition.z
-          );
-          const memObj: CharacterMemory = {
-            id: createUniqueId(`mem_explore_${c.id}`),
-            gameTime: formattedClock,
-            summary: newImportantMemory,
-            type: 'conversation',
-            important: true,
-            involvedNames: [explorerName],
-            emotionAtTime: 'Happiness',
-          };
-          return {
-            ...c,
-            rotationY: angleToPlayer,
-            isMoving: false,
-            isSitting: false,
-            isTalking: true,
-            isApproachingPlayer: false,
-            affinity: Math.min(100, c.affinity + 4),
-            playerInteractionsCount: (c.playerInteractionsCount || 0) + 1,
-            needs: {
-              ...c.needs,
-              social: Math.min(100, c.needs.social + 18),
-              inspiration: Math.min(100, c.needs.inspiration + 12),
-            },
-            activeEmote: {
-              type: chosenEmote,
-              label: emInfo.badge,
-              expiresAt: nowMs + 5800,
-            },
-            activeBubble: {
-              text: residentReply1,
-              expiresAt: nowMs + 3000,
-            },
-            memories: summarizeCharacterMemories(
-              [memObj, ...(c.memories || [])],
-              c.name,
-              formattedClock
-            ),
-          };
-        })
-      );
-
-      // Save the entire multi-turn automatic conversation into that resident's chatHistory
-      setChatHistories((prev) => ({
-        ...prev,
-        [targetChar.id]: [
-          ...(prev[targetChar.id] || []),
-          {
-            id: createUniqueId('msg_auto_p1'),
-            sender: 'player',
-            text: johnnyLine1,
-            gameTime: formattedClock,
-          },
-          {
-            id: createUniqueId('msg_auto_c1'),
-            sender: 'character',
-            text: residentReply1,
-            gameTime: formattedClock,
-            thought: `Happy that ${explorerName} walked over to talk with me at ${locName}.`,
-            mood: 'Happy',
-          },
-          {
-            id: createUniqueId('msg_auto_p2'),
-            sender: 'player',
-            text: johnnyReply2,
-            gameTime: formattedClock,
-          },
-          {
-            id: createUniqueId('msg_auto_c2'),
-            sender: 'character',
-            text: residentReply2,
-            gameTime: formattedClock,
-            thought: `Loved catching up with ${explorerName} during their city tour.`,
-            mood: 'Joyful',
-            memoryAdded: newImportantMemory,
-          },
-        ],
-      }));
-
-      // Automatically record Explorer AI field notes & diagnosis on what this resident lacks & how to improve their goals
-      const topGoal = targetChar.goals[0];
-      const lackNote =
-        targetChar.needs.inspiration < 68
-          ? `Lacks creative inspiration (${Math.round(targetChar.needs.inspiration)}%) while working on "${topGoal?.title || targetChar.role}".`
-          : targetChar.needs.social < 68
-          ? `Lacks social collaboration (${Math.round(targetChar.needs.social)}%) to accelerate "${topGoal?.title || targetChar.role}".`
-          : `Needs a structured milestone check-in so "${topGoal?.title || targetChar.role}" (${topGoal?.progress ?? 65}%) stays top-of-mind.`;
-      const adviceNote = `Coach ${targetChar.name} on "${topGoal?.title || targetChar.role}" and pair them with a neighbor at ${locName}.`;
-
-      setExplorerProfile((prevExp) => {
-        const prevNotes = prevExp.fieldNotes || [];
-        const prevDiag = prevExp.residentDiagnoses || {};
-        const newNote: ExplorerFieldNote = {
-          id: createUniqueId(`exp_note_${targetChar.id}`),
-          gameTime: formattedClock,
-          category: 'resident_lack',
-          targetCharacterId: targetChar.id,
-          targetCharacterName: targetChar.name,
-          title: `Field Check-In with ${targetChar.name}`,
-          observation: lackNote,
-          actionableImprovement: adviceNote,
-          applied: false,
-        };
-        return {
-          ...prevExp,
-          fieldNotes: [newNote, ...prevNotes].slice(0, 35),
-          residentDiagnoses: {
-            ...prevDiag,
-            [targetChar.id]: {
-              characterId: targetChar.id,
-              characterName: targetChar.name,
-              avatarColor: targetChar.avatarColor,
-              role: targetChar.role,
-              lastEvaluatedTime: formattedClock,
-              whatTheyLack: lackNote,
-              goalImprovementAdvice: adviceNote,
-              memoryCoachingReminder: `Coached by ${explorerName} (${formattedClock}): Keep focusing daily on my goal "${topGoal?.title || targetChar.role}" and collaborate with friends in Gemini City.`,
-              appliedCount: prevDiag[targetChar.id]?.appliedCount || 0,
-            },
-          },
-        };
-      });
 
       setAutoExploreVisitedIds((prevVisited) => {
         const nextVisited = Array.from(new Set([...prevVisited, targetChar.id]));
         if (autoExploreTimerRef.current) clearTimeout(autoExploreTimerRef.current);
         autoExploreTimerRef.current = setTimeout(() => {
-          clearTimeout(step2Timer);
-          setPlayerEmote('none');
-          setPlayerActiveBubble(null);
           if (autoExploreEnabledRef.current) {
             selectNextExploreTarget(nextVisited, targetChar.id);
           }
-        }, 6200);
+        }, 3200);
         return nextVisited;
       });
     },
@@ -5061,25 +4740,12 @@ export default function App() {
                 <span>🏙️🧠 City 2 Hub</span>
                 <span className="text-[10px] opacity-80">{isCity2HubOpen ? '◂' : '▸'}</span>
               </button>
-
-              <GameAudioQuickControls
-                isAudioPanelOpen={isAudioManagerOpen}
-                onToggleAudioPanel={() => setIsAudioManagerOpen((prev) => !prev)}
-              />
             </div>
           )}
         </div>
       )}
 
-      {/* 1A-Audio. Slide-Out Collapsible Game Audio & Car Radio Manager */}
-      {!isGamepadMode && !isUiHidden && !isControlsDrawerOpen && isAudioManagerOpen && (
-        <AudioManagerPanel
-          mode="slideover"
-          onClose={() => setIsAudioManagerOpen(false)}
-        />
-      )}
-
-      {/* 1B. Slide-Out Controls, Residents & Settings Drawer (All buttons in one place, nothing cut off!) */}
+      {/* 1B. Slide-Out Controls & Settings Drawer (All buttons in one place, nothing cut off!) */}
       {isControlsDrawerOpen && (
         <div className="fixed inset-0 z-35 pointer-events-auto flex">
           {/* Backdrop tap to close */}
@@ -5348,9 +5014,6 @@ export default function App() {
                     <span>🌅 Start Day {dayNumber + 1} (New Resident Daily Goals)</span>
                   </button>
                 </div>
-
-                {/* Embedded Game Audio & Car Radio Manager inside Settings Menu */}
-                <AudioManagerPanel mode="drawer_embedded" />
               </section>
 
               {/* SECTION 2: QUICK WORLD ACTIONS */}
@@ -5452,86 +5115,7 @@ export default function App() {
                 </div>
               </section>
 
-              {/* SECTION 3: ALL RESIDENTS & EXPLORER PROFILE */}
-              <section className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Residents ({characters.length}) · Tap to Chat / Memories
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsControlsDrawerOpen(false);
-                      setSelectedCharacterId(null);
-                      setIsExplorerSheetOpen(true);
-                    }}
-                    className="text-[11px] font-semibold text-sky-300 hover:underline flex items-center gap-1"
-                  >
-                    <UserCheck className="w-3 h-3" />
-                    <span>{explorerProfile.name}’s AI & Clothes</span>
-                  </button>
-                </div>
-
-                <div className="space-y-1.5">
-                  {characters.map((char) => {
-                    const isSelected = selectedCharacterId === char.id;
-                    const ward = getResidentWeatherWardrobe(char, weather);
-                    const dGoal = getOrCreateResidentDailyGoal(char, dayNumber, weather);
-                    return (
-                      <button
-                        key={char.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCharacterId(char.id);
-                          setIsControlsDrawerOpen(false);
-                        }}
-                        className={`w-full p-2.5 rounded-xl border flex items-center justify-between gap-2.5 transition text-left ${
-                          isSelected
-                            ? 'bg-amber-400 text-slate-950 border-amber-300 font-semibold'
-                            : 'bg-slate-900/90 hover:bg-slate-800 text-slate-100 border-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span
-                            className="relative w-8 h-8 rounded-lg flex items-center justify-center text-white font-display font-bold text-xs shrink-0 shadow-xs"
-                            style={{ backgroundColor: char.avatarColor }}
-                          >
-                            {char.name[0]}
-                            <span
-                              className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-slate-950"
-                              style={{ backgroundColor: ward.outfitColor }}
-                              title={`Wearing: ${ward.outfitLabel}`}
-                            />
-                          </span>
-                          <div className="min-w-0">
-                            <div className="text-xs font-bold truncate">{char.name}</div>
-                            <div
-                              className={`text-[11px] truncate ${
-                                isSelected ? 'text-slate-800' : 'text-slate-400'
-                              }`}
-                            >
-                              {dGoal.badgeIcon} {dGoal.title}
-                            </div>
-                          </div>
-                        </div>
-                        <span
-                          className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                            isSelected
-                              ? 'bg-slate-950/15 text-slate-950'
-                              : dGoal.completed
-                              ? 'bg-emerald-500/20 text-emerald-300'
-                              : 'bg-amber-400/15 text-amber-300'
-                          }`}
-                        >
-                          {dGoal.completed ? '✅ Done' : `🎯 ${Math.round(dGoal.progress)}%`}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* SECTION 4: PLAYER EMOTES */}
+              {/* SECTION 3: PLAYER EMOTES */}
               <section className="space-y-2">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
                   Emotes (Nearby Residents Join In!)
@@ -5678,6 +5262,7 @@ export default function App() {
           onExitGamepadMode={handleExitGamepadMode}
           onJoystickMove={handleJoystickMove}
           selectedCharacterId={selectedCharacterId}
+          nearbyCharacterId={nearbyCharacterId}
           selectedBuildingId={selectedBuildingId}
           gameHour={gameHour}
           timePhase={timePhase}
@@ -5778,142 +5363,6 @@ export default function App() {
           }}
         />
       </main>
-
-      {/* 2A. Hawa / Loved One Approach & Two-Place Outing Invitation — Collapsible Left-Edge Tab & Side Panel */}
-      {approachInvite && !selectedCharacter && (
-        <div className="fixed top-28 left-0 z-30 pointer-events-auto">
-          {isInviteCollapsed ? (
-            <div className="flex items-center bg-slate-950/92 backdrop-blur-xl border border-l-0 border-rose-400/65 rounded-r-xl shadow-xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setIsInviteCollapsed(false)}
-                className="px-3 py-2 text-xs font-bold text-rose-200 hover:bg-white/10 flex items-center gap-2 transition"
-                title={`Open invitation from ${approachInvite.characterName}`}
-              >
-                <span
-                  className="w-5 h-5 rounded-md flex items-center justify-center text-white font-display font-bold text-[10px] shrink-0"
-                  style={{ backgroundColor: approachInvite.avatarColor }}
-                >
-                  {approachInvite.characterName[0]}
-                </span>
-                <span>❤️ {approachInvite.characterName} Invite ▸</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleDismissApproach}
-                className="px-2 py-2 text-slate-400 hover:text-white hover:bg-rose-500/20 border-l border-white/10 transition"
-                title="Dismiss Invitation"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <div className="w-[88vw] max-w-[350px] p-3.5 rounded-r-2xl bg-slate-950/95 backdrop-blur-xl border border-l-0 border-rose-400/70 shadow-2xl text-slate-100">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-display font-bold text-xs shrink-0 shadow-md"
-                    style={{ backgroundColor: approachInvite.avatarColor }}
-                  >
-                    {approachInvite.characterName[0]}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-display font-bold text-xs text-white">
-                        {approachInvite.characterName}
-                      </span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-500/25 border border-rose-400/40 text-rose-200 font-semibold">
-                        ❤️ Invite
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-amber-300 truncate mt-0.5">
-                      {approachInvite.suggestedTwoPlaceSpotName || 'Two-Place Bench & Chairs Sanctuary'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setIsInviteCollapsed(true)}
-                    className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-bold text-rose-200 transition"
-                    title="Collapse to left edge"
-                  >
-                    Collapse ◂
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDismissApproach}
-                    className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-100 mt-2 leading-relaxed bg-slate-900/90 p-2.5 rounded-xl border border-white/10">
-                “{approachInvite.greetingText}”
-              </p>
-
-              <div className="mt-2.5 grid grid-cols-2 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleStartPairOuting(
-                      approachInvite.suggestedTwoPlaceSpotId ||
-                        (playerPosRef.current.x > 125
-                          ? 'neo_starlight_bench'
-                          : 'gemini_river_pergola'),
-                      'bench',
-                      approachInvite.characterId
-                    )
-                  }
-                  className="py-2 px-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-400 hover:from-rose-400 hover:to-amber-300 text-slate-950 font-display font-extrabold text-[11px] shadow-md flex items-center justify-center gap-1 transition active:scale-95"
-                >
-                  <span>🪑 Bench Together ❤️</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleStartPairOuting(
-                      approachInvite.suggestedTwoPlaceSpotId ||
-                        (playerPosRef.current.x > 125
-                          ? 'neo_starlight_bench'
-                          : 'gemini_river_pergola'),
-                      'chairs',
-                      approachInvite.characterId
-                    )
-                  }
-                  className="py-2 px-2 rounded-xl bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400/45 text-cyan-200 font-bold text-[11px] flex items-center justify-center gap-1 transition active:scale-95"
-                >
-                  <span>☕ Sit on 2 Chairs</span>
-                </button>
-              </div>
-
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSelectCharacter(approachInvite.characterId)}
-                  className="text-[11px] font-semibold text-amber-300 hover:underline"
-                >
-                  💬 Chat w/ {approachInvite.characterName}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleToggleFollowPlayer(approachInvite.characterId);
-                    setApproachInvite(null);
-                  }}
-                  className="text-[11px] font-semibold text-rose-300 hover:underline"
-                >
-                  {followingCharId === approachInvite.characterId
-                    ? '✓ Following You'
-                    : '🚶‍♀️ Follow Me'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* 2A-2. Active Seated Together at Two-Place Sanctuary — Collapsible Left-Edge Tab / Panel */}
       {playerSittingSpot && !selectedCharacter && (
@@ -6211,64 +5660,6 @@ export default function App() {
         </div>
       )}
 
-      {/* 6. Active AI Resident Conversation & Profile Sheet */}
-      {selectedCharacter && (
-        <CharacterSheet
-          character={selectedCharacter}
-          allCharacters={characters}
-          createdObjects={createdObjects}
-          explorerProfile={explorerProfile}
-          messages={chatHistories[selectedCharacter.id] || []}
-          isSending={isSendingChat}
-          gameHour={gameHour}
-          dayNumber={dayNumber}
-          weather={weather}
-          voiceEnabled={voiceEnabled}
-          onToggleVoice={() => {
-            setVoiceEnabled((prev) => {
-              const next = !prev;
-              if (!next) stopCharacterSpeech();
-              return next;
-            });
-          }}
-          onClose={() => setSelectedCharacterId(null)}
-          onSendMessage={handleSendMessage}
-          onSelectCharacter={handleSelectCharacter}
-          onFocusLocation={(locId) => {
-            handleSelectBuilding(locId);
-          }}
-          onFocusCreatedObject={(obj) => {
-            setSelectedCreatedObject(obj);
-            setCameraTargetOverride({ x: obj.position.x, z: obj.position.z });
-          }}
-          onTriggerSocialWithNearby={(partnerId) =>
-            handleTriggerSocialEncounter(selectedCharacter.id, partnerId)
-          }
-          onTriggerEmote={(emote) => handleTriggerCharacterEmote(selectedCharacter.id, emote)}
-          onSendHome={() => handleSendCharacterToOwnHouse(selectedCharacter.id)}
-          onTriggerAutonomousCreate={() =>
-            handleTriggerAutonomousCreation(selectedCharacter.id)
-          }
-          onBoostDailyGoal={() => handleBoostResidentDailyGoal(selectedCharacter.id)}
-          onRerollDailyGoal={() => handleRerollResidentDailyGoal(selectedCharacter.id)}
-          onOpenCity2Hub={() => setIsCity2HubOpen(true)}
-          onApproveOkPlan={() => handleApproveOkPlan(selectedCharacter.id)}
-          onLaunchGeminiCarTrip={() => handleLaunchGeminiCarTrip(selectedCharacter.id)}
-          isFollowingPlayer={followingCharId === selectedCharacter.id}
-          onToggleFollowPlayer={() => handleToggleFollowPlayer(selectedCharacter.id)}
-          onStartPairOuting={(spotId, seatPreference) =>
-            handleStartPairOuting(spotId, seatPreference, selectedCharacter.id)
-          }
-          onOpenEditor={() =>
-            setEditorModal({
-              open: true,
-              mode: 'edit',
-              characterId: selectedCharacter.id,
-            })
-          }
-        />
-      )}
-
       {/* 6A. Second City (Neo-Horizon) Groq AI Intelligence Hub, Database, OK-Plan, Love Co-Working & Friend Chart Modal */}
       {isCity2HubOpen && (
         <City2GroqHubModal
@@ -6300,6 +5691,14 @@ export default function App() {
           onSynthesizeNewDream={handleSynthesizeNewDream}
           onUpdateGroqConfig={handleUpdateGroqConfig}
           onSyncCity2DatabaseNow={handleSyncCity2DatabaseNow}
+        />
+      )}
+
+      {/* 6B-Audio. Physical Audio Station Interface Modal */}
+      {audioSnap.inWorldStationModalId && (
+        <AudioStationHUD
+          stationId={audioSnap.inWorldStationModalId}
+          onClose={() => AudioManager.closeStationModal()}
         />
       )}
 

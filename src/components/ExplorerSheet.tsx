@@ -76,6 +76,26 @@ const OUTFIT_STYLES: { id: ExplorerOutfitStyle; label: string; desc: string }[] 
     label: 'Adventure Blazer',
     desc: 'Field explorer jacket with cross-body leather satchel',
   },
+  {
+    id: 'naruto_sage',
+    label: '🍥 Shinobi Sage Cloak',
+    desc: 'Naruto Shippuden crimson sage coat & black shinobi yoke',
+  },
+  {
+    id: 'akatsuki_cloak',
+    label: '☁️ Red-Cloud Shinobi Cloak',
+    desc: 'High-collar black shinobi robe adorned with crimson clouds',
+  },
+  {
+    id: 'jonin_vest',
+    label: '🍃 Leaf Jonin Tactical Vest',
+    desc: 'Olive tactical shinobi flak vest with scroll pouches',
+  },
+  {
+    id: 'hokage_cloak',
+    label: '🔥 Hokage Flame Haori',
+    desc: 'Ceremonial white Hokage cloak with blazing crimson hem',
+  },
 ];
 
 const HEADGEAR_OPTIONS: { id: ExplorerHeadgear; label: string }[] = [
@@ -83,6 +103,9 @@ const HEADGEAR_OPTIONS: { id: ExplorerHeadgear; label: string }[] = [
   { id: 'crown', label: '👑 Golden Crown' },
   { id: 'cap', label: '🧢 Explorer Cap' },
   { id: 'headphones', label: '🎧 Tech Headphones' },
+  { id: 'shinobi_headband', label: '🍃 Leaf Shinobi Headband' },
+  { id: 'hokage_hat', label: '⛩️ Hokage Kasa Hat' },
+  { id: 'anbu_mask', label: '🦊 Anbu Fox Mask' },
   { id: 'none', label: '✨ No Headgear' },
 ];
 
@@ -90,6 +113,9 @@ const BACK_GEAR_OPTIONS: { id: ExplorerBackGear; label: string }[] = [
   { id: 'jetpack', label: '🚀 AI Hover Jetpack' },
   { id: 'cape', label: '🦸 Heroic Cape' },
   { id: 'backpack', label: '🎒 Field Backpack' },
+  { id: 'giant_scroll', label: '📜 Giant Summoning Scroll' },
+  { id: 'uchiha_fan', label: '🪭 Uchiha Gunbai Fan' },
+  { id: 'katana_sheath', label: '⚔️ Twin Anbu Katanas' },
   { id: 'none', label: '✨ Clean Back' },
 ];
 
@@ -112,6 +138,36 @@ const SIGNATURE_OUTFIT_PRESETS: {
     secondaryColor: '#38BDF8',
     pantsColor: '#0F172A',
     shoesColor: '#F59E0B',
+  },
+  {
+    name: '🍥 Sage of the Hidden Leaf',
+    outfitStyle: 'naruto_sage',
+    headgear: 'shinobi_headband',
+    backGear: 'giant_scroll',
+    outfitColor: '#F97316',
+    secondaryColor: '#DC2626',
+    pantsColor: '#F97316',
+    shoesColor: '#1E293B',
+  },
+  {
+    name: '🔥 Seventh Hokage Sovereign',
+    outfitStyle: 'hokage_cloak',
+    headgear: 'hokage_hat',
+    backGear: 'katana_sheath',
+    outfitColor: '#DC2626',
+    secondaryColor: '#FBBF24',
+    pantsColor: '#18181B',
+    shoesColor: '#0F172A',
+  },
+  {
+    name: '☁️ Crimson Cloud Renegade',
+    outfitStyle: 'akatsuki_cloak',
+    headgear: 'anbu_mask',
+    backGear: 'uchiha_fan',
+    outfitColor: '#09090B',
+    secondaryColor: '#EF4444',
+    pantsColor: '#09090B',
+    shoesColor: '#1E1B4B',
   },
   {
     name: 'Royal Astral Commander',

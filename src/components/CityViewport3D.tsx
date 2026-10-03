@@ -60,6 +60,7 @@ import {
   HumanoidRig,
   updateHumanoidRigAppearance,
 } from '../utils/humanoidRig';
+import { buildNinjaVillageAndHighway } from '../utils/ninjaVillageBuilder';
 
 export type CameraViewMode = 'chase' | 'action' | 'panoramic' | 'sky';
 
@@ -78,6 +79,7 @@ interface CityViewport3DProps {
   onExitGamepadMode?: () => void;
   onJoystickMove?: (vector: { x: number; y: number }) => void;
   selectedCharacterId: string | null;
+  nearbyCharacterId?: string | null;
   selectedBuildingId: BuildingId | null;
   gameHour: number;
   timePhase: TimePhase;
@@ -384,6 +386,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
   onExitGamepadMode,
   onJoystickMove,
   selectedCharacterId,
+  nearbyCharacterId = null,
   selectedBuildingId,
   gameHour,
   timePhase,
@@ -425,8 +428,12 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
   const triggerBridgeFastTravelRef = useRef<
     ((targetCity?: 'neo_horizon' | 'gemini_city') => void) | null
   >(null);
-  const [explorerZone, setExplorerZone] = useState<'gemini_city' | 'suspension_bridge' | 'neo_horizon'>('gemini_city');
-  const explorerZoneRef = useRef<'gemini_city' | 'suspension_bridge' | 'neo_horizon'>('gemini_city');
+  const [explorerZone, setExplorerZone] = useState<
+    'gemini_city' | 'suspension_bridge' | 'neo_horizon' | 'shinobi_highway' | 'ninja_village'
+  >('gemini_city');
+  const explorerZoneRef = useRef<
+    'gemini_city' | 'suspension_bridge' | 'neo_horizon' | 'shinobi_highway' | 'ninja_village'
+  >('gemini_city');
   const [isBridgeHubOpen, setIsBridgeHubOpen] = useState(false);
   const [bridgeReflectionTheme, setBridgeReflectionTheme] =
     useState<BridgeReflectionTheme>('architecture');
@@ -454,6 +461,8 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
   const cyberCarLabelRef = useRef<HTMLDivElement | null>(null);
   const busLabelRef = useRef<HTMLDivElement | null>(null);
   const busDepotLabelRef = useRef<HTMLDivElement | null>(null);
+  const cyberStationLabelRef = useRef<HTMLDivElement | null>(null);
+  const jamaicaStationLabelRef = useRef<HTMLDivElement | null>(null);
 
   // Rideable Cyberpunk Supercar ("Cyber-Valkyrie GT") State & 60FPS Refs
   const [isRidingCyberCar, setIsRidingCyberCar] = useState(false);
@@ -692,7 +701,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       42,
       container.clientWidth / Math.max(1, container.clientHeight),
       0.5,
-      680
+      2200
     );
 
     const renderer = new THREE.WebGLRenderer({
@@ -847,18 +856,18 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     const worldGroup = new THREE.Group();
     scene.add(worldGroup);
 
-    // 4A. Deep Seabed Ocean Floor (Spans across both Gemini City, the Suspension Bridge & Neo-Horizon 2nd City)
-    const seabedGeo = new THREE.CylinderGeometry(580, 580, 2.0, 48);
+    // 4A. Deep Seabed Ocean Floor (Spans across Gemini City, Suspension Bridge, Neo-Horizon & Extended 750m Northern Shinobi Region)
+    const seabedGeo = new THREE.CylinderGeometry(1450, 1450, 2.0, 48);
     const seabedMat = new THREE.MeshStandardMaterial({
       color: '#0369a1',
       roughness: 0.9,
     });
     const seabedMesh = new THREE.Mesh(seabedGeo, seabedMat);
-    seabedMesh.position.set(95, -6.2, 0);
+    seabedMesh.position.set(95, -6.2, -320);
     worldGroup.add(seabedMesh);
 
-    // 4B. Animated Crystalline Sea Water Expanse (🌊 1060m x 1060m with realistic wave caustics & sky reflections)
-    const waterGeo = new THREE.PlaneGeometry(1060, 1060, 44, 44);
+    // 4B. Animated Crystalline Sea Water Expanse (🌊 2500m x 2500m with realistic wave caustics & sky reflections)
+    const waterGeo = new THREE.PlaneGeometry(2500, 2500, 44, 44);
     waterGeo.rotateX(-Math.PI / 2);
     const waterPosAttr = waterGeo.getAttribute('position') as THREE.BufferAttribute;
     const waterPosArr = waterPosAttr.array as Float32Array;
@@ -989,7 +998,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       [185, -130, 44, 26],
       [-190, 115, 34, 18],
       [165, 155, 42, 24],
-      [0, -210, 52, 30],
+      [-88, -210, 36, 24], // Reshaped and relocated away from highway to ensure completely clear road to Hidden Ninja Village!
       [95, -185, 46, 28],
       [95, 175, 40, 22],
     ];
@@ -2307,6 +2316,595 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       }
       spotGroup.add(archGroup);
     });
+
+    // =======================================================================================
+    // 6C. BUILD PHYSICAL AUDIO STATIONS (CYBER CITY & JAMAICA CITY)
+    // =======================================================================================
+    const stationEqualizerBars: {
+      mesh: THREE.Mesh;
+      baseY: number;
+      maxHeight: number;
+      speed: number;
+      phase: number;
+    }[] = [];
+
+    // ---------------------------------------------------------------------------------------
+    // STATION 1: ⚡ CYBER CITY AUDIO STATION (x: 198, z: 8) in Neo-Horizon Cyber-Core Plaza
+    // ---------------------------------------------------------------------------------------
+    const cyberStationGroup = new THREE.Group();
+    cyberStationGroup.position.set(198, 0, 8);
+    worldGroup.add(cyberStationGroup);
+    addContactShadow(cyberStationGroup, 7.5, 7.5, 0.6);
+
+    // 1A. Metallic Obsidian Circular Terrace Plinth with Cyan Neon Underglow Ring
+    const cyberPlinth = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.6, 3.75, 0.12, 36),
+      new THREE.MeshStandardMaterial({
+        color: '#0f172a',
+        roughness: 0.35,
+        metalness: 0.85,
+      })
+    );
+    cyberPlinth.position.set(0, 0.06, 0);
+    cyberPlinth.userData = { type: 'audio_station', stationId: 'cyber_city_station' };
+    cyberStationGroup.add(cyberPlinth);
+    pickableObjects.push(cyberPlinth);
+
+    const cyberNeonRing = new THREE.Mesh(
+      new THREE.TorusGeometry(3.68, 0.05, 12, 48),
+      new THREE.MeshStandardMaterial({
+        color: '#00f0ff',
+        emissive: '#00f0ff',
+        emissiveIntensity: 1.2,
+      })
+    );
+    cyberNeonRing.rotation.x = Math.PI / 2;
+    cyberNeonRing.position.set(0, 0.12, 0);
+    cyberStationGroup.add(cyberNeonRing);
+
+    // 1B. Modern Cyber Music Console Desk (Chamfered Obsidian with Carbon Deck)
+    const cyberConsole = new THREE.Mesh(
+      new THREE.BoxGeometry(2.3, 0.88, 1.0),
+      new THREE.MeshStandardMaterial({
+        color: '#1e293b',
+        roughness: 0.25,
+        metalness: 0.9,
+      })
+    );
+    cyberConsole.position.set(0, 0.52, 0);
+    cyberConsole.castShadow = true;
+    cyberConsole.userData = { type: 'audio_station', stationId: 'cyber_city_station' };
+    cyberStationGroup.add(cyberConsole);
+    pickableObjects.push(cyberConsole);
+
+    // Glowing Cyan Trim on Console Edge
+    const cyberConsoleTrim = new THREE.Mesh(
+      new THREE.BoxGeometry(2.34, 0.04, 1.04),
+      new THREE.MeshStandardMaterial({
+        color: '#00f0ff',
+        emissive: '#00f0ff',
+        emissiveIntensity: 0.8,
+      })
+    );
+    cyberConsoleTrim.position.set(0, 0.96, 0);
+    cyberStationGroup.add(cyberConsoleTrim);
+
+    // Twin Turntable Jog Platters
+    for (const jx of [-0.68, 0.68]) {
+      const platter = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.3, 0.05, 24),
+        new THREE.MeshStandardMaterial({
+          color: '#090d16',
+          roughness: 0.15,
+          metalness: 0.95,
+        })
+      );
+      platter.position.set(jx, 0.98, 0.05);
+      cyberStationGroup.add(platter);
+
+      const platterRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.29, 0.02, 8, 24),
+        new THREE.MeshStandardMaterial({
+          color: '#38bdf8',
+          emissive: '#38bdf8',
+          emissiveIntensity: 0.9,
+        })
+      );
+      platterRing.rotation.x = Math.PI / 2;
+      platterRing.position.set(jx, 1.01, 0.05);
+      cyberStationGroup.add(platterRing);
+    }
+
+    // Central Mixer Controls (Tactile Knobs & Faders)
+    for (let fIdx = -0.18; fIdx <= 0.18; fIdx += 0.12) {
+      const fader = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 0.03, 0.22),
+        new THREE.MeshStandardMaterial({ color: '#f43f5e', emissive: '#f43f5e', emissiveIntensity: 0.5 })
+      );
+      fader.position.set(fIdx, 0.98, 0.06);
+      cyberStationGroup.add(fader);
+    }
+
+    // Angled Holographic Equalizer Screen & Subtle Animated Bars
+    const cyberEqScreen = new THREE.Mesh(
+      new THREE.BoxGeometry(1.35, 0.44, 0.04),
+      new THREE.MeshStandardMaterial({
+        color: '#020617',
+        roughness: 0.1,
+        metalness: 0.7,
+        emissive: '#082f49',
+        emissiveIntensity: 0.3,
+      })
+    );
+    cyberEqScreen.position.set(0, 1.25, -0.32);
+    cyberEqScreen.rotation.x = -0.25;
+    cyberStationGroup.add(cyberEqScreen);
+
+    // 7 Animated Equalizer Bars on Screen
+    const cyberEqBarColors = ['#00f0ff', '#38bdf8', '#818cf8', '#c084fc', '#e879f9', '#f43f5e', '#00f0ff'];
+    for (let bIdx = 0; bIdx < 7; bIdx++) {
+      const bx = -0.48 + bIdx * 0.16;
+      const barMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.1, 0.1, 0.03),
+        new THREE.MeshStandardMaterial({
+          color: cyberEqBarColors[bIdx],
+          emissive: cyberEqBarColors[bIdx],
+          emissiveIntensity: 1.0,
+        })
+      );
+      barMesh.position.set(bx, 1.25, -0.29);
+      barMesh.rotation.x = -0.25;
+      cyberStationGroup.add(barMesh);
+
+      stationEqualizerBars.push({
+        mesh: barMesh,
+        baseY: 1.25,
+        maxHeight: 0.28,
+        speed: 2.8 + (bIdx % 3) * 1.2,
+        phase: bIdx * 0.9,
+      });
+    }
+
+    // 1C. Dual Cyber Tower Speakers (Left & Right)
+    for (const sx of [-2.05, 2.05]) {
+      const speakerTower = new THREE.Mesh(
+        new THREE.BoxGeometry(0.55, 1.95, 0.55),
+        new THREE.MeshStandardMaterial({
+          color: '#0f172a',
+          roughness: 0.3,
+          metalness: 0.8,
+        })
+      );
+      speakerTower.position.set(sx, 0.98, -0.15);
+      speakerTower.castShadow = true;
+      cyberStationGroup.add(speakerTower);
+
+      // Vertical Glowing Neon Acoustic Strips
+      const neonStrip = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 1.75, 0.56),
+        new THREE.MeshStandardMaterial({
+          color: '#00f0ff',
+          emissive: '#00f0ff',
+          emissiveIntensity: 1.1,
+        })
+      );
+      neonStrip.position.set(sx + (sx > 0 ? -0.27 : 0.27), 0.98, -0.15);
+      cyberStationGroup.add(neonStrip);
+
+      // Dual Subwoofer Cones on front face
+      for (const sy of [0.55, 1.35]) {
+        const cone = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.18, 0.12, 0.06, 16),
+          new THREE.MeshStandardMaterial({
+            color: '#1e293b',
+            roughness: 0.4,
+            metalness: 0.7,
+            emissive: '#0284c7',
+            emissiveIntensity: 0.25,
+          })
+        );
+        cone.rotation.x = Math.PI / 2;
+        cone.position.set(sx, sy, 0.14);
+        cyberStationGroup.add(cone);
+      }
+    }
+
+    // 1D. Overhead Holographic Station Canopy & Sign
+    for (const px of [-1.15, 1.15]) {
+      const pylon = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.06, 0.07, 2.45, 12),
+        new THREE.MeshStandardMaterial({ color: '#334155', metalness: 0.9, roughness: 0.2 })
+      );
+      pylon.position.set(px, 1.25, -0.42);
+      cyberStationGroup.add(pylon);
+    }
+    const cyberSignBeam = new THREE.Mesh(
+      new THREE.BoxGeometry(2.65, 0.28, 0.08),
+      new THREE.MeshStandardMaterial({
+        color: '#0284c7',
+        emissive: '#00f0ff',
+        emissiveIntensity: 0.75,
+        roughness: 0.2,
+      })
+    );
+    cyberSignBeam.position.set(0, 2.48, -0.42);
+    cyberSignBeam.userData = { type: 'audio_station', stationId: 'cyber_city_station' };
+    cyberStationGroup.add(cyberSignBeam);
+    pickableObjects.push(cyberSignBeam);
+
+    // 1E. Physical Relaxation & Listening Area in front of Console (x: 198, z: 10.2)
+    // 2 Cyber Lounge Armchairs angled toward the music station
+    for (const [cx, cz, rotY] of [
+      [-1.25, 2.2, 0.2],
+      [1.25, 2.2, -0.2],
+    ]) {
+      const chairGroup = new THREE.Group();
+      chairGroup.position.set(cx, 0, cz);
+      chairGroup.rotation.y = rotY;
+      cyberStationGroup.add(chairGroup);
+
+      const seatPad = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.15, 0.8),
+        new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.35, metalness: 0.7 })
+      );
+      seatPad.position.set(0, 0.35, 0);
+      seatPad.castShadow = true;
+      chairGroup.add(seatPad);
+      seatPad.userData = {
+        type: 'audio_station_chair',
+        chairTarget: { x: 198 + cx, z: 8 + cz },
+      };
+      pickableObjects.push(seatPad);
+
+      const backRest = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.7, 0.12),
+        new THREE.MeshStandardMaterial({
+          color: '#0f172a',
+          roughness: 0.35,
+          metalness: 0.8,
+        })
+      );
+      backRest.position.set(0, 0.72, 0.38);
+      backRest.rotation.x = -0.12;
+      backRest.castShadow = true;
+      chairGroup.add(backRest);
+      backRest.userData = {
+        type: 'audio_station_chair',
+        chairTarget: { x: 198 + cx, z: 8 + cz },
+      };
+      pickableObjects.push(backRest);
+
+      // Glowing Neon Accent along the back of the chair
+      const chairNeon = new THREE.Mesh(
+        new THREE.BoxGeometry(0.76, 0.04, 0.04),
+        new THREE.MeshStandardMaterial({ color: '#00f0ff', emissive: '#00f0ff', emissiveIntensity: 0.9 })
+      );
+      chairNeon.position.set(0, 1.05, 0.42);
+      chairGroup.add(chairNeon);
+    }
+
+    // Glass & Chrome Cocktail Table with Glowing Cyber Prism
+    const cyberTable = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.48, 0.48, 0.06, 24),
+      new THREE.MeshStandardMaterial({ color: '#082f49', metalness: 0.6, roughness: 0.1, transparent: true, opacity: 0.85 })
+    );
+    cyberTable.position.set(0, 0.38, 2.2);
+    cyberStationGroup.add(cyberTable);
+
+    const cyberTableLeg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.16, 0.38, 16),
+      new THREE.MeshStandardMaterial({ color: '#334155', metalness: 0.9, roughness: 0.2 })
+    );
+    cyberTableLeg.position.set(0, 0.19, 2.2);
+    cyberStationGroup.add(cyberTableLeg);
+
+    const cyberPrism = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.12, 0),
+      new THREE.MeshStandardMaterial({ color: '#38bdf8', emissive: '#00f0ff', emissiveIntensity: 1.0 })
+    );
+    cyberPrism.position.set(0, 0.54, 2.2);
+    cyberStationGroup.add(cyberPrism);
+
+    // Decorative Holographic Planter Box with Crystal Flora
+    const cyberPlanter = new THREE.Mesh(
+      new THREE.BoxGeometry(0.65, 0.35, 0.65),
+      new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.4, metalness: 0.8 })
+    );
+    cyberPlanter.position.set(2.4, 0.18, 1.8);
+    cyberStationGroup.add(cyberPlanter);
+
+    const crystalFlora = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.28, 1),
+      new THREE.MeshStandardMaterial({ color: '#a855f7', emissive: '#c084fc', emissiveIntensity: 0.85 })
+    );
+    crystalFlora.position.set(2.4, 0.52, 1.8);
+    cyberStationGroup.add(crystalFlora);
+
+    // ---------------------------------------------------------------------------------------
+    // STATION 2: 🌴 JAMAICA CITY AUDIO STATION (x: -8, z: 6) in Central Starlight Park
+    // ---------------------------------------------------------------------------------------
+    const jamaicaStationGroup = new THREE.Group();
+    jamaicaStationGroup.position.set(-8, 0, 6);
+    worldGroup.add(jamaicaStationGroup);
+    addContactShadow(jamaicaStationGroup, 7.5, 7.5, 0.6);
+
+    // 2A. Warm Teak Wood Circular Terrace Plinth with Golden Brass Rim
+    const jamaicaPlinth = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.6, 3.75, 0.12, 36),
+      new THREE.MeshStandardMaterial({
+        map: woodDeckTex,
+        color: '#78350f',
+        roughness: 0.55,
+        metalness: 0.15,
+      })
+    );
+    jamaicaPlinth.position.set(0, 0.06, 0);
+    jamaicaPlinth.userData = { type: 'audio_station', stationId: 'jamaica_city_station' };
+    jamaicaStationGroup.add(jamaicaPlinth);
+    pickableObjects.push(jamaicaPlinth);
+
+    const jamaicaBrassRim = new THREE.Mesh(
+      new THREE.TorusGeometry(3.68, 0.05, 12, 48),
+      new THREE.MeshStandardMaterial({
+        color: '#fbbf24',
+        emissive: '#d97706',
+        emissiveIntensity: 0.5,
+        metalness: 0.85,
+        roughness: 0.25,
+      })
+    );
+    jamaicaBrassRim.rotation.x = Math.PI / 2;
+    jamaicaBrassRim.position.set(0, 0.12, 0);
+    jamaicaStationGroup.add(jamaicaBrassRim);
+
+    // 2B. Acoustic Teak Wood DJ Workstation Console with Golden Brass Corner Brackets
+    const jamaicaConsole = new THREE.Mesh(
+      new THREE.BoxGeometry(2.3, 0.88, 1.0),
+      new THREE.MeshStandardMaterial({
+        map: woodDeckTex,
+        color: '#92400e',
+        roughness: 0.45,
+        metalness: 0.2,
+      })
+    );
+    jamaicaConsole.position.set(0, 0.52, 0);
+    jamaicaConsole.castShadow = true;
+    jamaicaConsole.userData = { type: 'audio_station', stationId: 'jamaica_city_station' };
+    jamaicaStationGroup.add(jamaicaConsole);
+    pickableObjects.push(jamaicaConsole);
+
+    // Warm Golden Brass Console Trim
+    const jamaicaConsoleTrim = new THREE.Mesh(
+      new THREE.BoxGeometry(2.34, 0.04, 1.04),
+      new THREE.MeshStandardMaterial({
+        color: '#fbbf24',
+        emissive: '#f59e0b',
+        emissiveIntensity: 0.45,
+        metalness: 0.8,
+        roughness: 0.3,
+      })
+    );
+    jamaicaConsoleTrim.position.set(0, 0.96, 0);
+    jamaicaStationGroup.add(jamaicaConsoleTrim);
+
+    // Vintage Vinyl Turntables with Golden Center Labels & Tone Arms
+    for (const jx of [-0.68, 0.68]) {
+      const turntable = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.31, 0.31, 0.05, 24),
+        new THREE.MeshStandardMaterial({
+          color: '#1c1917',
+          roughness: 0.2,
+          metalness: 0.3,
+        })
+      );
+      turntable.position.set(jx, 0.98, 0.05);
+      jamaicaStationGroup.add(turntable);
+
+      // Gold Center Label
+      const goldLabel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1, 0.1, 0.06, 16),
+        new THREE.MeshStandardMaterial({
+          color: '#fbbf24',
+          emissive: '#d97706',
+          emissiveIntensity: 0.4,
+          metalness: 0.8,
+        })
+      );
+      goldLabel.position.set(jx, 0.99, 0.05);
+      jamaicaStationGroup.add(goldLabel);
+
+      // Tone Arm
+      const toneArm = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.015, 0.015, 0.26, 8),
+        new THREE.MeshStandardMaterial({ color: '#fbbf24', metalness: 0.9, roughness: 0.2 })
+      );
+      toneArm.rotation.z = Math.PI / 2.8;
+      toneArm.position.set(jx + 0.26, 1.02, -0.06);
+      jamaicaStationGroup.add(toneArm);
+    }
+
+    // Analog Wood-Framed Warm Equalizer Display & 7 Animated Bars
+    const jamaicaEqScreen = new THREE.Mesh(
+      new THREE.BoxGeometry(1.35, 0.44, 0.04),
+      new THREE.MeshStandardMaterial({
+        color: '#1c1917',
+        roughness: 0.3,
+        emissive: '#451a03',
+        emissiveIntensity: 0.35,
+      })
+    );
+    jamaicaEqScreen.position.set(0, 1.25, -0.32);
+    jamaicaEqScreen.rotation.x = -0.25;
+    jamaicaStationGroup.add(jamaicaEqScreen);
+
+    // 7 Warm Golden/Amber Equalizer Bars
+    const jamaicaEqBarColors = ['#f59e0b', '#fbbf24', '#fde047', '#34d399', '#fde047', '#fbbf24', '#f59e0b'];
+    for (let bIdx = 0; bIdx < 7; bIdx++) {
+      const bx = -0.48 + bIdx * 0.16;
+      const barMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.1, 0.1, 0.03),
+        new THREE.MeshStandardMaterial({
+          color: jamaicaEqBarColors[bIdx],
+          emissive: jamaicaEqBarColors[bIdx],
+          emissiveIntensity: 0.95,
+        })
+      );
+      barMesh.position.set(bx, 1.25, -0.29);
+      barMesh.rotation.x = -0.25;
+      jamaicaStationGroup.add(barMesh);
+
+      stationEqualizerBars.push({
+        mesh: barMesh,
+        baseY: 1.25,
+        maxHeight: 0.28,
+        speed: 2.4 + (bIdx % 3) * 1.1,
+        phase: bIdx * 0.8 + 1.2,
+      });
+    }
+
+    // 2C. Dual Studio Monitor Tower Speakers (Handcrafted Wood Cabinets)
+    for (const sx of [-2.05, 2.05]) {
+      const woodSpeaker = new THREE.Mesh(
+        new THREE.BoxGeometry(0.55, 1.85, 0.55),
+        new THREE.MeshStandardMaterial({
+          map: woodDeckTex,
+          color: '#5c2b09',
+          roughness: 0.5,
+          metalness: 0.1,
+        })
+      );
+      woodSpeaker.position.set(sx, 0.93, -0.15);
+      woodSpeaker.castShadow = true;
+      jamaicaStationGroup.add(woodSpeaker);
+
+      // Gold acoustic driver cones
+      for (const sy of [0.55, 1.3]) {
+        const goldCone = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.19, 0.13, 0.06, 16),
+          new THREE.MeshStandardMaterial({
+            color: '#fbbf24',
+            emissive: '#b45309',
+            emissiveIntensity: 0.35,
+            metalness: 0.75,
+            roughness: 0.3,
+          })
+        );
+        goldCone.rotation.x = Math.PI / 2;
+        goldCone.position.set(sx, sy, 0.14);
+        jamaicaStationGroup.add(goldCone);
+      }
+    }
+
+    // 2D. Carved Teak Wood Overhead Station Sign
+    for (const px of [-1.15, 1.15]) {
+      const brassPole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.06, 0.07, 2.45, 12),
+        new THREE.MeshStandardMaterial({ color: '#d97706', metalness: 0.8, roughness: 0.3 })
+      );
+      brassPole.position.set(px, 1.25, -0.42);
+      jamaicaStationGroup.add(brassPole);
+    }
+    const jamaicaSignBeam = new THREE.Mesh(
+      new THREE.BoxGeometry(2.65, 0.28, 0.08),
+      new THREE.MeshStandardMaterial({
+        map: woodDeckTex,
+        color: '#b45309',
+        roughness: 0.4,
+        emissive: '#78350f',
+        emissiveIntensity: 0.4,
+      })
+    );
+    jamaicaSignBeam.position.set(0, 2.48, -0.42);
+    jamaicaSignBeam.userData = { type: 'audio_station', stationId: 'jamaica_city_station' };
+    jamaicaStationGroup.add(jamaicaSignBeam);
+    pickableObjects.push(jamaicaSignBeam);
+
+    // 2E. Physical Relaxation & Listening Area in front of Console (x: -8, z: 8.2)
+    // 2 Cozy Teak Lounge Armchairs with plush cushions
+    for (const [cx, cz, rotY] of [
+      [-1.25, 2.2, 0.2],
+      [1.25, 2.2, -0.2],
+    ]) {
+      const chairGroup = new THREE.Group();
+      chairGroup.position.set(cx, 0, cz);
+      chairGroup.rotation.y = rotY;
+      jamaicaStationGroup.add(chairGroup);
+
+      const seatPad = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.15, 0.8),
+        new THREE.MeshStandardMaterial({ color: '#fef3c7', roughness: 0.7, metalness: 0.05 })
+      );
+      seatPad.position.set(0, 0.35, 0);
+      seatPad.castShadow = true;
+      chairGroup.add(seatPad);
+      seatPad.userData = {
+        type: 'audio_station_chair',
+        chairTarget: { x: -8 + cx, z: 6 + cz },
+      };
+      pickableObjects.push(seatPad);
+
+      const chairFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(0.86, 0.1, 0.86),
+        new THREE.MeshStandardMaterial({ map: woodDeckTex, color: '#78350f', roughness: 0.5 })
+      );
+      chairFrame.position.set(0, 0.25, 0);
+      chairGroup.add(chairFrame);
+
+      const backRest = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.7, 0.12),
+        new THREE.MeshStandardMaterial({
+          map: woodDeckTex,
+          color: '#78350f',
+          roughness: 0.5,
+        })
+      );
+      backRest.position.set(0, 0.72, 0.38);
+      backRest.rotation.x = -0.12;
+      backRest.castShadow = true;
+      chairGroup.add(backRest);
+      backRest.userData = {
+        type: 'audio_station_chair',
+        chairTarget: { x: -8 + cx, z: 6 + cz },
+      };
+      pickableObjects.push(backRest);
+    }
+
+    // Low Teak Coffee Table with Tropical Drink & Ambient Candle Lantern
+    const jamaicaTable = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.48, 0.48, 0.06, 24),
+      new THREE.MeshStandardMaterial({ map: woodDeckTex, color: '#92400e', roughness: 0.5 })
+    );
+    jamaicaTable.position.set(0, 0.38, 2.2);
+    jamaicaStationGroup.add(jamaicaTable);
+
+    const jamaicaTableLeg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.14, 0.38, 16),
+      new THREE.MeshStandardMaterial({ color: '#78350f', roughness: 0.6 })
+    );
+    jamaicaTableLeg.position.set(0, 0.19, 2.2);
+    jamaicaStationGroup.add(jamaicaTableLeg);
+
+    const lanternGlobe = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 12, 12),
+      new THREE.MeshStandardMaterial({ color: '#fef08a', emissive: '#f59e0b', emissiveIntensity: 1.0 })
+    );
+    lanternGlobe.position.set(0, 0.52, 2.2);
+    jamaicaStationGroup.add(lanternGlobe);
+
+    // Terracotta Planters with Lush Tropical Green Palms / Ferns
+    const jamaicaPlanter = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.34, 0.24, 0.44, 16),
+      new THREE.MeshStandardMaterial({ color: '#c2410c', roughness: 0.75 })
+    );
+    jamaicaPlanter.position.set(2.4, 0.22, 1.8);
+    jamaicaStationGroup.add(jamaicaPlanter);
+
+    const palmBush = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.38, 1),
+      new THREE.MeshStandardMaterial({ color: '#15803d', roughness: 0.65 })
+    );
+    palmBush.position.set(2.4, 0.62, 1.8);
+    jamaicaStationGroup.add(palmBush);
 
     const createDetailedBuilding = (b: BuildingInfo) => {
       if (b.id === 'park' || b.id === 'neo_plaza') return;
@@ -5428,6 +6026,21 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     worldGroup.add(dreamCruiserGroup);
 
     // =========================================================================================
+    // 5A-NINJA. NORTHERN SHINOBI HIGHWAY & HIDDEN LEAF NINJA VILLAGE (z = -38.5 to -448)
+    // =========================================================================================
+    const ninjaVillageBuild = buildNinjaVillageAndHighway();
+    worldGroup.add(ninjaVillageBuild.group);
+    ninjaVillageBuild.buildingPickMeshes.forEach((entry) => {
+      pickableObjects.push(...entry.meshes);
+    });
+    ninjaVillageBuild.group.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh && !child.userData?.type) {
+        child.userData = { type: 'ground' };
+        pickableObjects.push(child);
+      }
+    });
+
+    // =========================================================================================
     // 5B. 5-PASSENGER AUTONOMOUS INTER-CITY LUXURY BUS ("HORIZON GRAND 5-SEATER COACH" 🚌)
     //     + 6 PHYSICAL 3D BUS STOP SHELTERS & TOGGLEABLE 3D BUS STOP MARKERS ACROSS THE MAP
     // =========================================================================================
@@ -6843,6 +7456,14 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         const nextMode = order[(order.indexOf(cameraViewModeRef.current) + 1) % order.length];
         setCameraViewMode(nextMode);
         applyCameraViewPreset(nextMode);
+      } else if (key === 'e' && !e.repeat) {
+        const distCyber = Math.hypot(playerState.x - 198, playerState.z - 8);
+        const distJamaica = Math.hypot(playerState.x - -8, playerState.z - 6);
+        if (distCyber <= 5.5) {
+          AudioManager.openStationModal('cyber_city_station');
+        } else if (distJamaica <= 5.5) {
+          AudioManager.openStationModal('jamaica_city_station');
+        }
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -6851,8 +7472,17 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // Helper to clamp any target or player position to the Two Connected Cities + Bridge + South Pier
+    // Helper to clamp any target or player position to Gemini City, Bridge, Neo-Horizon, Extended 750m Northern Shinobi Highway & Hidden Leaf Ninja Village
     const clampToWalkableWorld = (rawX: number, rawZ: number): { x: number; z: number } => {
+      // 0A. Hidden Leaf Ninja Village Sanctuary (Center: 0, -854, Radius: 94m)
+      const distNinjaVillage = Math.hypot(rawX, rawZ - -854);
+      if (distNinjaVillage <= 94) {
+        return { x: rawX, z: rawZ };
+      }
+      // 0B. Extended 750m Northern Shinobi Highway & Scenic Corridor (z = -35 to -794, x = -46 to +46)
+      if (rawZ <= -35 && rawZ >= -794 && Math.abs(rawX) <= 46) {
+        return { x: rawX, z: rawZ };
+      }
       // 1. South Harbor Boardwalk Pier on Gemini City
       if (Math.abs(rawX) < 2.6 && rawZ >= 55 && rawZ <= 79) {
         return { x: rawX, z: rawZ };
@@ -6870,6 +7500,21 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       const distCity2 = Math.hypot(rawX - 198, rawZ);
       if (distCity2 <= 58.8) {
         return { x: rawX, z: rawZ };
+      }
+      // If slightly outside the Extended Northern Shinobi Highway guardrails, clamp to the highway corridor
+      if (rawZ < -55 && rawZ > -785) {
+        return {
+          x: THREE.MathUtils.clamp(rawX, -46, 46),
+          z: rawZ,
+        };
+      }
+      // If outside Ninja Village boundary in the far north, clamp radially to Ninja Village
+      if (rawZ <= -785) {
+        const ang3 = Math.atan2(rawZ - -854, rawX);
+        return {
+          x: Math.cos(ang3) * 94,
+          z: -854 + Math.sin(ang3) * 94,
+        };
       }
       // If slightly outside the bridge guardrails while over the ocean channel, slide along the bridge railing!
       if (rawX > 58 && rawX < 140 && Math.abs(rawZ) < 18) {
@@ -7080,7 +7725,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           }
 
           if (data.type === 'character' && data.characterId) {
-            callbacksRef.current.onSelectCharacter(data.characterId);
+            // NPC-to-Player communication is completely disabled.
             return;
           }
 
@@ -7099,6 +7744,16 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
           if (data.type === 'cyber_car') {
             boardCyberCarActionRef.current?.();
+            return;
+          }
+
+          if (data.type === 'audio_station' && data.stationId) {
+            AudioManager.openStationModal(data.stationId);
+            return;
+          }
+
+          if (data.type === 'audio_station_chair' && data.chairTarget) {
+            travelToSpotRef.current?.(data.chairTarget.x, data.chairTarget.z, true);
             return;
           }
 
@@ -7839,9 +8494,18 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         }
       }
 
-      // Track which district Johnny is currently exploring (Gemini City vs Bridge vs Neo-Horizon 2nd City)
-      const nextZone: 'gemini_city' | 'suspension_bridge' | 'neo_horizon' =
-        playerState.x > 136
+      // Track which district Johnny is currently exploring (Gemini City, Bridge, Neo-Horizon, Shinobi Highway, or Hidden Leaf Ninja Village)
+      const nextZone:
+        | 'gemini_city'
+        | 'suspension_bridge'
+        | 'neo_horizon'
+        | 'shinobi_highway'
+        | 'ninja_village' =
+        playerState.z < -782
+          ? 'ninja_village'
+          : playerState.z < -52
+          ? 'shinobi_highway'
+          : playerState.x > 136
           ? 'neo_horizon'
           : playerState.x >= 56
           ? 'suspension_bridge'
@@ -7850,6 +8514,8 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         explorerZoneRef.current = nextZone;
         setExplorerZone(nextZone);
       }
+
+      ninjaVillageBuild.updateAnimations(elapsed, phase === 'night');
 
       // Vertical Jump & Gravity Physics (Skipped while in controlled 3D Bridge Hyper-Glide Fast Travel)
       if (
@@ -7959,7 +8625,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
       });
       projectToDOM(
         playerState.x,
-        2.38 + bridgeSurfaceY + playerState.y,
+        2.58 + bridgeSurfaceY + playerState.y,
         playerState.z,
         playerLabelRef.current
       );
@@ -8184,7 +8850,28 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         if (customDest) {
           const cx = dreamCruiserGroup.position.x;
           const cz = dreamCruiserGroup.position.z;
-          if (cx < 56 && customDest[0] > 62 && Math.abs(cz) > 3.2) {
+          // Routing to Hidden Leaf Ninja Village (z < -100) via the Extended 750m Northern Shinobi Highway (x = 0)
+          if (customDest[1] < -100) {
+            if (cx > 55) {
+              // First cross Golden Horizon Bridge back to Gemini City
+              targetWp = Math.abs(cz) > 3.2 ? [140, -1.65] : [10.5, -1.65];
+            } else if (cz > -38 && Math.abs(cx) > 3.5) {
+              // Align with North Avenue entrance at (0, -38.5)
+              targetWp = [0, -38.5];
+            } else if (cz > -792) {
+              // Cruise straight north along the 750m scenic Shinobi Highway through the Great Gate!
+              targetWp = [0, -796];
+            } else {
+              targetWp = customDest;
+            }
+          } else if (cz < -52 && customDest[1] >= -52) {
+            // Returning South from Hidden Leaf Ninja Village / Shinobi Highway to Gemini City or City 2
+            if (cz < -792 && Math.abs(cx) > 4.5) {
+              targetWp = [0, -794];
+            } else {
+              targetWp = [0, -36];
+            }
+          } else if (cx < 56 && customDest[0] > 62 && Math.abs(cz) > 3.2) {
             targetWp = [56, 1.65];
           } else if (cx >= 54 && cx < 138 && customDest[0] > 140) {
             targetWp = [142, 1.65];
@@ -8230,8 +8917,11 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
           const isBridgeSpan =
             dreamCruiserGroup.position.x > 52 && dreamCruiserGroup.position.x < 144;
+          const isShinobiHighway = dreamCruiserGroup.position.z < -42;
           const desiredCruiseSpeed = carWaitingAtTrafficLight
             ? 0
+            : isShinobiHighway
+            ? 24.5
             : isBridgeSpan
             ? 15.2
             : 11.4;
@@ -8995,7 +9685,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
           projectToDOM(
             rig.group.position.x,
-            2.15 * char.scale + rig.group.position.y,
+            2.48 * char.scale + rig.group.position.y,
             rig.group.position.z,
             charLabelRefs.current[char.id] || null,
             120
@@ -9040,7 +9730,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
           projectToDOM(
             rig.group.position.x,
-            2.22 * char.scale + rig.group.position.y,
+            2.55 * char.scale + rig.group.position.y,
             rig.group.position.z,
             charLabelRefs.current[char.id] || null,
             isSel ? 300 : 85
@@ -9160,13 +9850,6 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             );
             headLookDelta = normalizeAngle(angleToPlayer - rig.group.rotation.y);
           }
-        } else if (isSel && !aiActuallyMoving) {
-          const angleToPlayer = Math.atan2(
-            playerState.x - rig.group.position.x,
-            playerState.z - rig.group.position.z
-          );
-          targetBodyRotY = angleToPlayer;
-          headLookDelta = normalizeAngle(angleToPlayer - rig.group.rotation.y);
         } else if (partnerRig && !aiActuallyMoving) {
           const angleToPartner = Math.atan2(
             partnerRig.group.position.x - rig.group.position.x,
@@ -9174,19 +9857,6 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           );
           targetBodyRotY = angleToPartner;
           headLookDelta = normalizeAngle(angleToPartner - rig.group.rotation.y);
-        } else if (isCloseToPlayer && !aiActuallyMoving) {
-          const angleToPlayer = Math.atan2(
-            playerState.x - rig.group.position.x,
-            playerState.z - rig.group.position.z
-          );
-          targetBodyRotY = angleToPlayer;
-          headLookDelta = normalizeAngle(angleToPlayer - rig.group.rotation.y);
-        } else if (dToPlayer < 6.8) {
-          const angleToPlayer = Math.atan2(
-            playerState.x - rig.group.position.x,
-            playerState.z - rig.group.position.z
-          );
-          headLookDelta = normalizeAngle(angleToPlayer - rig.group.rotation.y);
         }
 
         const rotDiff = normalizeAngle(targetBodyRotY - rig.group.rotation.y);
@@ -9228,7 +9898,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
 
         projectToDOM(
           rig.group.position.x,
-          2.25 * char.scale + rig.group.position.y,
+          2.58 * char.scale + rig.group.position.y,
           rig.group.position.z,
           charLabelRefs.current[char.id] || null,
           isSel ? 300 : 72
@@ -9261,6 +9931,31 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
         busLabelRef.current,
         showBusStopMarkersRef.current ? 150 : 28
       );
+
+      // Project Physical Audio Station Interactive Prompts (Visible ONLY when player is within 5.5m)
+      projectToDOM(
+        198,
+        2.25,
+        8,
+        cyberStationLabelRef.current,
+        5.5
+      );
+      projectToDOM(
+        -8,
+        2.25,
+        6,
+        jamaicaStationLabelRef.current,
+        5.5
+      );
+
+      // Animate Physical Audio Station Equalizer Bars
+      for (let eqIdx = 0; eqIdx < stationEqualizerBars.length; eqIdx++) {
+        const bar = stationEqualizerBars[eqIdx];
+        const barWave = Math.abs(Math.sin(elapsed * bar.speed + bar.phase));
+        const barH = 0.05 + barWave * bar.maxHeight;
+        bar.mesh.scale.y = Math.max(0.2, barH / 0.1);
+        bar.mesh.position.y = bar.baseY + barH * 0.45;
+      }
 
       // Project toggleable 3D Bus Stop Markers across Gemini City, Bridge & Cyber Horizon
       BUS_STOP_STATIONS.forEach((stop) => {
@@ -9482,7 +10177,7 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             </button>
           </div>
 
-          {/* 3. Small Edge Tab: Quick Cyber Car & Bus Stop/Park Access when walking */}
+          {/* 3. Small Edge Tab: Quick Cyber Car & Ninja Village Road Trip Access when walking */}
           {!isRidingCyberCar && !isRidingBus && (
             <div className="flex items-center rounded-l-xl overflow-hidden border border-r-0 border-amber-400/50 bg-slate-950/90 backdrop-blur-xl shadow-xl">
               <button
@@ -9495,6 +10190,32 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                 title="Sit inside the Cyber-Valkyrie GT Supercar"
               >
                 <span>🏎️ Sit in Car</span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const goingToNinja = explorerZone !== 'ninja_village';
+                  summonCyberCarRef.current?.();
+                  boardCyberCarActionRef.current?.(cyberCarCompanionId || 'hawa');
+                  cyberCarTargetPointRef.current = goingToNinja ? [0, -852] : [0, -10.5];
+                  cyberCarDriveModeRef.current = 'destination';
+                  setCyberCarDriveMode('destination');
+                  toggleCyberCarMoveRef.current?.(true);
+                  setCyberCarDestLabel(
+                    goingToNinja
+                      ? '🍥 Road Trip → Hidden Leaf Ninja Village'
+                      : '🏡 Road Trip → Gemini City'
+                  );
+                }}
+                className="px-2 py-1 text-[10px] font-bold border-l border-white/15 text-orange-300 hover:bg-orange-500/20 flex items-center gap-1 transition active:scale-95"
+                title="Hop in the Cyber-Valkyrie GT Supercar and drive the scenic Northern Shinobi Highway to the Hidden Leaf Ninja Village!"
+              >
+                <span>
+                  {explorerZone === 'ninja_village'
+                    ? '🏡 Drive → Gemini City'
+                    : '🍥 Drive → Ninja Village'}
+                </span>
               </button>
               <button
                 type="button"
@@ -9629,7 +10350,11 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           <div className="px-3.5 py-2.5 border-b border-white/10 bg-slate-900/80 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-                {explorerZone === 'neo_horizon'
+                {explorerZone === 'ninja_village'
+                  ? '🍥 Hidden Leaf Ninja Village'
+                  : explorerZone === 'shinobi_highway'
+                  ? '🛣️ Northern Shinobi Highway'
+                  : explorerZone === 'neo_horizon'
                   ? '🏙️ Neo-Horizon City'
                   : explorerZone === 'suspension_bridge'
                   ? '🌉 Golden Horizon Bridge'
@@ -9724,6 +10449,24 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                 className="p-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-200 text-xs font-bold flex items-center justify-center gap-1 transition active:scale-95 col-span-2"
               >
                 <span>🏡 Return to Gemini City Park</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTransitMenuOpen(false);
+                  summonCyberCarRef.current?.();
+                  boardCyberCarActionRef.current?.(cyberCarCompanionId || 'hawa');
+                  cyberCarTargetPointRef.current = [0, -852];
+                  cyberCarDriveModeRef.current = 'destination';
+                  setCyberCarDriveMode('destination');
+                  toggleCyberCarMoveRef.current?.(true);
+                  setCyberCarDestLabel('🍥 Road Trip → Hidden Leaf Ninja Village');
+                }}
+                className="p-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-md transition active:scale-95 col-span-2"
+              >
+                <span>🍥 Road Trip by Car → Hidden Leaf Ninja Village</span>
               </button>
             </div>
 
@@ -10207,6 +10950,32 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
             >
               ☕ Sunbeam Café
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                cyberCarTargetPointRef.current = [0, -852];
+                cyberCarDriveModeRef.current = 'destination';
+                setCyberCarDriveMode('destination');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('🍥 Road Trip → Hidden Leaf Ninja Village');
+              }}
+              className="px-2 py-1.5 rounded-lg bg-gradient-to-r from-orange-500/35 to-red-500/35 hover:from-orange-500/50 hover:to-red-500/50 border border-orange-400/50 text-orange-200 text-[11px] font-extrabold transition"
+            >
+              🍥 Ninja Village
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cyberCarTargetPointRef.current = [18, -822];
+                cyberCarDriveModeRef.current = 'destination';
+                setCyberCarDriveMode('destination');
+                toggleCyberCarMoveRef.current?.(true);
+                setCyberCarDestLabel('🍜 Driving → Ichiraku Ramen (Hidden Leaf)');
+              }}
+              className="px-2 py-1.5 rounded-lg bg-red-500/25 hover:bg-red-500/40 border border-red-400/40 text-red-200 text-[11px] font-bold transition"
+            >
+              🍜 Ichiraku Ramen
+            </button>
           </div>
         </div>
       )}
@@ -10579,6 +11348,80 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           </div>
         ))}
 
+        {/* Projected 3D Cyber City Audio Station Interactive Prompt (Visible ONLY within 5.5m) */}
+        <div
+          ref={cyberStationLabelRef}
+          style={{ opacity: 0 }}
+          className="absolute top-0 left-0 pointer-events-none flex flex-col items-center"
+        >
+          <div className="pointer-events-auto flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-950/95 backdrop-blur-md border border-cyan-400/60 shadow-xl shadow-cyan-500/20">
+            <div className="text-[10px] font-display font-extrabold text-cyan-300 flex items-center gap-1 uppercase tracking-wider">
+              <span>🎵 MUSIC STATION</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  AudioManager.openStationModal('cyber_city_station');
+                }}
+                className="px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-display font-extrabold shadow-md flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
+                title="Open Cyber City Audio Station [E]"
+              >
+                <span>Interact [E]</span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  travelToSpotRef.current?.(196.8, 10.2, true);
+                }}
+                className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-cyan-200 text-[10px] font-semibold flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
+                title="Sit in Cyber Lounge Chair"
+              >
+                <span>🪑 Sit & Listen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Projected 3D Jamaica City Audio Station Interactive Prompt (Visible ONLY within 5.5m) */}
+        <div
+          ref={jamaicaStationLabelRef}
+          style={{ opacity: 0 }}
+          className="absolute top-0 left-0 pointer-events-none flex flex-col items-center"
+        >
+          <div className="pointer-events-auto flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-950/95 backdrop-blur-md border border-amber-400/60 shadow-xl shadow-amber-500/20">
+            <div className="text-[10px] font-display font-extrabold text-amber-300 flex items-center gap-1 uppercase tracking-wider">
+              <span>🎵 MUSIC STATION</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  AudioManager.openStationModal('jamaica_city_station');
+                }}
+                className="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-400 to-emerald-400 hover:from-amber-300 hover:to-emerald-300 text-slate-950 text-xs font-display font-extrabold shadow-md flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
+                title="Open Jamaica City Audio Station [E]"
+              >
+                <span>Interact [E]</span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  travelToSpotRef.current?.(-9.2, 8.2, true);
+                }}
+                className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-amber-200 text-[10px] font-semibold flex items-center gap-1 transition active:scale-95 whitespace-nowrap"
+                title="Sit in Teak Lounge Chair"
+              >
+                <span>🪑 Sit & Listen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Projected 3D Cyberpunk Supercar Interactive Tag */}
         <div
           ref={cyberCarLabelRef}
@@ -10765,11 +11608,6 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                 : '👏'}
             </div>
           )}
-          {playerActiveBubble && (
-            <div className="mb-1 max-w-[185px] px-2.5 py-1 rounded-xl rounded-bl-xs bg-sky-100/95 text-slate-950 text-[11px] font-medium leading-tight shadow-md border border-sky-300">
-              <p className="line-clamp-2">{playerActiveBubble}</p>
-            </div>
-          )}
           <button
             type="button"
             onClick={(e) => {
@@ -10782,18 +11620,15 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
           </button>
         </div>
 
-        {/* AI Residents Compact Head Name Tags (Only Name on top of head + Speech Bubble when talking) */}
+        {/* AI Residents — Clean & Cinematic: Visual animations only, NO floating conversation text or speech bubbles */}
         {characters.map((char) => {
           const isSelected = selectedCharacterId === char.id;
-          const hasBubble = char.activeBubble && char.activeBubble.expiresAt > nowMs;
-          const hasEmote =
-            char.activeEmote && char.activeEmote.expiresAt > nowMs && char.activeEmote.type !== 'none';
+          // When walking through the city: NO floating dialogue, NO speech bubbles, NO NPC names floating above heads unless explicitly selected
+          if (!isSelected) {
+            return null;
+          }
+
           const wardrobe = getResidentWeatherWardrobe(char, weather);
-          const dGoal = getOrCreateResidentDailyGoal(
-            char,
-            char.dailyGoal?.dayNumber || 1,
-            weather
-          );
 
           return (
             <div
@@ -10802,75 +11637,18 @@ export const CityViewport3D: React.FC<CityViewport3DProps> = ({
                 charLabelRefs.current[char.id] = el;
               }}
               style={{ opacity: 0 }}
-              className="absolute top-0 left-0 flex flex-col items-center"
+              className="absolute top-0 left-0 flex flex-col items-center pointer-events-none"
             >
-              {/* Active Emote Badge */}
-              {hasEmote && char.activeEmote && (
-                <div className="mb-0.5 px-2 py-0.5 rounded-full bg-amber-400/95 text-slate-950 text-[10px] font-bold shadow-sm whitespace-nowrap">
-                  {char.activeEmote.label}
-                </div>
-              )}
-
-              {/* Compact Speech Bubble when talking */}
-              {hasBubble && char.activeBubble && (
-                <div className="mb-1 max-w-[190px] px-2.5 py-1 rounded-xl rounded-bl-xs bg-white/95 text-slate-900 text-[11px] font-medium leading-tight shadow-md border border-slate-200">
-                  <p className="line-clamp-2">{char.activeBubble.text}</p>
-                </div>
-              )}
-
-              {/* Compact Name Tag right on top of their head with Daily Goal badge */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelectCharacter(char.id);
-                }}
-                title={`${char.name} · Daily Goal: "${dGoal.title}" (${Math.round(dGoal.progress)}%) · ${char.decisionReason}`}
-                className={`pointer-events-auto flex items-center gap-1 px-2 py-0.5 rounded-md backdrop-blur-sm border transition-transform active:scale-95 ${
-                  isSelected
-                    ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-sm scale-105'
-                    : 'bg-slate-950/75 text-white border-white/15 hover:bg-slate-900/90 font-semibold'
-                }`}
-              >
-                <span
-                  className="w-2 h-2 rounded-full shrink-0 border border-white/40"
-                  style={{ backgroundColor: wardrobe.outfitColor }}
-                />
-                <span className="text-[11px] tracking-tight whitespace-nowrap">{char.name}</span>
-                {char.romanticPartnerId && (
-                  <span className="text-[9px]" title="In Love & Linked Co-Working">
-                    ❤️
-                  </span>
-                )}
-                {(char.okPlan?.approvedByPlayer ||
-                  char.okPlan?.status === 'approved' ||
-                  char.okPlan?.status === 'active') && (
+              {/* Selected Resident Name Tag (Essential gameplay inspection only) */}
+              <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 px-2.5 py-1 rounded-md backdrop-blur-md border bg-slate-950/85 text-white border-amber-400/40 font-semibold select-none shadow-lg">
                   <span
-                    className="text-[9px]"
-                    title={`OK-Plan Active: ${char.okPlan.planTitle || char.okPlan.title}`}
-                  >
-                    📋
-                  </span>
-                )}
-                {(char.dreamState?.carTripStatus === 'visiting_gemini' ||
-                  char.dream?.carTripPhase === 'visiting_gemini' ||
-                  char.dream?.isCurrentlyOnCarTrip) && (
-                  <span className="text-[9px]" title="Daytime Dream Cruiser Excursion to Gemini City">
-                    🚗
-                  </span>
-                )}
-                <span
-                  className={`text-[9px] font-mono px-1 rounded ${
-                    isSelected
-                      ? 'bg-slate-950/20 text-slate-950'
-                      : dGoal.completed
-                      ? 'bg-emerald-500/25 text-emerald-300'
-                      : 'bg-amber-400/20 text-amber-300'
-                  }`}
-                >
-                  {dGoal.completed ? '✅' : `🎯${Math.round(dGoal.progress)}%`}
-                </span>
-              </button>
+                    className="w-2 h-2 rounded-full shrink-0 border border-white/40"
+                    style={{ backgroundColor: wardrobe.outfitColor }}
+                  />
+                  <span className="text-[11px] tracking-tight whitespace-nowrap font-bold">{char.name}</span>
+                </div>
+              </div>
             </div>
           );
         })}

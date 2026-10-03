@@ -1,909 +1,1091 @@
 import { useEffect, useState } from 'react';
 import {
-  AmbientFrequency,
   AudioManagerSnapshot,
+  AudioPlaylist,
   AudioPlaylistId,
   AudioSettings,
   AudioTrack,
-  AudioZoneId,
+  CarRadioState,
+  MusicStationCustomConfig,
+  MusicStationDefinition,
+  MusicStationId,
+  MusicStationRuntimeState,
   PlaybackOrder,
+  PlaybackStatus,
+  StationEffectSettings,
   VehicleSpatialAudioInput,
+  WorldStationId,
 } from './AudioTypes';
-import { AudioZoneManager, DEFAULT_AUDIO_ZONES } from './AudioZoneManager';
+import {
+  buildCleanDefaultEffects,
+  buildDefaultStationsMap,
+  computeSpatialDistanceGain,
+  DEFAULT_WORLD_STATIONS,
+  WorldMusicStationManager,
+} from './AudioZoneManager';
 import { PlaylistManager } from './PlaylistManager';
-import { ProceduralEnvironmentEngine } from './ProceduralAudioSynthesizer';
-import { TimePhase, WeatherType } from '../types/game';
+import { BuildingId, TimePhase, WeatherType } from '../types/game';
 
-const AUDIO_SETTINGS_STORAGE_KEY = 'gemini_city_audio_settings_v1';
+const GLOBAL_SETTINGS_KEY = 'gemini_city_audio_settings_v5';
+const STATION_STORAGE_PREFIX = 'gemini_station_memory_';
 
-function buildDefaultAudioSettings(): AudioSettings {
-  const defaultZones = {} as Record<AudioZoneId, { enabled: boolean; volume: number }>;
-  DEFAULT_AUDIO_ZONES.forEach((z) => {
-    defaultZones[z.id] = { enabled: z.enabled, volume: z.volume };
-  });
-
-  return {
-    masterVolume: 0.85,
-    musicVolume: 0.8,
-    radioVolume: 0.85,
-    ambienceVolume: 0.75,
-    environmentVolume: 0.75,
-    uiVolume: 0.7,
-    muted: false,
-    radioEnabled: true,
-    playbackOrder: 'sequential',
-    selectedPlaylistId: 'car_radio',
-    ambientMusicEnabled: true,
-    ambientFrequency: 'balanced',
-    ambientFrequencyValue: 50,
-    zoneStates: defaultZones,
-  };
+interface StationMemory {
+  stationVolume: number;
+  effects: StationEffectSettings;
+  playbackOrder: PlaybackOrder;
+  lastTrackId: string | null;
+  lastTrackProgressSec: number;
 }
 
-function loadSavedAudioSettings(): AudioSettings {
-  const defaults = buildDefaultAudioSettings();
+function loadStationMemory(stationId: WorldStationId): StationMemory {
+  const defaultMemory: StationMemory = {
+    stationVolume: 1.0,
+    effects: buildCleanDefaultEffects(),
+    playbackOrder: 'sequential',
+    lastTrackId: null,
+    lastTrackProgressSec: 0,
+  };
+  if (typeof window === 'undefined') return defaultMemory;
   try {
-    const raw = localStorage.getItem(AUDIO_SETTINGS_STORAGE_KEY);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw) as Partial<AudioSettings>;
+    const raw = localStorage.getItem(`${STATION_STORAGE_PREFIX}${stationId}`);
+    if (!raw) return defaultMemory;
+    const parsed = JSON.parse(raw) as Partial<StationMemory>;
     return {
-      ...defaults,
-      ...parsed,
-      zoneStates: {
-        ...defaults.zoneStates,
-        ...(parsed.zoneStates || {}),
+      stationVolume: typeof parsed.stationVolume === 'number' ? parsed.stationVolume : 1.0,
+      effects: {
+        ...buildCleanDefaultEffects(),
+        ...(parsed.effects || {}),
       },
+      playbackOrder: parsed.playbackOrder === 'shuffle' ? 'shuffle' : 'sequential',
+      lastTrackId: parsed.lastTrackId || null,
+      lastTrackProgressSec: typeof parsed.lastTrackProgressSec === 'number' ? parsed.lastTrackProgressSec : 0,
     };
   } catch {
-    return defaults;
+    return defaultMemory;
   }
 }
 
-class GameAudioManager {
-  private settings: AudioSettings;
-  private playlistManager: PlaylistManager;
-  private zoneManager: AudioZoneManager;
-  private envEngine: ProceduralEnvironmentEngine;
+function saveStationMemory(stationId: WorldStationId, memory: StationMemory): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(`${STATION_STORAGE_PREFIX}${stationId}`, JSON.stringify(memory));
+  } catch {
+    // ignore quota errors
+  }
+}
 
-  // Single reusable HTMLAudioElements (Zero memory bloat!)
-  private radioAudio: HTMLAudioElement;
-  private ambientAudio: HTMLAudioElement;
+/**
+ * Single-Player Physical Audio Station Engine
+ *
+ * Requirements Met:
+ * 1. ONE SHARED AUDIO PLAYER: Only one HTMLAudioElement and AudioContext are used across the entire game.
+ * 2. PERFORMANCE OPTIMIZED: Clean path when effects are OFF. No node reconnecting or buffer recreation per frame.
+ * 3. NO AUDIO LAG: Fixed gain routing, smooth parameter transitions via setTargetAtTime.
+ * 4. SMOOTH SLOW EFFECT: Adjusts audioEl.playbackRate directly without restarting or glitching.
+ * 5. PROXIMITY ATTENUATION: Only audible near physical stations. Far away = silent. Approaching = smooth fade.
+ * 6. CONTINUOUS NORMAL PLAYBACK: Songs play to the end, then auto-advance to next song.
+ * 7. STATION MEMORY: Each station independently remembers volume, effects, and last selected track.
+ */
+class SingleAudioEngine {
+  private audioEl: HTMLAudioElement;
+  private ctx: AudioContext | null = null;
+  private sourceNode: MediaElementAudioSourceNode | null = null;
 
-  private audioUnlocked = false;
-  private needsUserInteractionPrompt = true;
+  // Fixed Audio Routing Nodes
+  private dryGainNode: GainNode | null = null;
+  private filterNode: BiquadFilterNode | null = null;
+  private filterGainNode: GainNode | null = null;
+  private echoDelayNode: DelayNode | null = null;
+  private echoFeedbackGainNode: GainNode | null = null;
+  private echoOutputGainNode: GainNode | null = null;
+  private reverbSendGainNode: GainNode | null = null;
+  private convolverNode: ConvolverNode | null = null;
+  private reverbReturnGainNode: GainNode | null = null;
 
-  // Radio Runtime State
-  private isPlayingRadio = false;
-  private userPausedRadio = false;
-  private currentRadioTrack: AudioTrack | null = null;
-  private radioErrorBanner: string | null = null;
-  private radioErrorClearTimeout: number | null = null;
-  private consecutiveRadioErrors = 0;
+  private stationVolumeGainNode: GainNode | null = null;
+  private proximityGainNode: GainNode | null = null;
+  private masterGainNode: GainNode | null = null;
 
-  // Vehicle & Spatial Distance State
-  private isInsideVehicle = false;
-  private activeVehicleId: 'cyber_car' | 'bus' | null = null;
-  private nearestVehicleDistance = 12;
-  private playerCoords = { x: 0, z: 6.2 };
-  private radioPhysicalGain = 0;       // 0..1 smoothly faded
-  private radioTargetPhysicalGain = 0; // 0..1
-
-  // World Ambient Music Intermittent State Machine
-  private ambientState:
-    | 'silent_Disabled'
-    | 'waiting_quiet_period'
-    | 'fading_in'
-    | 'playing'
-    | 'fading_out' = 'waiting_quiet_period';
-  private currentAmbientTrack: AudioTrack | null = null;
-  private ambientQuietCountdownSec = 14;
-  private ambientCurrentGain = 0;
-  private ambientFadeInDurationSec = 4.5;
-  private ambientFadeOutDurationSec = 5.0;
-
-  // Weather & Time-of-Day State
-  private weather: WeatherType = 'sunny';
-  private timePhase: TimePhase = 'Morning';
-
-  // Mixer Loop & Subscribers
-  private mixerIntervalId: number | null = null;
-  private lastTickTimeMs = performance.now();
-  private listeners: Set<() => void> = new Set();
-  private cachedSnapshot: AudioManagerSnapshot | null = null;
+  private isWebAudioInitialized = false;
 
   constructor() {
-    this.settings = loadSavedAudioSettings();
-    this.playlistManager = new PlaylistManager();
-    this.zoneManager = new AudioZoneManager(this.settings.zoneStates);
-    this.envEngine = new ProceduralEnvironmentEngine();
-
-    // Initialize single reusable Radio Audio element
-    this.radioAudio = new Audio();
-    this.radioAudio.preload = 'metadata';
-    this.radioAudio.crossOrigin = 'anonymous';
-
-    // Initialize single reusable World Ambient Music Audio element
-    this.ambientAudio = new Audio();
-    this.ambientAudio.preload = 'metadata';
-    this.ambientAudio.crossOrigin = 'anonymous';
-
-    // Select initial radio track without playing until needed
-    const initTracks = this.playlistManager.getPlaylist(this.settings.selectedPlaylistId).tracks;
-    if (initTracks.length > 0) {
-      this.currentRadioTrack = initTracks[0];
-    }
-
-    this.scheduleNextAmbientQuietDelay(true);
-    this.bindAudioElementEvents();
-    this.bindGlobalAutoplayUnlock();
-    this.startMixerLoop();
+    this.audioEl = new Audio();
+    this.audioEl.preload = 'auto';
+    this.audioEl.loop = false;
+    this.audioEl.volume = 1.0;
   }
 
-  private saveSettings(): void {
-    try {
-      localStorage.setItem(AUDIO_SETTINGS_STORAGE_KEY, JSON.stringify(this.settings));
-    } catch {
-      // ignore storage quota errors
-    }
+  public getAudioElement(): HTMLAudioElement {
+    return this.audioEl;
   }
 
-  private bindGlobalAutoplayUnlock(): void {
-    if (typeof window === 'undefined') return;
-    const handleGesture = () => {
-      this.unlockAudio();
-    };
-    window.addEventListener('pointerdown', handleGesture, { passive: true });
-    window.addEventListener('keydown', handleGesture, { passive: true });
-    window.addEventListener('touchstart', handleGesture, { passive: true });
-  }
+  public unlockAndInit(): boolean {
+    if (typeof window === 'undefined') return false;
 
-  public unlockAudio(): void {
-    const running = this.envEngine.initOrResume();
-    if (running || !this.audioUnlocked) {
-      this.audioUnlocked = true;
-      this.needsUserInteractionPrompt = false;
+    if (!this.ctx) {
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return false;
 
-      // If player is already in a vehicle with radio enabled, resume radio
-      if (this.isInsideVehicle && this.settings.radioEnabled && !this.userPausedRadio) {
-        this.playRadio();
+      try {
+        this.ctx = new AudioCtx();
+      } catch {
+        return false;
       }
-      this.notifyListeners();
     }
+
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    if (!this.isWebAudioInitialized && this.ctx) {
+      try {
+        this.sourceNode = this.ctx.createMediaElementSource(this.audioEl);
+
+        // 1. Dry Direct Path
+        this.dryGainNode = this.ctx.createGain();
+        this.dryGainNode.gain.value = 1.0;
+
+        // 2. Low-Pass / High-Pass Filter Path
+        this.filterNode = this.ctx.createBiquadFilter();
+        this.filterNode.type = 'lowpass';
+        this.filterNode.frequency.value = 20000;
+        this.filterGainNode = this.ctx.createGain();
+        this.filterGainNode.gain.value = 0.0;
+
+        // 3. Echo / Delay Path
+        this.echoDelayNode = this.ctx.createDelay(2.0);
+        this.echoDelayNode.delayTime.value = 0.28;
+        this.echoFeedbackGainNode = this.ctx.createGain();
+        this.echoFeedbackGainNode.gain.value = 0.0;
+        this.echoOutputGainNode = this.ctx.createGain();
+        this.echoOutputGainNode.gain.value = 0.0;
+
+        // 4. Stereo Convolver Reverb Path
+        this.reverbSendGainNode = this.ctx.createGain();
+        this.reverbSendGainNode.gain.value = 0.0;
+        this.convolverNode = this.ctx.createConvolver();
+        this.convolverNode.buffer = this.buildReverbImpulse(this.ctx, 2.0);
+        this.reverbReturnGainNode = this.ctx.createGain();
+        this.reverbReturnGainNode.gain.value = 1.0;
+
+        // 5. Volume & Distance Summing Nodes
+        this.stationVolumeGainNode = this.ctx.createGain();
+        this.stationVolumeGainNode.gain.value = 1.0;
+        this.proximityGainNode = this.ctx.createGain();
+        this.proximityGainNode.gain.value = 0.0;
+        this.masterGainNode = this.ctx.createGain();
+        this.masterGainNode.gain.value = 1.0;
+
+        // Fixed Wiring:
+        // source -> dryGain -> stationVol
+        this.sourceNode.connect(this.dryGainNode);
+        this.dryGainNode.connect(this.stationVolumeGainNode);
+
+        // source -> filter -> filterGain -> stationVol
+        this.sourceNode.connect(this.filterNode);
+        this.filterNode.connect(this.filterGainNode);
+        this.filterGainNode.connect(this.stationVolumeGainNode);
+
+        // source -> echoDelay -> echoOutput -> stationVol
+        // echoDelay -> feedback -> echoDelay
+        this.sourceNode.connect(this.echoDelayNode);
+        this.echoDelayNode.connect(this.echoFeedbackGainNode);
+        this.echoFeedbackGainNode.connect(this.echoDelayNode);
+        this.echoDelayNode.connect(this.echoOutputGainNode);
+        this.echoOutputGainNode.connect(this.stationVolumeGainNode);
+
+        // source -> reverbSend -> convolver -> reverbReturn -> stationVol
+        this.sourceNode.connect(this.reverbSendGainNode);
+        this.reverbSendGainNode.connect(this.convolverNode);
+        this.convolverNode.connect(this.reverbReturnGainNode);
+        this.reverbReturnGainNode.connect(this.stationVolumeGainNode);
+
+        // stationVol -> proximityGain -> masterGain -> destination
+        this.stationVolumeGainNode.connect(this.proximityGainNode);
+        this.proximityGainNode.connect(this.masterGainNode);
+        this.masterGainNode.connect(this.ctx.destination);
+
+        this.isWebAudioInitialized = true;
+      } catch {
+        // Fallback to direct HTMLAudioElement volume
+      }
+    }
+
+    return this.ctx?.state === 'running';
+  }
+
+  private buildReverbImpulse(ctx: AudioContext, durationSec: number): AudioBuffer {
+    const rate = ctx.sampleRate;
+    const length = Math.floor(rate * durationSec);
+    const impulse = ctx.createBuffer(2, length, rate);
+    const left = impulse.getChannelData(0);
+    const right = impulse.getChannelData(1);
+
+    let lpL = 0;
+    let lpR = 0;
+    for (let i = 0; i < length; i++) {
+      const norm = i / length;
+      const attack = Math.min(1, i / (rate * 0.02));
+      const env = attack * Math.pow(1 - norm, 2.2);
+      const rawL = (Math.random() * 2 - 1) * env * 0.25;
+      const rawR = (Math.random() * 2 - 1) * env * 0.25;
+      lpL = lpL * 0.78 + rawL * 0.22;
+      lpR = lpR * 0.78 + rawR * 0.22;
+      left[i] = lpL;
+      right[i] = lpR;
+    }
+    return impulse;
+  }
+
+  /**
+   * Applies station audio parameters smoothly.
+   * If effects are OFF (default), the clean path is active with 0 extra processing.
+   */
+  public applyStationAudioParams(params: {
+    stationVolume: number;
+    proximityGain: number;
+    masterVolume: number;
+    muted: boolean;
+    effects: StationEffectSettings;
+  }): void {
+    const { stationVolume, proximityGain, masterVolume, muted, effects } = params;
+
+    // 1. Smooth Playback Rate (Slow Effect) — never reloads or restarts song!
+    const targetSpeed =
+      effects.slowEnabled && typeof effects.playbackSpeed === 'number'
+        ? Math.max(0.6, Math.min(1.0, effects.playbackSpeed))
+        : 1.0;
+
+    if (Math.abs(this.audioEl.playbackRate - targetSpeed) > 0.005) {
+      try {
+        this.audioEl.playbackRate = targetSpeed;
+      } catch {
+        // ignore browser clamp
+      }
+    }
+
+    // Direct fallback if Web Audio is not initialized yet
+    if (!this.isWebAudioInitialized || !this.ctx || this.ctx.state !== 'running') {
+      const effectiveVol = muted ? 0 : stationVolume * proximityGain * masterVolume;
+      if (Math.abs(this.audioEl.volume - effectiveVol) > 0.01) {
+        this.audioEl.volume = Math.max(0, Math.min(1, effectiveVol));
+      }
+      return;
+    }
+
+    // Native audio element stays at full volume so Web Audio nodes control spatial attenuation smoothly
+    if (this.audioEl.volume !== 1.0) {
+      this.audioEl.volume = 1.0;
+    }
+
+    const now = this.ctx.currentTime;
+
+    // 2. Master & Station Volume
+    const effMaster = muted ? 0 : Math.max(0, Math.min(1, masterVolume));
+    this.masterGainNode?.gain.setTargetAtTime(effMaster, now, 0.04);
+    this.stationVolumeGainNode?.gain.setTargetAtTime(
+      Math.max(0, Math.min(1, stationVolume)),
+      now,
+      0.04
+    );
+
+    // 3. Proximity Attenuation (smooth cosine curve)
+    this.proximityGainNode?.gain.setTargetAtTime(
+      Math.max(0, Math.min(1, proximityGain)),
+      now,
+      0.06
+    );
+
+    // 4. Effects Routing: Clean path when all effects are disabled!
+    const hasFilter = effects.filterEnabled && effects.filterAmount > 0.01;
+    const hasEcho = effects.echoEnabled && effects.echoAmount > 0.01;
+    const hasReverb = effects.reverbEnabled && effects.reverbAmount > 0.01;
+
+    // Filter
+    if (hasFilter && this.filterNode && this.filterGainNode && this.dryGainNode) {
+      this.filterNode.type = effects.filterType === 'highpass' ? 'highpass' : 'lowpass';
+      if (effects.filterType === 'highpass') {
+        const hpFreq = 40 + Math.pow(effects.filterAmount, 2) * 2600;
+        this.filterNode.frequency.setTargetAtTime(hpFreq, now, 0.05);
+      } else {
+        const lpFreq = 20000 * Math.pow(380 / 20000, effects.filterAmount);
+        this.filterNode.frequency.setTargetAtTime(lpFreq, now, 0.05);
+      }
+      this.filterGainNode.gain.setTargetAtTime(1.0, now, 0.05);
+      this.dryGainNode.gain.setTargetAtTime(0.0, now, 0.05);
+    } else if (this.filterGainNode && this.dryGainNode) {
+      this.filterGainNode.gain.setTargetAtTime(0.0, now, 0.05);
+      this.dryGainNode.gain.setTargetAtTime(1.0, now, 0.05);
+    }
+
+    // Echo
+    if (hasEcho && this.echoDelayNode && this.echoFeedbackGainNode && this.echoOutputGainNode) {
+      const delayTime = Math.max(0.1, Math.min(1.0, effects.echoDelaySec || 0.28));
+      this.echoDelayNode.delayTime.setTargetAtTime(delayTime, now, 0.05);
+      const feedback = Math.min(0.62, effects.echoAmount * 0.65);
+      this.echoFeedbackGainNode.gain.setTargetAtTime(feedback, now, 0.05);
+      this.echoOutputGainNode.gain.setTargetAtTime(effects.echoAmount * 0.6, now, 0.05);
+    } else if (this.echoOutputGainNode && this.echoFeedbackGainNode) {
+      this.echoOutputGainNode.gain.setTargetAtTime(0.0, now, 0.05);
+      this.echoFeedbackGainNode.gain.setTargetAtTime(0.0, now, 0.05);
+    }
+
+    // Reverb
+    if (hasReverb && this.reverbSendGainNode) {
+      const wetSend = Math.min(0.7, effects.reverbAmount * (effects.reverbWetDry ?? 0.35) * 0.7);
+      this.reverbSendGainNode.gain.setTargetAtTime(wetSend, now, 0.05);
+    } else if (this.reverbSendGainNode) {
+      this.reverbSendGainNode.gain.setTargetAtTime(0.0, now, 0.05);
+    }
+  }
+
+  public playUiTone(kind: 'click' | 'open' | 'close' | 'success' | 'warning' = 'click'): void {
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+
+      if (kind === 'open') {
+        osc.frequency.setValueAtTime(540, now);
+        osc.frequency.exponentialRampToValueAtTime(780, now + 0.06);
+      } else if (kind === 'close') {
+        osc.frequency.setValueAtTime(700, now);
+        osc.frequency.exponentialRampToValueAtTime(460, now + 0.06);
+      } else if (kind === 'success') {
+        osc.frequency.setValueAtTime(620, now);
+        osc.frequency.exponentialRampToValueAtTime(920, now + 0.1);
+      } else {
+        osc.frequency.setValueAtTime(600, now);
+      }
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.08, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/**
+ * Main Game Audio Manager with Physical Audio Station Architecture
+ */
+class GameAudioManager {
+  private engine: SingleAudioEngine;
+  private playlistManager: PlaylistManager;
+  private stationManager: WorldMusicStationManager;
+
+  // Station Memory & Custom Configurations
+  private stationMemories: Map<WorldStationId, StationMemory> = new Map();
+
+  // Active Station and Shared Player State
+  private activeStationId: WorldStationId = 'jamaica_city_station';
+  private currentTrack: AudioTrack | null = null;
+  private playbackStatus: PlaybackStatus = 'stopped';
+  private currentProgressSec = 0;
+  private currentDurationSec = 0;
+
+  // Interactive UI Modal State
+  private openStationModalId: WorldStationId | null = null;
+
+  // Player & World Proximity Tracking
+  private playerCoords = { x: 0, z: 6.2 };
+  private activeVehicle: 'cyber_car' | 'bus' | null = null;
+  private weather: WeatherType = 'sunny';
+  private timePhase: TimePhase = 'morning';
+
+  // Global Audio Settings
+  private masterVolume = 1.0;
+  private muted = false;
+  private audioUnlocked = false;
+
+  private listeners: Set<() => void> = new Set();
+  private statusToast: string | null = null;
+  private toastTimerId: number | null = null;
+
+  constructor() {
+    this.engine = new SingleAudioEngine();
+
+    // Initialize Station Memories for both physical stations
+    const cyberMem = loadStationMemory('cyber_city_station');
+    const jamaicaMem = loadStationMemory('jamaica_city_station');
+    this.stationMemories.set('cyber_city_station', cyberMem);
+    this.stationMemories.set('jamaica_city_station', jamaicaMem);
+
+    this.stationManager = new WorldMusicStationManager({
+      cyber_city_station: {
+        volume: cyberMem.stationVolume,
+        effects: cyberMem.effects,
+        playbackOrder: cyberMem.playbackOrder,
+      },
+      jamaica_city_station: {
+        volume: jamaicaMem.stationVolume,
+        effects: jamaicaMem.effects,
+        playbackOrder: jamaicaMem.playbackOrder,
+      },
+    });
+
+    this.playlistManager = new PlaylistManager(() => {
+      this.syncTracksFromLibrary();
+      this.notifyListeners();
+    });
+
+    this.bindAudioElementEvents();
+    this.startProgressTicker();
   }
 
   private bindAudioElementEvents(): void {
-    // Automatic advance to next song when current radio track finishes!
-    this.radioAudio.addEventListener('ended', () => {
-      this.consecutiveRadioErrors = 0;
-      this.nextTrack(true);
+    const el = this.engine.getAudioElement();
+
+    // Continuous Playback: When current song ends, advance to next track automatically!
+    el.addEventListener('ended', () => {
+      if (this.playbackStatus !== 'playing') return;
+      this.nextTrack(this.activeStationId);
     });
 
-    // Resilient error handling: never crash Gemini City on a broken audio file!
-    this.radioAudio.addEventListener('error', () => {
-      this.handleRadioTrackError();
+    el.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(el.duration) && el.duration > 0) {
+        this.currentDurationSec = Math.round(el.duration);
+        if (this.currentTrack) {
+          this.currentTrack.durationSec = this.currentDurationSec;
+        }
+        this.notifyListeners();
+      }
     });
 
-    // World Ambient track finished -> enter natural quiet period!
-    this.ambientAudio.addEventListener('ended', () => {
-      this.ambientCurrentGain = 0;
-      this.ambientAudio.pause();
-      this.scheduleNextAmbientQuietDelay(false);
-      this.notifyListeners();
+    el.addEventListener('timeupdate', () => {
+      this.currentProgressSec = Math.floor(el.currentTime);
+      // Update memory with current progress
+      const mem = this.stationMemories.get(this.activeStationId);
+      if (mem) {
+        mem.lastTrackProgressSec = this.currentProgressSec;
+      }
     });
 
-    this.ambientAudio.addEventListener('error', () => {
-      this.ambientCurrentGain = 0;
-      this.ambientAudio.pause();
-      this.scheduleNextAmbientQuietDelay(false);
-      this.notifyListeners();
+    el.addEventListener('error', () => {
+      if (this.playbackStatus === 'playing') {
+        // Skip corrupted or unplayable file gracefully
+        this.nextTrack(this.activeStationId);
+      }
     });
   }
 
-  private handleRadioTrackError(): void {
-    this.showRadioError('⚠️ Unable to play this track');
-    this.consecutiveRadioErrors += 1;
-
-    const currentPlaylist = this.playlistManager.getPlaylist(this.settings.selectedPlaylistId);
-    if (
-      currentPlaylist.tracks.length > 1 &&
-      this.consecutiveRadioErrors < currentPlaylist.tracks.length
-    ) {
-      window.setTimeout(() => {
-        this.nextTrack(true);
-      }, 350);
-    } else {
-      this.isPlayingRadio = false;
-      this.radioAudio.pause();
-      this.notifyListeners();
-    }
-  }
-
-  private showRadioError(msg: string): void {
-    this.radioErrorBanner = msg;
-    if (this.radioErrorClearTimeout !== null) {
-      window.clearTimeout(this.radioErrorClearTimeout);
-    }
-    this.radioErrorClearTimeout = window.setTimeout(() => {
-      this.radioErrorBanner = null;
-      this.notifyListeners();
-    }, 4500);
-    this.notifyListeners();
-  }
-
-  private scheduleNextAmbientQuietDelay(isInitial = false): void {
-    if (!this.settings.ambientMusicEnabled) {
-      this.ambientState = 'silent_Disabled';
-      return;
-    }
-    this.ambientState = 'waiting_quiet_period';
-
-    // Frequency slider: 0 (Rare: 45..80s) -> 50 (Balanced: 20..40s) -> 100 (Frequent: 8..18s)
-    const freqNorm = Math.max(0, Math.min(100, this.settings.ambientFrequencyValue)) / 100;
-    const minDelay = isInitial
-      ? Math.round(12 - freqNorm * 7) // Initial quiet period 5..12s
-      : Math.round(42 - freqNorm * 32); // Subsequent quiet period 10..42s
-    const maxDelay = isInitial
-      ? Math.round(20 - freqNorm * 10)
-      : Math.round(72 - freqNorm * 52);
-
-    this.ambientQuietCountdownSec =
-      minDelay + Math.random() * Math.max(4, maxDelay - minDelay);
-  }
-
-  private startMixerLoop(): void {
+  private startProgressTicker(): void {
     if (typeof window === 'undefined') return;
-    if (this.mixerIntervalId !== null) {
-      window.clearInterval(this.mixerIntervalId);
-    }
-    this.lastTickTimeMs = performance.now();
-    // 10Hz (100ms) smooth audio mixer & spatial fade loop
-    this.mixerIntervalId = window.setInterval(() => {
-      const now = performance.now();
-      const dtSec = Math.min(0.5, Math.max(0.02, (now - this.lastTickTimeMs) / 1000));
-      this.lastTickTimeMs = now;
-      this.tickMixer(dtSec);
-    }, 100);
-  }
-
-  private tickMixer(dtSec: number): void {
-    const masterGain = this.settings.muted ? 0 : this.settings.masterVolume;
-
-    // -------------------------------------------------------------------------
-    // 1. VEHICLE RADIO PHYSICAL DISTANCE & FADE MIXING
-    // -------------------------------------------------------------------------
-    const activePlaylist = this.playlistManager.getPlaylist(this.settings.selectedPlaylistId);
-    const hasRadioTracks = activePlaylist.tracks.length > 0;
-
-    if (!this.settings.radioEnabled || !hasRadioTracks || this.userPausedRadio) {
-      this.radioTargetPhysicalGain = 0;
-    } else if (this.isInsideVehicle) {
-      // Inside vehicle: clear & full volume
-      this.radioTargetPhysicalGain = 1.0;
-    } else if (this.isPlayingRadio) {
-      // Outside vehicle while radio is playing: physical distance rolloff (0..22m)
-      const maxAudibleDist = 22.0;
-      if (this.nearestVehicleDistance < maxAudibleDist) {
-        const closeness = 1 - this.nearestVehicleDistance / maxAudibleDist;
-        this.radioTargetPhysicalGain = Math.pow(closeness, 1.8) * 0.36;
-      } else {
-        this.radioTargetPhysicalGain = 0;
-      }
-    } else {
-      this.radioTargetPhysicalGain = 0;
-    }
-
-    // Smoothly interpolate radioPhysicalGain (fadeIn / fadeOut)
-    const radioFadeSpeed =
-      this.radioTargetPhysicalGain > this.radioPhysicalGain ? 1.8 : 1.35;
-    this.radioPhysicalGain +=
-      (this.radioTargetPhysicalGain - this.radioPhysicalGain) *
-      (1 - Math.exp(-radioFadeSpeed * dtSec));
-
-    if (this.radioPhysicalGain < 0.004 && this.radioTargetPhysicalGain === 0) {
-      this.radioPhysicalGain = 0;
-      // If player exited vehicle and faded all the way to 0, pause element cleanly
-      if (!this.isInsideVehicle && this.isPlayingRadio && this.nearestVehicleDistance >= 22) {
-        this.radioAudio.pause();
-        this.isPlayingRadio = false;
-      }
-    }
-
-    const effectiveRadioVolume = Math.max(
-      0,
-      Math.min(
-        1,
-        masterGain *
-          this.settings.musicVolume *
-          this.settings.radioVolume *
-          this.radioPhysicalGain
-      )
-    );
-    if (Math.abs(this.radioAudio.volume - effectiveRadioVolume) > 0.005) {
-      this.radioAudio.volume = effectiveRadioVolume;
-    }
-
-    // -------------------------------------------------------------------------
-    // 2. LOCATION AUDIO ZONES (Distance-based fadeIn / fadeOut)
-    // -------------------------------------------------------------------------
-    const { dominantZone } = this.zoneManager.updatePlayerPosition(
-      this.playerCoords.x,
-      this.playerCoords.z,
-      dtSec
-    );
-
-    // -------------------------------------------------------------------------
-    // 3. PRIORITY DUCKING SYSTEM
-    //    Emergency/UI > Vehicle Radio > Location Zone > World Ambience > Environment
-    // -------------------------------------------------------------------------
-    const radioDuckingFactor = this.isInsideVehicle && this.radioPhysicalGain > 0.1
-      ? Math.max(0.14, 1 - this.radioPhysicalGain * 0.82)
-      : Math.max(0.45, 1 - this.radioPhysicalGain * 0.5);
-
-    const zoneDuckingFactor = dominantZone
-      ? Math.max(0.45, 1 - dominantZone.currentGain * 0.4)
-      : 1.0;
-
-    // -------------------------------------------------------------------------
-    // 4. WORLD AMBIENT MUSIC INTERMITTENT STATE MACHINE
-    // -------------------------------------------------------------------------
-    const ambientTracks = this.playlistManager.getPlaylist('world_ambience').tracks;
-    if (!this.settings.ambientMusicEnabled || ambientTracks.length === 0) {
-      this.ambientState = 'silent_Disabled';
-      this.ambientCurrentGain = Math.max(0, this.ambientCurrentGain - dtSec * 0.5);
-      if (this.ambientCurrentGain <= 0.01 && !this.ambientAudio.paused) {
-        this.ambientAudio.pause();
-      }
-    } else {
-      if (this.ambientState === 'silent_Disabled') {
-        this.scheduleNextAmbientQuietDelay(true);
-      } else if (this.ambientState === 'waiting_quiet_period') {
-        // Pause countdown while inside vehicle with loud radio so ambient waits for quiet open world
-        if (!this.isInsideVehicle || !this.settings.radioEnabled) {
-          this.ambientQuietCountdownSec = Math.max(
-            0,
-            this.ambientQuietCountdownSec - dtSec
-          );
-          if (this.ambientQuietCountdownSec <= 0 && this.audioUnlocked) {
-            this.startNextAmbientTrack();
-          }
-        }
-      } else if (this.ambientState === 'fading_in') {
-        this.ambientCurrentGain = Math.min(
-          1,
-          this.ambientCurrentGain + dtSec / Math.max(1, this.ambientFadeInDurationSec)
-        );
-        if (this.ambientCurrentGain >= 0.99) {
-          this.ambientCurrentGain = 1;
-          this.ambientState = 'playing';
-        }
-      } else if (this.ambientState === 'playing') {
-        const dur = this.ambientAudio.duration || this.currentAmbientTrack?.durationSec || 26;
-        const cur = this.ambientAudio.currentTime || 0;
-        if (dur - cur <= this.ambientFadeOutDurationSec) {
-          this.ambientState = 'fading_out';
-        }
-      } else if (this.ambientState === 'fading_out') {
-        this.ambientCurrentGain = Math.max(
-          0,
-          this.ambientCurrentGain - dtSec / Math.max(1, this.ambientFadeOutDurationSec)
-        );
-        if (this.ambientCurrentGain <= 0.01) {
-          this.ambientCurrentGain = 0;
-          this.ambientAudio.pause();
-          this.scheduleNextAmbientQuietDelay(false);
-        }
-      }
-    }
-
-    const effectiveAmbientMusicVol = Math.max(
-      0,
-      Math.min(
-        1,
-        masterGain *
-          this.settings.musicVolume *
-          this.settings.ambienceVolume *
-          this.ambientCurrentGain *
-          radioDuckingFactor *
-          zoneDuckingFactor
-      )
-    );
-    if (Math.abs(this.ambientAudio.volume - effectiveAmbientMusicVol) > 0.005) {
-      this.ambientAudio.volume = effectiveAmbientMusicVol;
-    }
-
-    // -------------------------------------------------------------------------
-    // 5. ENVIRONMENTAL, WEATHER & TIME-OF-DAY SYNTHESIS MIX
-    // -------------------------------------------------------------------------
-    const cabinInsulationFactor = this.isInsideVehicle ? 0.35 : 1.0;
-    const effectiveEnvGain = Math.max(
-      0,
-      Math.min(
-        1,
-        masterGain *
-          this.settings.environmentVolume *
-          cabinInsulationFactor *
-          radioDuckingFactor
-      )
-    );
-    this.envEngine.updateMix({
-      effectiveEnvGain,
-      weather: this.weather,
-      timePhase: this.timePhase,
-      activeZoneProfile: dominantZone ? dominantZone.zone.profile : null,
-      activeZoneEffectiveGain: dominantZone ? dominantZone.currentGain : 0,
-    });
-
-    this.cachedSnapshot = null;
-    this.notifyListeners();
-  }
-
-  private startNextAmbientTrack(): void {
-    const nextAmb = this.playlistManager.getNextTrack(
-      'world_ambience',
-      this.currentAmbientTrack?.id || null,
-      'shuffle',
-      'next'
-    );
-    if (!nextAmb) {
-      this.ambientState = 'silent_Disabled';
-      return;
-    }
-
-    this.currentAmbientTrack = nextAmb;
-    this.ambientCurrentGain = 0.02;
-    this.ambientState = 'fading_in';
-    this.ambientAudio.src = nextAmb.url;
-    this.ambientAudio.currentTime = 0;
-    this.ambientAudio.volume = 0;
-    this.ambientAudio.play().catch(() => {
-      // If autoplay blocked, wait for unlock
-      this.needsUserInteractionPrompt = true;
-      this.scheduleNextAmbientQuietDelay(true);
-    });
-  }
-
-  // ===========================================================================
-  // PUBLIC API (Matches Specification Section 15)
-  // ===========================================================================
-
-  public playRadio(): void {
-    this.unlockAudio();
-    this.userPausedRadio = false;
-    if (!this.settings.radioEnabled) {
-      this.settings.radioEnabled = true;
-      this.saveSettings();
-    }
-
-    const playlist = this.playlistManager.getPlaylist(this.settings.selectedPlaylistId);
-    if (playlist.tracks.length === 0) {
-      this.currentRadioTrack = null;
-      this.isPlayingRadio = false;
-      this.radioAudio.pause();
+    setInterval(() => {
+      this.updateProximityAudio();
       this.notifyListeners();
+    }, 120);
+  }
+
+  private syncTracksFromLibrary(): void {
+    const cyberTracks = this.playlistManager.getPlaylist('cyber_city_station').tracks;
+    const jamaicaTracks = this.playlistManager.getPlaylist('jamaica_city_station').tracks;
+
+    const cyberMem = this.stationMemories.get('cyber_city_station');
+    if (cyberMem && cyberTracks.length > 0) {
+      if (!cyberMem.lastTrackId || !cyberTracks.some((t) => t.id === cyberMem.lastTrackId)) {
+        cyberMem.lastTrackId = cyberTracks[0].id;
+      }
+    }
+
+    const jamaicaMem = this.stationMemories.get('jamaica_city_station');
+    if (jamaicaMem && jamaicaTracks.length > 0) {
+      if (!jamaicaMem.lastTrackId || !jamaicaTracks.some((t) => t.id === jamaicaMem.lastTrackId)) {
+        jamaicaMem.lastTrackId = jamaicaTracks[0].id;
+      }
+    }
+
+    // Set initial track if needed
+    if (!this.currentTrack) {
+      const activeMem = this.stationMemories.get(this.activeStationId);
+      const activeTracks = this.playlistManager.getPlaylist(this.activeStationId).tracks;
+      if (activeTracks.length > 0) {
+        this.currentTrack =
+          activeTracks.find((t) => t.id === activeMem?.lastTrackId) || activeTracks[0];
+      }
+    }
+  }
+
+  // ===========================================================================
+  // SPATIAL PROXIMITY ATTENUATION (AUDIO ONLY PLAYS NEAR THE PHYSICAL STATION)
+  // ===========================================================================
+  private updateProximityAudio(): void {
+    const activeStation = DEFAULT_WORLD_STATIONS.find((s) => s.id === this.activeStationId);
+    if (!activeStation) return;
+
+    const mem = this.stationMemories.get(this.activeStationId) || {
+      stationVolume: 1.0,
+      effects: buildCleanDefaultEffects(),
+      playbackOrder: 'sequential',
+      lastTrackId: null,
+      lastTrackProgressSec: 0,
+    };
+
+    // Calculate distance between player and the active playing station
+    const dist = Math.hypot(
+      this.playerCoords.x - activeStation.position.x,
+      this.playerCoords.z - activeStation.position.z
+    );
+
+    // Compute smooth distance attenuation
+    // Inside inner radius (e.g. 8m): 1.0 (100% volume)
+    // Between 8m and 28m: smooth cosine fade down to 0
+    // Beyond 28m: 0.0 (completely silent)
+    const proximityGain = computeSpatialDistanceGain(
+      dist,
+      activeStation.radius,
+      activeStation.fadeDistance
+    );
+
+    this.engine.applyStationAudioParams({
+      stationVolume: mem.stationVolume,
+      proximityGain: this.playbackStatus === 'playing' ? proximityGain : 0,
+      masterVolume: this.masterVolume,
+      muted: this.muted,
+      effects: mem.effects,
+    });
+  }
+
+  // ===========================================================================
+  // PLAYBACK CONTROL METHODS
+  // ===========================================================================
+  public unlockAudio(): boolean {
+    const success = this.engine.unlockAndInit();
+    this.audioUnlocked = success;
+    this.notifyListeners();
+    return success;
+  }
+
+  public play(stationId?: MusicStationId, trackId?: string): void {
+    this.unlockAudio();
+    const targetStationId =
+      stationId && stationId !== 'car_radio' ? (stationId as WorldStationId) : this.activeStationId;
+
+    if (targetStationId !== this.activeStationId) {
+      this.activeStationId = targetStationId;
+    }
+
+    const playlist = this.playlistManager.getPlaylist(targetStationId);
+    if (playlist.tracks.length === 0) {
+      this.showToast('No tracks in station playlist. Upload a song!');
       return;
     }
 
-    if (
-      !this.currentRadioTrack ||
-      !playlist.tracks.some((t) => t.id === this.currentRadioTrack?.id)
-    ) {
-      this.currentRadioTrack = playlist.tracks[0];
+    let trackToPlay: AudioTrack | undefined;
+    if (trackId) {
+      trackToPlay = playlist.tracks.find((t) => t.id === trackId);
+    }
+    if (!trackToPlay) {
+      const mem = this.stationMemories.get(targetStationId);
+      trackToPlay =
+        playlist.tracks.find((t) => t.id === mem?.lastTrackId) || playlist.tracks[0];
     }
 
-    if (this.radioAudio.src !== this.currentRadioTrack.url) {
-      this.radioAudio.src = this.currentRadioTrack.url;
+    if (!trackToPlay) return;
+
+    this.currentTrack = trackToPlay;
+    const mem = this.stationMemories.get(targetStationId);
+    if (mem) {
+      mem.lastTrackId = trackToPlay.id;
+      saveStationMemory(targetStationId, mem);
     }
 
-    this.isPlayingRadio = true;
-    if (this.radioPhysicalGain < 0.08) {
-      this.radioPhysicalGain = 0.08;
+    const el = this.engine.getAudioElement();
+    if (el.src !== trackToPlay.url) {
+      el.src = trackToPlay.url;
+      el.currentTime = 0;
     }
-    this.radioAudio
-      .play()
+
+    el.play()
       .then(() => {
-        this.consecutiveRadioErrors = 0;
-        this.needsUserInteractionPrompt = false;
+        this.playbackStatus = 'playing';
         this.notifyListeners();
       })
-      .catch((err) => {
-        if (err && err.name === 'NotAllowedError') {
-          this.needsUserInteractionPrompt = true;
-          this.notifyListeners();
-        } else {
-          this.handleRadioTrackError();
-        }
+      .catch(() => {
+        this.playbackStatus = 'stopped';
+        this.notifyListeners();
       });
   }
 
-  public pauseRadio(): void {
-    this.userPausedRadio = true;
-    this.isPlayingRadio = false;
-    this.radioAudio.pause();
+  public pause(stationId?: MusicStationId): void {
+    if (stationId && stationId !== 'car_radio' && stationId !== this.activeStationId) return;
+    const el = this.engine.getAudioElement();
+    el.pause();
+    this.playbackStatus = 'paused';
     this.notifyListeners();
   }
 
-  public toggleRadioPlayPause(): void {
-    if (this.isPlayingRadio && !this.radioAudio.paused) {
-      this.pauseRadio();
+  public stop(stationId?: MusicStationId): void {
+    if (stationId && stationId !== 'car_radio' && stationId !== this.activeStationId) return;
+    const el = this.engine.getAudioElement();
+    el.pause();
+    el.currentTime = 0;
+    this.playbackStatus = 'stopped';
+    this.currentProgressSec = 0;
+    this.notifyListeners();
+  }
+
+  public togglePlay(stationId?: MusicStationId): void {
+    const targetStationId =
+      stationId && stationId !== 'car_radio' ? (stationId as WorldStationId) : this.activeStationId;
+    if (this.playbackStatus === 'playing' && targetStationId === this.activeStationId) {
+      this.pause(targetStationId);
     } else {
-      this.playRadio();
+      this.play(targetStationId);
     }
   }
 
-  public nextTrack(autoAdvance = false): void {
-    const next = this.playlistManager.getNextTrack(
-      this.settings.selectedPlaylistId,
-      this.currentRadioTrack?.id || null,
-      this.settings.playbackOrder,
-      'next'
-    );
-    if (!next) {
-      this.currentRadioTrack = null;
-      this.isPlayingRadio = false;
-      this.radioAudio.pause();
-      this.notifyListeners();
-      return;
-    }
-    this.currentRadioTrack = next;
-    this.radioAudio.src = next.url;
-    this.radioAudio.currentTime = 0;
-    if (this.isPlayingRadio || !autoAdvance) {
-      this.playRadio();
+  public nextTrack(
+    autoOrStation?: boolean | MusicStationId,
+    stationId?: MusicStationId
+  ): void {
+    const targetSid: MusicStationId =
+      typeof autoOrStation === 'string'
+        ? autoOrStation
+        : stationId || this.activeStationId;
+    const safeTarget =
+      targetSid !== 'car_radio' ? (targetSid as WorldStationId) : this.activeStationId;
+
+    const playlist = this.playlistManager.getPlaylist(safeTarget);
+    if (playlist.tracks.length === 0) return;
+
+    const mem = this.stationMemories.get(safeTarget);
+    const order = mem?.playbackOrder || 'sequential';
+
+    let nextIndex = 0;
+    if (order === 'shuffle' && playlist.tracks.length > 1) {
+      const currentIndex = playlist.tracks.findIndex((t) => t.id === this.currentTrack?.id);
+      let rand = Math.floor(Math.random() * (playlist.tracks.length - 1));
+      if (rand >= currentIndex) rand++;
+      nextIndex = rand;
     } else {
+      const currentIndex = playlist.tracks.findIndex((t) => t.id === this.currentTrack?.id);
+      nextIndex = currentIndex >= 0 ? (currentIndex + 1) % playlist.tracks.length : 0;
+    }
+
+    const nextTrack = playlist.tracks[nextIndex];
+    if (nextTrack) {
+      this.play(safeTarget, nextTrack.id);
+    }
+  }
+
+  public previousTrack(stationId?: MusicStationId): void {
+    const targetStationId =
+      stationId && stationId !== 'car_radio' ? (stationId as WorldStationId) : this.activeStationId;
+    const playlist = this.playlistManager.getPlaylist(targetStationId);
+    if (playlist.tracks.length === 0) return;
+
+    const currentIndex = playlist.tracks.findIndex((t) => t.id === this.currentTrack?.id);
+    const prevIndex =
+      currentIndex > 0 ? currentIndex - 1 : playlist.tracks.length - 1;
+    const prevTrack = playlist.tracks[prevIndex];
+    if (prevTrack) {
+      this.play(targetStationId, prevTrack.id);
+    }
+  }
+
+  public seek(seconds: number): void {
+    const el = this.engine.getAudioElement();
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      el.currentTime = seconds;
+      this.currentProgressSec = Math.floor(seconds);
       this.notifyListeners();
     }
   }
 
-  public previousTrack(): void {
-    if (this.radioAudio.currentTime > 4) {
-      this.radioAudio.currentTime = 0;
-      this.notifyListeners();
-      return;
-    }
-    const prev = this.playlistManager.getNextTrack(
-      this.settings.selectedPlaylistId,
-      this.currentRadioTrack?.id || null,
-      this.settings.playbackOrder,
-      'prev'
-    );
-    if (!prev) return;
-    this.currentRadioTrack = prev;
-    this.radioAudio.src = prev.url;
-    this.radioAudio.currentTime = 0;
-    this.playRadio();
-  }
-
-  public selectTrack(trackId: string): void {
-    const playlist = this.playlistManager.getPlaylist(this.settings.selectedPlaylistId);
-    const found = playlist.tracks.find((t) => t.id === trackId);
-    if (!found) return;
-    this.currentRadioTrack = found;
-    this.radioAudio.src = found.url;
-    this.radioAudio.currentTime = 0;
-    this.playRadio();
-  }
-
-  public setRadioEnabled(enabled: boolean): void {
-    this.settings.radioEnabled = enabled;
-    this.saveSettings();
-    if (!enabled) {
-      this.radioTargetPhysicalGain = 0;
-      this.isPlayingRadio = false;
-      this.radioAudio.pause();
-    } else if (this.isInsideVehicle) {
-      this.playRadio();
-    }
+  // ===========================================================================
+  // STATION SETTINGS, VOLUME & EFFECTS (STATION MEMORY)
+  // ===========================================================================
+  public setStationVolume(stationId: WorldStationId, volume: number): void {
+    const mem = this.stationMemories.get(stationId);
+    if (!mem) return;
+    mem.stationVolume = Math.max(0, Math.min(1, volume));
+    saveStationMemory(stationId, mem);
+    this.updateProximityAudio();
     this.notifyListeners();
   }
 
-  public setPlaybackOrder(order: PlaybackOrder): void {
-    this.settings.playbackOrder = order;
-    this.saveSettings();
+  public setStationEffects(
+    stationId: WorldStationId,
+    patch: Partial<StationEffectSettings>
+  ): void {
+    const mem = this.stationMemories.get(stationId);
+    if (!mem) return;
+    mem.effects = {
+      ...mem.effects,
+      ...patch,
+    };
+    saveStationMemory(stationId, mem);
+    this.updateProximityAudio();
     this.notifyListeners();
   }
 
-  public setSelectedPlaylist(playlistId: AudioPlaylistId): void {
-    this.settings.selectedPlaylistId = playlistId;
-    this.saveSettings();
-    const list = this.playlistManager.getPlaylist(playlistId).tracks;
-    this.currentRadioTrack = list[0] || null;
-    if (this.currentRadioTrack) {
-      this.radioAudio.src = this.currentRadioTrack.url;
-      if (this.isPlayingRadio) {
-        this.playRadio();
+  public setStationPlaybackOrder(stationId: WorldStationId, order: PlaybackOrder): void {
+    const mem = this.stationMemories.get(stationId);
+    if (!mem) return;
+    mem.playbackOrder = order;
+    saveStationMemory(stationId, mem);
+    this.notifyListeners();
+  }
+
+  public getStationMemory(stationId: WorldStationId): StationMemory {
+    return (
+      this.stationMemories.get(stationId) || {
+        stationVolume: 1.0,
+        effects: buildCleanDefaultEffects(),
+        playbackOrder: 'sequential',
+        lastTrackId: null,
+        lastTrackProgressSec: 0,
       }
-    } else {
-      this.isPlayingRadio = false;
-      this.radioAudio.pause();
-    }
-    this.notifyListeners();
+    );
   }
 
-  public uploadAudioFiles(
-    files: FileList | File[],
-    targetPlaylistId?: AudioPlaylistId
-  ): { added: number; errors: string[] } {
+  // ===========================================================================
+  // PHYSICAL STATION INTERACTION & MODAL
+  // ===========================================================================
+  public openStationModal(stationId: WorldStationId): void {
     this.unlockAudio();
-    const pid = targetPlaylistId || this.settings.selectedPlaylistId;
-    const { addedTracks, errors } = this.playlistManager.addUploadedFiles(files, pid);
-    if (errors.length > 0) {
-      this.showRadioError(`⚠️ ${errors[0]}`);
-    }
-    if (addedTracks.length > 0 && !this.currentRadioTrack) {
-      this.currentRadioTrack = addedTracks[0];
-    }
+    this.openStationModalId = stationId;
+    this.engine.playUiTone('open');
     this.notifyListeners();
-    return { added: addedTracks.length, errors };
   }
 
-  public removeTrack(trackId: string): void {
-    const wasCurrent = this.currentRadioTrack?.id === trackId;
-    this.playlistManager.removeTrack(trackId);
-    if (wasCurrent) {
-      const remaining = this.playlistManager.getPlaylist(this.settings.selectedPlaylistId).tracks;
-      this.currentRadioTrack = remaining[0] || null;
-      if (this.currentRadioTrack && this.isPlayingRadio) {
-        this.radioAudio.src = this.currentRadioTrack.url;
-        this.playRadio();
-      } else {
-        this.isPlayingRadio = false;
-        this.radioAudio.pause();
+  public closeStationModal(): void {
+    this.openStationModalId = null;
+    this.engine.playUiTone('close');
+    this.notifyListeners();
+  }
+
+  public isStationModalOpen(stationId?: WorldStationId): boolean {
+    return stationId ? this.openStationModalId === stationId : this.openStationModalId !== null;
+  }
+
+  public getOpenStationId(): WorldStationId | null {
+    return this.openStationModalId;
+  }
+
+  // ===========================================================================
+  // TRACK UPLOADS & LOCAL LIBRARY
+  // ===========================================================================
+  public async uploadTrackToStation(
+    stationId: WorldStationId,
+    file: File
+  ): Promise<AudioTrack | null> {
+    this.unlockAudio();
+    const track = await this.playlistManager.uploadTrack(stationId, file);
+    if (track) {
+      this.showToast(`Uploaded "${track.title}" to ${stationId === 'cyber_city_station' ? 'Cyber City' : 'Jamaica City'}!`);
+      // If this station is currently idle, queue the newly uploaded song
+      const mem = this.stationMemories.get(stationId);
+      if (mem && !mem.lastTrackId) {
+        mem.lastTrackId = track.id;
+        saveStationMemory(stationId, mem);
       }
+      this.notifyListeners();
     }
+    return track;
+  }
+
+  public async deleteTrack(trackId: string): Promise<void> {
+    await this.playlistManager.deleteTrack(trackId);
     this.notifyListeners();
   }
 
-  // Vehicle Enter / Exit & Spatial Distance Updates
-  public enterVehicle(vehicleId: 'cyber_car' | 'bus'): void {
-    const wasInside = this.isInsideVehicle;
-    this.isInsideVehicle = true;
-    this.activeVehicleId = vehicleId;
-    this.nearestVehicleDistance = 0;
-
-    if (!wasInside && this.settings.radioEnabled && !this.userPausedRadio) {
-      this.playRadio();
-    }
-    this.notifyListeners();
-  }
-
-  public exitVehicle(): void {
-    if (!this.isInsideVehicle) return;
-    this.isInsideVehicle = false;
-    this.activeVehicleId = null;
-    this.notifyListeners();
-  }
-
+  // ===========================================================================
+  // WORLD & PLAYER COORDINATES (CALLED FROM 3D VIEWPORT)
+  // ===========================================================================
   public updateSpatialState(input: VehicleSpatialAudioInput): void {
     this.playerCoords.x = input.playerX;
     this.playerCoords.z = input.playerZ;
-
-    const distToCar = Math.hypot(input.playerX - input.carX, input.playerZ - input.carZ);
-    const distToBus = Math.hypot(input.playerX - input.busX, input.playerZ - input.busZ);
-    this.nearestVehicleDistance = Math.min(distToCar, distToBus);
-
-    const nowInside = input.isRidingCar || input.isRidingBus;
-    const vehicleId: 'cyber_car' | 'bus' | null = input.isRidingCar
-      ? 'cyber_car'
-      : input.isRidingBus
-      ? 'bus'
-      : null;
-
-    if (nowInside && !this.isInsideVehicle && vehicleId) {
-      this.enterVehicle(vehicleId);
-    } else if (!nowInside && this.isInsideVehicle) {
-      this.exitVehicle();
-    }
+    this.activeVehicle = input.isRidingCar ? 'cyber_car' : input.isRidingBus ? 'bus' : null;
+    this.updateProximityAudio();
   }
 
-  // World Ambience Controls
-  public playAmbient(): void {
-    this.unlockAudio();
-    this.settings.ambientMusicEnabled = true;
-    this.saveSettings();
-    this.startNextAmbientTrack();
-    this.notifyListeners();
+  public enterVehicle(vehicle: 'cyber_car' | 'bus'): void {
+    this.activeVehicle = vehicle;
   }
 
-  public stopAmbient(): void {
-    this.settings.ambientMusicEnabled = false;
-    this.saveSettings();
-    this.ambientState = 'silent_Disabled';
-    this.ambientCurrentGain = 0;
-    this.ambientAudio.pause();
-    this.notifyListeners();
+  public exitVehicle(): void {
+    this.activeVehicle = null;
   }
 
-  public setAmbientEnabled(enabled: boolean): void {
-    if (enabled) {
-      this.settings.ambientMusicEnabled = true;
-      this.saveSettings();
-      this.scheduleNextAmbientQuietDelay(true);
-    } else {
-      this.stopAmbient();
-    }
-    this.notifyListeners();
-  }
-
-  public setAmbientFrequencyValue(val: number): void {
-    const clamped = Math.max(0, Math.min(100, val));
-    this.settings.ambientFrequencyValue = clamped;
-    this.settings.ambientFrequency =
-      clamped < 34 ? 'rare' : clamped < 67 ? 'balanced' : 'frequent';
-    this.saveSettings();
-    if (this.ambientState === 'waiting_quiet_period') {
-      this.scheduleNextAmbientQuietDelay(false);
-    }
-    this.notifyListeners();
-  }
-
-  // Location Zones Controls
-  public enterZone(zoneId: AudioZoneId): void {
-    this.zoneManager.enterZone(zoneId);
-    this.notifyListeners();
-  }
-
-  public exitZone(zoneId: AudioZoneId): void {
-    this.zoneManager.exitZone(zoneId);
-    this.notifyListeners();
-  }
-
-  public setZoneEnabled(zoneId: AudioZoneId, enabled: boolean): void {
-    this.zoneManager.setZoneEnabled(zoneId, enabled);
-    this.settings.zoneStates[zoneId] = {
-      enabled,
-      volume: this.settings.zoneStates[zoneId]?.volume ?? 0.8,
-    };
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  public setZoneVolume(zoneId: AudioZoneId, volume: number): void {
-    const v = Math.max(0, Math.min(1, volume));
-    this.zoneManager.setZoneVolume(zoneId, v);
-    this.settings.zoneStates[zoneId] = {
-      enabled: this.settings.zoneStates[zoneId]?.enabled ?? true,
-      volume: v,
-    };
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  // Weather & Time-of-Day Integration
   public setWeather(weather: WeatherType): void {
-    if (this.weather !== weather) {
-      this.weather = weather;
-      this.notifyListeners();
-    }
+    this.weather = weather;
   }
 
   public setTimeOfDay(timePhase: TimePhase): void {
-    if (this.timePhase !== timePhase) {
-      this.timePhase = timePhase;
-      this.notifyListeners();
-    }
+    this.timePhase = timePhase;
   }
 
-  // Volume & Master Controls
-  public setMasterVolume(value: number): void {
-    this.settings.masterVolume = Math.max(0, Math.min(1, value));
-    if (this.settings.masterVolume > 0 && this.settings.muted) {
-      this.settings.muted = false;
-    }
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  public setMusicVolume(value: number): void {
-    this.settings.musicVolume = Math.max(0, Math.min(1, value));
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  public setRadioVolume(value: number): void {
-    this.settings.radioVolume = Math.max(0, Math.min(1, value));
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  public setAmbienceVolume(value: number): void {
-    this.settings.ambienceVolume = Math.max(0, Math.min(1, value));
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  public setEnvironmentVolume(value: number): void {
-    this.settings.environmentVolume = Math.max(0, Math.min(1, value));
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  public setUiVolume(value: number): void {
-    this.settings.uiVolume = Math.max(0, Math.min(1, value));
-    this.saveSettings();
-    this.notifyListeners();
-  }
-
-  public setMuted(muted: boolean): void {
-    this.settings.muted = muted;
-    this.saveSettings();
+  public setMasterVolume(v: number): void {
+    this.masterVolume = Math.max(0, Math.min(1, v));
+    this.updateProximityAudio();
     this.notifyListeners();
   }
 
   public toggleMute(): void {
-    this.setMuted(!this.settings.muted);
-  }
-
-  public resetAudioSettings(): void {
-    this.settings = buildDefaultAudioSettings();
-    this.zoneManager.syncPreferences(this.settings.zoneStates);
-    this.saveSettings();
+    this.muted = !this.muted;
+    this.updateProximityAudio();
     this.notifyListeners();
   }
 
-  public playUiSound(
-    kind: 'click' | 'open' | 'close' | 'success' | 'warning' = 'click'
-  ): void {
-    if (this.settings.muted) return;
-    const effectiveUi = this.settings.masterVolume * this.settings.uiVolume;
-    this.envEngine.playUiTone(kind, effectiveUi);
+  public playUiSound(kind: 'click' | 'open' | 'close' | 'success' | 'warning' = 'click'): void {
+    this.engine.playUiTone(kind);
   }
 
+  public showToast(msg: string): void {
+    this.statusToast = msg;
+    if (this.toastTimerId) clearTimeout(this.toastTimerId);
+    this.toastTimerId = window.setTimeout(() => {
+      this.statusToast = null;
+      this.notifyListeners();
+    }, 3200);
+    this.notifyListeners();
+  }
+
+  public showStatusToast(msg: string): void {
+    this.showToast(msg);
+  }
+
+  public uploadAudioFiles(
+    files: FileList | File[],
+    targetStationId: AudioPlaylistId = 'jamaica_city_station'
+  ): { addedTracks: AudioTrack[]; errors: string[]; added: number } {
+    const result = this.playlistManager.addUploadedFiles(files, targetStationId);
+    this.notifyListeners();
+    return {
+      ...result,
+      added: result.addedTracks.length,
+    };
+  }
+
+  // Compatibility helper methods for legacy references if any
+  public setEditingStation(id: WorldStationId): void {
+    this.activeStationId = id;
+    this.notifyListeners();
+  }
+
+  public selectTrack(stationId: MusicStationId, trackId: string): void {
+    this.play(stationId, trackId);
+  }
+
+  public removeTrackFromStation(stationId: MusicStationId, trackId: string): void {
+    this.deleteTrack(trackId);
+  }
+
+  public moveTrackToStation(
+    trackId: string,
+    fromOrToStation: AudioPlaylistId,
+    toStation?: AudioPlaylistId
+  ): void {
+    const dest = toStation || fromOrToStation;
+    this.playlistManager.moveTrack(trackId, dest);
+    this.notifyListeners();
+  }
+
+  public updateStationSettings(
+    stationId: WorldStationId,
+    patch: Partial<MusicStationCustomConfig>
+  ): void {
+    if (typeof patch.volume === 'number') {
+      this.setStationVolume(stationId, patch.volume);
+    }
+    if (patch.effects) {
+      this.setStationEffects(stationId, patch.effects);
+    }
+    if (patch.playbackOrder) {
+      this.setStationPlaybackOrder(stationId, patch.playbackOrder);
+    }
+  }
+
+  public updateStationEffects(
+    stationId: WorldStationId,
+    patch: Partial<StationEffectSettings>
+  ): void {
+    this.setStationEffects(stationId, patch);
+  }
+
+  public setPlaybackOrder(order: PlaybackOrder, stationId?: MusicStationId): void {
+    if (stationId && stationId !== 'car_radio') {
+      this.setStationPlaybackOrder(stationId as WorldStationId, order);
+    }
+  }
+
+  public saveStationConfiguration(stationId: WorldStationId): void {
+    const mem = this.stationMemories.get(stationId);
+    if (mem) {
+      saveStationMemory(stationId, mem);
+    }
+    this.showToast('Station settings saved locally!');
+  }
+
+  public setMusicVolume(v: number): void {
+    this.setMasterVolume(v);
+  }
+
+  public setRadioVolume(_v: number): void {}
+  public setUiVolume(_v: number): void {}
+  public setCrossfadeDurationSec(_v: number): void {}
+  public updateCarRadioSettings(_patch: unknown): void {}
+  public resetAudioSettings(): void {
+    this.stationMemories.forEach((_mem, id) => {
+      this.stationMemories.set(id, {
+        stationVolume: 1.0,
+        effects: buildCleanDefaultEffects(),
+        playbackOrder: 'sequential',
+        lastTrackId: null,
+        lastTrackProgressSec: 0,
+      });
+      saveStationMemory(id, this.stationMemories.get(id)!);
+    });
+    this.notifyListeners();
+  }
+
+  // ===========================================================================
+  // REACT STATE SNAPSHOT
+  // ===========================================================================
   public getSnapshot(): AudioManagerSnapshot {
-    if (this.cachedSnapshot) return this.cachedSnapshot;
-    const allZones = this.zoneManager.getAllZones();
-    const activeZone = allZones.reduce<typeof allZones[0] | null>((best, cur) => {
-      if (cur.currentGain > 0.05 && (!best || cur.currentGain > best.currentGain)) {
-        return cur;
-      }
-      return best;
-    }, null);
+    const activeDef =
+      DEFAULT_WORLD_STATIONS.find((s) => s.id === this.activeStationId) ||
+      DEFAULT_WORLD_STATIONS[0];
+    const mem = this.getStationMemory(this.activeStationId);
 
-    const activePlaylist = this.playlistManager.getPlaylist(this.settings.selectedPlaylistId);
-    const hasTracks = activePlaylist.tracks.length > 0;
+    // Compute distance to each physical station
+    const cyberDef = DEFAULT_WORLD_STATIONS.find((s) => s.id === 'cyber_city_station')!;
+    const jamaicaDef = DEFAULT_WORLD_STATIONS.find((s) => s.id === 'jamaica_city_station')!;
 
-    this.cachedSnapshot = {
-      settings: { ...this.settings },
-      audioUnlocked: this.audioUnlocked,
-      needsUserInteractionPrompt: this.needsUserInteractionPrompt,
-      isPlayingRadio: this.isPlayingRadio && !this.radioAudio.paused,
-      isInsideVehicle: this.isInsideVehicle,
-      activeVehicleId: this.activeVehicleId,
-      nearestVehicleDistance: Math.round(this.nearestVehicleDistance * 10) / 10,
-      radioPhysicalGain: Math.round(this.radioPhysicalGain * 100) / 100,
-      currentTrack: hasTracks ? this.currentRadioTrack : null,
-      currentTrackProgressSec: Math.floor(this.radioAudio.currentTime || 0),
-      currentTrackDurationSec: Math.floor(
-        this.radioAudio.duration || this.currentRadioTrack?.durationSec || 0
-      ),
-      playlists: this.playlistManager.getPlaylists(),
-      radioErrorBanner: this.radioErrorBanner,
-      ambientStatus: {
-        state: this.ambientState,
-        currentAmbientTrackTitle: this.currentAmbientTrack?.title || null,
-        nextAmbientCountdownSec: Math.ceil(this.ambientQuietCountdownSec),
-        currentAmbientGain: Math.round(this.ambientCurrentGain * 100) / 100,
+    const cyberDist = Math.hypot(
+      this.playerCoords.x - cyberDef.position.x,
+      this.playerCoords.z - cyberDef.position.z
+    );
+    const jamaicaDist = Math.hypot(
+      this.playerCoords.x - jamaicaDef.position.x,
+      this.playerCoords.z - jamaicaDef.position.z
+    );
+
+    const isNearCyber = cyberDist <= (cyberDef.interactionRadius || 5.5);
+    const isNearJamaica = jamaicaDist <= (jamaicaDef.interactionRadius || 5.5);
+
+    const stationsRuntime: MusicStationRuntimeState[] = DEFAULT_WORLD_STATIONS.map((def) => {
+      const stMem = this.getStationMemory(def.id);
+      const dist = Math.hypot(
+        this.playerCoords.x - def.position.x,
+        this.playerCoords.z - def.position.z
+      );
+      const isAudible =
+        this.activeStationId === def.id && this.playbackStatus === 'playing';
+
+      return {
+        station: {
+          ...def,
+          volume: stMem.stationVolume,
+          effects: stMem.effects,
+          playbackOrder: stMem.playbackOrder,
+        },
+        distance: Math.round(dist * 10) / 10,
+        isPlayerInsideZone: dist <= def.radius,
+        isPlayerAtStationControl: dist <= (def.interactionRadius || 5.5),
+        targetSpatialGain: isAudible ? 1 : 0,
+        currentSpatialGain: isAudible ? 1 : 0,
+        effectiveAudibleGain: isAudible ? stMem.stationVolume : 0,
+        playbackStatus: this.activeStationId === def.id ? this.playbackStatus : 'stopped',
+        isPlaying: this.activeStationId === def.id && this.playbackStatus === 'playing',
+        currentTrack: this.activeStationId === def.id ? this.currentTrack : null,
+        currentTrackProgressSec:
+          this.activeStationId === def.id ? this.currentProgressSec : 0,
+        currentTrackDurationSec:
+          this.activeStationId === def.id ? this.currentDurationSec : 0,
+      };
+    });
+
+    const nearbyRuntime = isNearCyber
+      ? stationsRuntime.find((s) => s.station.id === 'cyber_city_station') || null
+      : isNearJamaica
+      ? stationsRuntime.find((s) => s.station.id === 'jamaica_city_station') || null
+      : null;
+
+    const carRadioState: CarRadioState = {
+      enabled: false,
+      playbackStatus: 'stopped',
+      isPlaying: false,
+      playbackOrder: 'sequential',
+      volume: 1.0,
+      innerRadius: 5,
+      maxHearingDistance: 40,
+      position: { x: 0, z: 0 },
+      distanceToPlayer: 0,
+      spatialGain: 0,
+      effectiveAudibleGain: 0,
+      currentTrack: null,
+      currentTrackProgressSec: 0,
+      currentTrackDurationSec: 0,
+      effects: buildCleanDefaultEffects(),
+    };
+
+    const settings: AudioSettings = {
+      masterVolume: this.masterVolume,
+      musicVolume: this.masterVolume,
+      radioVolume: 1.0,
+      ambienceVolume: 0.8,
+      environmentVolume: 0.5,
+      effectsVolume: 1.0,
+      uiVolume: 0.65,
+      muted: this.muted,
+      crossfadeDurationSec: 3.0,
+      effects: mem.effects,
+      editingStationId: this.activeStationId,
+      carRadio: {
+        enabled: false,
+        volume: 1.0,
+        playbackOrder: 'sequential',
+        maxHearingDistance: 40,
+        effects: buildCleanDefaultEffects(),
       },
-      activeZoneId: activeZone ? activeZone.zone.id : null,
-      activeZoneName: activeZone ? activeZone.zone.name : 'Open Island Breeze',
-      zones: allZones.map((z) => ({
-        ...z,
-        zone: { ...z.zone },
-      })),
+      stations: buildDefaultStationsMap(),
+    };
+
+    return {
+      settings,
+      audioUnlocked: this.audioUnlocked,
+      needsUserInteractionPrompt: !this.audioUnlocked,
+      carRadio: carRadioState,
+      stations: stationsRuntime,
+      editingStationId: this.activeStationId,
+      dominantStationId: this.playbackStatus === 'playing' ? this.activeStationId : null,
+      dominantStationName: activeDef.name,
+      nearbyInteractiveStation: nearbyRuntime,
+      inWorldStationModalId: this.openStationModalId,
+      playlists: this.playlistManager.getPlaylists(),
+      errorBanner: null,
+      statusToast: this.statusToast,
+      playerPosition: { ...this.playerCoords },
+      isInsideVehicle: Boolean(this.activeVehicle),
+      activeVehicleId: this.activeVehicle,
+      nearestVehicleDistance: 10,
+      isInsideBuilding: false,
+      activeBuildingId: null,
+      activeBuildingName: null,
       weather: this.weather,
       timePhase: this.timePhase,
     };
-    return this.cachedSnapshot;
   }
 
   public subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
+    return () => this.listeners.delete(listener);
   }
 
   private notifyListeners(): void {
-    this.cachedSnapshot = null;
     this.listeners.forEach((fn) => fn());
   }
 }
